@@ -20,10 +20,14 @@ class HashTable {
   remove(obj) {
     const code = this.hash(obj)
     let bucket = this.underlying[code]
-    if (bucket)
-      bucket.delete(obj)
-    if (bucket.size == 0)
-      delete this.underlying[code]
+    let hasObj = false
+    if (bucket) {
+      hasObj = bucket.delete(obj)
+      if (bucket.size == 0)
+        delete this.underlying[code]
+    }
+    
+    return hasObj
   }
   
   // do some procedure for each bucket of items in the hash table
@@ -31,8 +35,17 @@ class HashTable {
   //
   // Example: hashtable.forEachBucket(items => console.log(items.length))
   //          will print out the number of items stashed in each bucket
+  //
+  // WARNING: modifying the item list will modify the hash table
   forEachBucket(operation) {
     Object.values(this.underlying).forEach(operation)
+  }
+
+  // return the items associated with a hash key
+  // 
+  // WARNING: modifying the returned collection will modify the hash table
+  getItemsWithKey(key) {
+    return this.underlying[key];
   }
 
 }
