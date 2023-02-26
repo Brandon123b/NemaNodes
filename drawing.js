@@ -12,12 +12,31 @@ class Canvas {
     maxZoomLevel : 100,
     minZoomLevel : 0.05
   }
+  
 
   // position container for whole screen
-  this.container = new PIXI.Sprite(PIXI.Texture.WHITE)
+  this.container = new PIXI.Container();
+
+
+
+  // TODO: LOOK AT THIS
+  // You should try to get a background seperate from the container 
+  // If you want to have the background scalable, you should find a way to do that seperatly
+  // You can do this by making a seperate sprite and adding it to the container
+  // You may be able to scale the container to zoom in and out, but you will have to figure out how to do that
+  // There may also be issues with blurryness when you scale the container (I'm not sure)
+  // Seems to only zoom with mouse over this container background. Something to consider
+  var backGround = new PIXI.Sprite(PIXI.Texture.WHITE);
+  backGround.width = 200;
+  backGround.height = 200;
+  backGround.tint = 0xff3333;
+  this.container.addChild(backGround);
+
+
   //this.container.width = app.screen.width (This was your error)
   //this.container.height = app.screen.height (This was your error)
   
+
   console.log("Container position: (" + this.container.position.x + ", " + this.container.position.y + ")");
   console.log("Container width: " + this.container.width);
   console.log("Container height: " + this.container.height);
