@@ -41,7 +41,10 @@ class World {
   add(obj) {
     console.log(obj)
     obj.sprite.interactive = true
-    obj.sprite.onclick = () => console.log(obj.worldPos.x, obj.worldPos.y, obj.sprite.x, obj.sprite.y)
+    obj.sprite.onclick = () => {
+      console.log("Nematode's world position: (" + obj.worldPos.x + ", " + obj.worldPos.y + ")");
+      console.log("Nematode's screen position: (" + obj.sprite.position.x + ", " + obj.sprite.position.y + ")");
+    }
     
     // TODO clamp object's position to be within world borders
     this.zones.insert(obj)

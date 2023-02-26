@@ -15,16 +15,23 @@ class Canvas {
 
   // position container for whole screen
   this.container = new PIXI.Sprite(PIXI.Texture.WHITE)
-  this.container.width = app.screen.width
-  this.container.height = app.screen.height
+  //this.container.width = app.screen.width (This was your error)
+  //this.container.height = app.screen.height (This was your error)
   
+  console.log("Container position: (" + this.container.position.x + ", " + this.container.position.y + ")");
+  console.log("Container width: " + this.container.width);
+  console.log("Container height: " + this.container.height);
+  console.log("Container scale: " + this.container.scale.x + ", " + this.container.scale.y);
+
   // make the background pink
   this.container.tint = 0xff3333
   this.container.interactive = true // mark interactive to register mouse wheel
   app.stage.addChild(this.container)
   this.container.on('pointerdown', e => {
-    console.log(e.data.global.x, e.data.global.y)
-    console.log(this.screen2WorldPos(new PIXI.Point(e.data.global.x, e.data.global.y)))
+    console.log("Screen Pos of click: (" + e.data.global.x + ", " + e.data.global.y + ")");
+	var screenPos = new PIXI.Point(e.data.global.x, e.data.global.y);
+	var worldPos = this.screen2WorldPos(screenPos);
+	console.log("World Pos of click: (" + worldPos.x + ", " + worldPos.y + ")");
   })
 
   // on mouse wheel, change the scale of the view
