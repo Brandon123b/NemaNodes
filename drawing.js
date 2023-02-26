@@ -87,13 +87,10 @@ class Canvas {
     this.container.addChild(sprite)
   }
 
-  // for each object in the world, change its sprite position in the view container
-  // and scale the sprite correctly
+  // for each object in the world, call UpdateSprite
+  // may optimize to calling UpdateSprite on static objects like food
   drawWorld(world) {
     world.forEach(o => {
-      //o.sprite.position = this.world2ScreenPos(o.worldPos)
-      //o.sprite.scale.set(this.camera.zoomLevel)
-      //o.sprite.position = o.worldPos
       o.UpdateSprite()
     });
   }
