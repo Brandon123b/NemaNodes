@@ -26,8 +26,8 @@ class Nematode {
         this.maxSpeed = 1;                     // The maximum speed of the Nematode
         this.maxTurnSpeed = 4;                  // The maximum turn speed of the Nematode
 
-        this.width  = 1;                       // The width of the Nematode
-        this.height = 1;                       // The height of the Nematode
+        this.width  = 10;                       // The width of the Nematode
+        this.height = 10;                       // The height of the Nematode
         this.angle = Math.random() * 360;       // The angle of the Nematode
 
         this.worldPos = new PIXI.Point(0,0);  // The position of the Nematode in the world    TODO: What is the best way to store this?
@@ -67,20 +67,22 @@ class Nematode {
         if (speed < 0)
             speed /= 2;
 
-        let newPos = this.worldPos.add(new PIXI.Point(Math.cos(this.angle * Math.PI / 180) * delta * speed, Math.sin(this.angle * Math.PI / 180) * delta * speed))
+        let newPos = this.worldPos.add(
+            new PIXI.Point(
+                Math.cos(this.angle * Math.PI / 180) * delta * speed,
+                Math.sin(this.angle * Math.PI / 180) * delta * speed)
+        )
         world.updatePos(this, newPos)
 
-        // Update the sprite
-        this.UpdateSprite();         // TODO: This may be called automatically by the draw class
     }
 
+    // called by drawing.js
     UpdateSprite() {
-
         // Set the sprite values
         this.sprite.x = this.worldPos.x;
         this.sprite.y = this.worldPos.y;
-        //this.sprite.width = this.width;
-        //this.sprite.height = this.height;
+        this.sprite.width = this.width;
+        this.sprite.height = this.height;
         this.sprite.angle = this.angle;
     }
 }

@@ -27,7 +27,7 @@ class World {
     // hash table that maps game objects to a zone
     this.zones = new HashTable(obj2zone)
     // the canvas holds a container that we draw the objects on
-    this.canvas = new Canvas()
+    this.canvas = new Canvas(worldWidth, worldHeight)
   }
 
   // remove an object from the world
@@ -37,19 +37,19 @@ class World {
     obj.sprite.destroy()
   }
 
-  // add an object to the world.
+  // add an object to the world
+  // an object should implement a worldPos field which is a PIXI.Point
   add(obj) {
-    console.log(obj)
     obj.sprite.interactive = true
     obj.sprite.onclick = () => {
       console.log("Nematode's world position: (" + obj.worldPos.x + ", " + obj.worldPos.y + ")");
-      console.log("Nematode's screen position: (" + obj.sprite.position.x + ", " + obj.sprite.position.y + ")");
+      console.log("Nematode's screen position: (", this.canvas.world2ScreenPos(obj.worldPos) , ")");
     }
     
     // TODO clamp object's position to be within world borders
     this.zones.insert(obj)
     // add the game object so it can be drawn
-    this.canvas.container.addChild(obj.sprite)
+    this.canvas.add(obj.sprite)
   }
 
   // update the position of the object
@@ -96,6 +96,7 @@ class World {
     return `${zoneX},${zoneY}`
   }
 
+  // perform an action on each object of the world
   forEach(f) {
     this.zones.forEachBucket(zone => zone.forEach(f))
   }
