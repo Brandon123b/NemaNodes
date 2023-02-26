@@ -33,7 +33,7 @@ class Nematode {
         this.worldPos = new PIXI.Point(0,0);  // The position of the Nematode in the world    TODO: What is the best way to store this?
 
         // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
-        this.sprite = PIXI.Sprite.from('Bibite2.png');
+        this.sprite = PIXI.Sprite.from('Bibite.png');
         // Set the pivot point to the center of the bibite
         this.sprite.anchor.set(0.5);
         
