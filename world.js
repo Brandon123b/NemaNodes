@@ -18,33 +18,47 @@ class World {
     this.foodReplenishRate = 1 // food added per second
 
     // function to map objects to zones
+
     let obj2zone = obj => {
-      let [zoneX,zoneY] = this.#pos2zone(obj.worldPos.GetX(), obj.worldPos.GetY())
+      let [zoneX,zoneY] = this.#pos2zone(obj.worldPos.x, obj.worldPos.y)
       return this.#zone2hashkey(zoneX,zoneY)
     }
+
+    // hash table that maps game objects to a zone
     this.zones = new HashTable(obj2zone)
+    // the canvas holds a container that we draw the objects on
+    this.canvas = new Canvas(worldWidth, worldHeight)
   }
 
   // remove an object from the world
   destroy(obj) {
     if (!this.zones.remove(obj))
       throw `Object ${obj} cannot be destroyed because it does not exist in the world`
+    obj.sprite.destroy()
   }
 
   // add an object to the world
+  // an object should implement a worldPos field which is a PIXI.Point
   add(obj) {
+    obj.sprite.interactive = true
+    obj.sprite.onclick = () => {
+      console.log("Nematode's world position: (" + obj.worldPos.x + ", " + obj.worldPos.y + ")");
+      console.log("Nematode's screen position: (", this.canvas.world2ScreenPos(obj.worldPos) , ")");
+    }
+    
     // TODO clamp object's position to be within world borders
     this.zones.insert(obj)
+    // add the game object so it can be drawn
+    this.canvas.add(obj.sprite)
   }
 
   // update the position of the object
   // NOTE: this will modify the object's worldPos field
-  updatePos(obj, worldPosX, worldPosY) {
+  updatePos(obj, newWorldPos) {
     if (!this.zones.remove(obj))
       throw `Object ${obj} position cannot be updated because it does not exist in the world`
     // TODO clamp newWorldPos to be within world borders
-    obj.worldPos.SetX(worldPosX)
-    obj.worldPos.SetY(worldPosY)
+    obj.worldPos = newWorldPos
     this.zones.insert(obj)
   }
 
@@ -58,7 +72,7 @@ class World {
     for (let x = minZoneX; x <= maxZoneX; x++)
     for (let y = minZoneY; y <= maxZoneY; y++)
     for (let obj of this.getObjectsAtZone(x,y))
-    if (Math.sqrt((obj.worldPos.GetX()-worldPosX)**2 + (obj.worldPos.GetY()-worldPosY)**2) <= radius)
+    if (Math.sqrt((obj.worldPos.x-worldPosX)**2 + (obj.worldPos.y-worldPosY)**2) <= radius)
       results.push(obj)
 
     return results
@@ -80,6 +94,11 @@ class World {
   // create hash key of zone coordinates from position
   #zone2hashkey(zoneX, zoneY) {
     return `${zoneX},${zoneY}`
+  }
+
+  // perform an action on each object of the world
+  forEach(f) {
+    this.zones.forEachBucket(zone => zone.forEach(f))
   }
 
 }

@@ -17,13 +17,25 @@ app = new PIXI.Application({width, height});
 document.body.appendChild(app.view);
 
 // Simple background color
-app.renderer.background.color = 0x0000FF;
+//app.renderer.background.color = 0x0000FF;
+
+// resize app window
 
 // Create list of nematodes
-nematodeList = [];
+let world = new World(1000,1000,10,10)
 
 // Add a nematode to the list
-nematodeList.push(new Nematode());
+let n1 = new Nematode()
+let n2 = new Nematode()
+let n3 = new Nematode()
+
+world.add(n1)
+world.add(n2)
+world.add(n3)
+world.updatePos(n2, new PIXI.Point(10,10))
+world.updatePos(n1, new PIXI.Point(20,20))
+world.updatePos(n3, new PIXI.Point(600,600))
+
 
 // Start the game loop
 app.ticker.add((delta) => {
@@ -38,6 +50,8 @@ app.ticker.add((delta) => {
 function GameLoop(delta) {
 
     // Update the nematodes
-    for (var i = 0; i < nematodeList.length; i++)
-        nematodeList[i].Update(delta);
+    world.forEach(n => n.Update(delta))
+    // update the canvas
+    world.canvas.drawWorld(world)
 }
+

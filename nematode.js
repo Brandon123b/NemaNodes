@@ -23,25 +23,21 @@ class Nematode {
         this.age = 0;                           // The age in seconds
         this.energy = 100;                      // The energy of the Nematode
 
-        this.maxSpeed = 3;                     // The maximum speed of the Nematode
+        this.maxSpeed = 1;                     // The maximum speed of the Nematode
         this.maxTurnSpeed = 4;                  // The maximum turn speed of the Nematode
 
-        this.width  = 40;                       // The width of the Nematode
-        this.height = 40;                       // The height of the Nematode
+        this.width  = 10;                       // The width of the Nematode
+        this.height = 10;                       // The height of the Nematode
         this.angle = Math.random() * 360;       // The angle of the Nematode
+        this.direction = new PIXI.Point(0,1).rotate(Math.random()*360)
 
-        this.worldPos = new Vector2(400, 400);  // The position of the Nematode in the world    TODO: What is the best way to store this?
-
+        this.worldPos = new PIXI.Point(0,0);  // The position of the Nematode in the world    TODO: What is the best way to store this?
 
         // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
         this.sprite = PIXI.Sprite.from('Bibite.png');
-        
         // Set the pivot point to the center of the bibite
         this.sprite.anchor.set(0.5);
         
-        // Add the bibite to the stage (app.stage is the stage of the game)         TODO: Will likely change to implement the world class?
-        app.stage.addChild(this.sprite);
-
     }
 
     /*
@@ -64,6 +60,7 @@ class Nematode {
 
         // Update the bibite's position and rotation from the neural network's outputs
         this.angle += /*this.nn.GetOutput(0) * */ delta * this.maxTurnSpeed;
+        this.direction.rotateInPlace(delta * this.maxTurnSpeed)
 
         // Calculate the speed of the bibite
         var speed = /*this.nn.GetOutput(1) * */ delta * this.maxSpeed;
@@ -72,24 +69,23 @@ class Nematode {
         if (speed < 0)
             speed /= 2;
 
+        let newPos = this.worldPos.add(
+            new PIXI.Point(
+                Math.cos(this.angle * Math.PI / 180) * delta * speed,
+                Math.sin(this.angle * Math.PI / 180) * delta * speed)
+        )
+        world.updatePos(this, newPos)
 
-        // Update the world position
-        this.worldPos.Add(
-            Math.cos(this.angle * Math.PI / 180) * delta * speed,
-            Math.sin(this.angle * Math.PI / 180) * delta * speed
-        );
-
-        // Update the sprite
-        this.UpdateSprite();         // TODO: This may be called automatically by the draw class
     }
 
+    // called by drawing.js
     UpdateSprite() {
-
         // Set the sprite values
-        this.sprite.x = this.worldPos.GetX();
-        this.sprite.y = this.worldPos.GetY();
+        this.sprite.x = this.worldPos.x;
+        this.sprite.y = this.worldPos.y;
         this.sprite.width = this.width;
         this.sprite.height = this.height;
-        this.sprite.angle = this.angle;
+        //this.sprite.angle = this.angle;
+        this.sprite.angle = this.direction.getAngle();
     }
 }
