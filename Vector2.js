@@ -1,3 +1,4 @@
+
 /**
  * Vector2.js
  * Additional methods for PIXI.Points
@@ -16,3 +17,12 @@ PIXI.Point.prototype.rotate = function(_angle, outPoint) {
     return outPoint
 }
 
+// rotate a vector in place
+PIXI.Point.prototype.rotateInPlace = function(_angle) {
+    return this.rotate(_angle, this)
+}
+
+// get the angle of the vector in degrees
+PIXI.Point.prototype.getAngle = function() {
+    return Math.atan2(this.y, this.x) * 180 / Math.PI
+}

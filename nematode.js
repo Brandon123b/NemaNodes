@@ -29,6 +29,7 @@ class Nematode {
         this.width  = 10;                       // The width of the Nematode
         this.height = 10;                       // The height of the Nematode
         this.angle = Math.random() * 360;       // The angle of the Nematode
+        this.direction = new PIXI.Point(0,1).rotate(Math.random()*360)
 
         this.worldPos = new PIXI.Point(0,0);  // The position of the Nematode in the world    TODO: What is the best way to store this?
 
@@ -59,6 +60,7 @@ class Nematode {
 
         // Update the bibite's position and rotation from the neural network's outputs
         this.angle += /*this.nn.GetOutput(0) * */ delta * this.maxTurnSpeed;
+        this.direction.rotateInPlace(delta * this.maxTurnSpeed)
 
         // Calculate the speed of the bibite
         var speed = /*this.nn.GetOutput(1) * */ delta * this.maxSpeed;
@@ -83,6 +85,7 @@ class Nematode {
         this.sprite.y = this.worldPos.y;
         this.sprite.width = this.width;
         this.sprite.height = this.height;
-        this.sprite.angle = this.angle;
+        //this.sprite.angle = this.angle;
+        this.sprite.angle = this.direction.getAngle();
     }
 }
