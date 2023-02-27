@@ -50,9 +50,9 @@ class Canvas {
   let onScroll = e => {
     const scroll = e.deltaY
     if (scroll > 0)
-      this.camera.zoomLevel *= 1.1
-    else
       this.camera.zoomLevel /= 1.1
+    else
+      this.camera.zoomLevel *= 1.1
     // clamp the zoomlevel
     this.camera.zoomLevel = Math.min(this.camera.zoomLevel, this.camera.maxZoomLevel)
     this.camera.zoomLevel = Math.max(this.camera.zoomLevel, this.camera.minZoomLevel)
