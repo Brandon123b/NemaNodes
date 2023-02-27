@@ -1,43 +1,18 @@
 /**
  * Vector2.js
- * A 2D vector class with an x and y component
+ * Additional methods for PIXI.Points
  */
 
-class Vector2{
+// rotate this vector to create a new one
+// provide outPoint argument to store the results, or leave it empty to return a new one
+PIXI.Point.prototype.rotate = function(_angle, outPoint) {
+    const cos = Math.cos(_angle * Math.PI / 180)
+    const sin = Math.sin(_angle * Math.PI / 180)
 
-    constructor(_x, _y){
-        this.x = _x;
-        this.y = _y;
-    }
-
-    GetX() {
-        return this.x;
-    }
-
-    GetY() {
-        return this.y;
-    }
-
-    SetX(_x) {
-        this.x = _x;
-    }
-
-    SetY(_y) {
-        this.y = _y;
-    }
-
-    Set(_x, _y) {
-        this.x = _x;
-        this.y = _y;
-    }
-
-    Add(_x, _y) {
-        this.x += _x;
-        this.y += _y;
-    }
-
-    AddVector(_vector) {
-        this.x += _vector.GetX();
-        this.y += _vector.GetY();
-    }
+    // if no outPoint is given then make a new one to return
+    if (!outPoint) outPoint = new PIXI.Point()
+    outPoint.x = this.x * cos - this.y * sin
+    outPoint.y = this.x * sin + this.y * cos
+    return outPoint
 }
+
