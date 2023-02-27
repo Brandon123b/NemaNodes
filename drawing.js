@@ -40,18 +40,10 @@ class Canvas {
   })
 
   // set up callbacks for mouse drag behavior (for panning)
-  this.dragdata = null
-  this.dragging = false
   this.backGround
-    .on('pointerdown', e => {this.dragdata = e.data; this.dragging = true})
-    .on('pointerup', () => {this.dragdata = null; this.dragging = false})
-    .on('pointerupoutside', () => {this.dragdata = null; this.dragging = false})
-    .on('pointermove', (e) => {
-      if (this.dragging) {
-        // BUG dragging will jerk the center of the container to the mouse
-        this.container.position = this.dragdata.global
-      }
-    })
+    .on('pointerdown', onDragStart, this.container)
+    .on('pointerup', onDragEnd)
+    .on('pointerupoutside', onDragEnd)
   
 
   // on mouse wheel, change the zoom level
@@ -96,4 +88,30 @@ class Canvas {
   }
 
 
+}
+
+// general code for dragging
+let dragTarget = null
+let dragStart = new PIXI.Point()
+
+function onDragMove(event) {
+  if (dragTarget) {
+      const { x, y } = dragStart;
+      dragTarget.parent.toLocal(event.global, null, dragStart);
+      dragTarget.x += (dragStart.x - x);
+      dragTarget.y += (dragStart.y - y);
+  }
+}
+
+function onDragStart(event) {
+  dragTarget = this;
+  app.stage.on('pointermove', onDragMove);
+  dragTarget.parent.toLocal(event.global, null, dragStart);
+}
+
+function onDragEnd() {
+  if (dragTarget) {
+      app.stage.off('pointermove', onDragMove);
+      dragTarget = null;
+  }
 }
