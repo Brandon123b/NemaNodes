@@ -56,7 +56,11 @@ class Canvas {
     // clamp the zoomlevel
     this.camera.zoomLevel = Math.min(this.camera.zoomLevel, this.camera.maxZoomLevel)
     this.camera.zoomLevel = Math.max(this.camera.zoomLevel, this.camera.minZoomLevel)
+    
+    let mousePos = e.data.global
+    let returnPivot = this.container.toLocal(mousePos)
     this.container.scale = this.initialScale.multiplyScalar(this.camera.zoomLevel)
+    this.container.pivot = this.container.pivot.subtract(this.container.toLocal(mousePos).subtract(returnPivot))
   }
 
   this.backGround.onwheel = onScroll
