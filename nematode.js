@@ -18,20 +18,26 @@ class Nematode {
 
     constructor() {
 
-        this.nn = null;                         // new NeuralNetwork(3, 2);  // The neural network of the Nematode
+        // The brain
+        this.nn = new NeatNN(5, 3)              // The neural network of the Nematode
 
+        // The body
         this.age = 0;                           // The age in seconds
         this.energy = 100;                      // The energy of the Nematode
 
-        this.maxSpeed = 1;                     // The maximum speed of the Nematode
+        // The movement
+        this.maxSpeed = 1;                      // The maximum speed of the Nematode
         this.maxTurnSpeed = 4;                  // The maximum turn speed of the Nematode
 
+        // The size
         this.width  = 10;                       // The width of the Nematode
         this.height = 10;                       // The height of the Nematode
-        this.angle = Math.random() * 360;       // The angle of the Nematode
+
+        // The direction (normalized)
         this.direction = new PIXI.Point(0,1).rotate(Math.random()*360)
 
-        this.worldPos = new PIXI.Point(0,0);  // The position of the Nematode in the world    TODO: What is the best way to store this?
+        // The position (in the world)
+        this.worldPos = new PIXI.Point(0,0);    // The position of the Nematode in the world
 
         // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
         this.sprite = PIXI.Sprite.from('Bibite.png');
@@ -46,36 +52,39 @@ class Nematode {
     * @param {number} delta - The time since the last update in seconds
     */
     Update(delta) {
-
-        // Increase the age of the bibite
-        this.age += delta;
         
         // Set the neural network inputs from the eye raycasts
         //this.nn.SetInput(0, this.EyeRaycast(-30));
         //this.nn.SetInput(1, this.EyeRaycast(0));
         //this.nn.SetInput(2, this.EyeRaycast(30));
+        this.nn.SetInput(0, .5);
+        this.nn.SetInput(1, .5);
+        this.nn.SetInput(2, .5);
+        this.nn.SetInput(3, this.age);
+        this.nn.SetInput(4, this.energy);
 
         // Run the neural network
-        //this.nn.RunNN();
+        this.nn.RunNN();
 
-        // Update the bibite's position and rotation from the neural network's outputs
-        this.angle += /*this.nn.GetOutput(0) * */ delta * this.maxTurnSpeed;
-        this.direction.rotateInPlace(delta * this.maxTurnSpeed)
+        // Update the bibite's rotation
+        this.direction.rotate(this.nn.GetOutput(0) * this.maxTurnSpeed * delta);
 
         // Calculate the speed of the bibite
-        var speed = /*this.nn.GetOutput(1) * */ delta * this.maxSpeed;
+        var speed = this.nn.GetOutput(1) * delta * this.maxSpeed;
 
         // If speed is negative, halve it (Make backwards movement slower to encourage forward movement)
-        if (speed < 0)
-            speed /= 2;
+        speed = (speed < 0) ? speed *= 0.5 : speed;
 
-        let newPos = this.worldPos.add(
-            new PIXI.Point(
-                Math.cos(this.angle * Math.PI / 180) * delta * speed,
-                Math.sin(this.angle * Math.PI / 180) * delta * speed)
-        )
-        world.updatePos(this, newPos)
+        // Update the bibite's position
+        this.worldPos.addXY( this.direction.x * speed * delta, 
+                             this.direction.y * speed * delta );
 
+
+        // Increase the age of the bibite
+        this.age += delta;
+
+        // Decrease the energy of the bibite
+        this.energy -= delta;
     }
 
     // called by drawing.js
@@ -85,7 +94,7 @@ class Nematode {
         this.sprite.y = this.worldPos.y;
         this.sprite.width = this.width;
         this.sprite.height = this.height;
-        //this.sprite.angle = this.angle;
         this.sprite.angle = this.direction.getAngle();
     }
 }
+
