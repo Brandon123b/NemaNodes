@@ -53,6 +53,14 @@ class NeatNN {
             }
         }
 
+        // Default the input values
+        for(let i = 0; i < this.inputCount; i++)
+            this.inputs.push(0);
+
+        // Default the output values
+        for(let i = 0; i < this.outputCount; i++)
+            this.outputs.push(0);
+
         // Calculate the penalty of the network
         this.CalculatePenalty();
     }
@@ -366,7 +374,7 @@ class NeatNN {
      * @param {number} ySize The height of the canvas
      * @param {number} nodeSize The size of the nodes
      */
-    DrawNN(graphics, xSize = 500, ySize = 300, nodeSize = 20) {
+    DrawNN(graphics, xSize = 300, ySize = 200, nodeSize = 10) {
 
         var xPadding = 35;
         var yPadding = 20;
@@ -413,7 +421,7 @@ class NeatNN {
             yPositionsUsed[nodeDepths[i]]++;
 
             // Add the location to the list of locations
-            nodeLocations.push(new Vector2(xLoc, yLoc));
+            nodeLocations.push(new PIXI.Point(xLoc, yLoc));
         }
 
         // Draw the connections
@@ -454,7 +462,7 @@ class NeatNN {
         graphics.lineStyle(1 , 0x0000FF);
 
         // Draw the circle
-        graphics.drawCircle(loc.GetX(), loc.GetY(), nodeSize);
+        graphics.drawCircle(loc.x, loc.y, nodeSize);
     }
 
     /* Draws a connection
@@ -482,8 +490,8 @@ class NeatNN {
         graphics.lineStyle(lineWidth, color);
 
         // Draw the line
-        graphics.moveTo(nodeLocations[this.nodes.indexOf(connection.from)].GetX(), nodeLocations[this.nodes.indexOf(connection.from)].GetY());
-        graphics.lineTo(nodeLocations[this.nodes.indexOf(connection.to)].GetX(), nodeLocations[this.nodes.indexOf(connection.to)].GetY());
+        graphics.moveTo(nodeLocations[this.nodes.indexOf(connection.from)].x, nodeLocations[this.nodes.indexOf(connection.from)].y);
+        graphics.lineTo(nodeLocations[this.nodes.indexOf(connection.to)].x, nodeLocations[this.nodes.indexOf(connection.to)].y);
     }
 
     /* Finds the depth of each node
@@ -576,10 +584,6 @@ class NeatNN {
 
     // Get the output value of the node
     GetOutput(index) {
-            
-        // Check if the index is valid
-        if (index >= this.outputCount)
-            throw "You are trying to get an output that does not exist";
 
         // Get the output
         return this.outputs[index];

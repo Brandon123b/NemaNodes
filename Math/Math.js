@@ -1,16 +1,19 @@
 // not currently used because we have no food objects
 // We should consider a function that returns all food objects in a given area (instead of including the nematodes)
+// Food objects should have a worldPos field and a radius field
 
-/** Raycasts a ray against all circles in the scene
- *  Returns true if the ray hit a circle or false if it did not
- *  raycastResult is the result of the raycast
- *  drawRay is whether or not to draw the ray (default is false)
- */
+
+// Raycasts a ray against all circles in the scene
+// Returns true if the ray hit a circle or false if it did not
+// raycastResult is the result of the raycast
+// drawRay is whether or not to draw the ray
 function Raycast(raycastResult, x, y, dirX, dirY, maxLength, drawRay = false) {
 
     var hasHit = false;
 
     tempResult = new RaycastResult2D();
+
+    food = world.getObjectsAt(x, y, maxLength * 1.1);
 
     // Loop through all circles in the scene
     for (var i = 0; i < food.length; i++) {
@@ -26,17 +29,22 @@ function Raycast(raycastResult, x, y, dirX, dirY, maxLength, drawRay = false) {
         }
     }
 
-    // TODO: gGraphics is undefined, either fix or remove
+    
     if (drawRay) {
+
+        var gGraphics = world.canvas.worldGraphics;
+
         // Draw the ray
-        gGraphics.lineStyle(4, "0xFF0000", 1);
-        gGraphics.beginFill(0x0000FF);
         gGraphics.moveTo(x, y);
 
-        if (hasHit)
+        if (hasHit){
+            gGraphics.lineStyle(1, "0x00FF00", 1);
             gGraphics.lineTo(raycastResult.GetX(), raycastResult.GetY());
-        else
+        }
+        else{
+            gGraphics.lineStyle(1, "0x0000FF", 1);
             gGraphics.lineTo(x + dirX * maxLength, y + dirY * maxLength);
+        }
     }
 
     // Return whether or not the ray hit a circle
@@ -69,6 +77,11 @@ function RaycastCircle(raycastResult, x, y, dirX, dirY, circle, maxLength) {
 
     // If the origin of the ray is inside the circle, set the raycast result to the origin of the ray
     if (eMagSqar < rSq){
+
+        // If the origin of the ray is the same as the center of the circle, there is no intersection
+        if (x == circle.GetX() && y == circle.GetY())
+            return false;
+
         raycastResult.Set(x, y, 0);
         return true;
     }
@@ -99,10 +112,10 @@ function RaycastCircle(raycastResult, x, y, dirX, dirY, circle, maxLength) {
 
 class RaycastResult2D {
     
-    Set(hitX, hitY, distance) {
-        this.hitX = hitX;
-        this.hitY = hitY;
-        this.distance = distance;
+    Set(_hitX, _hitY, _distance) {
+        this.hitX = _hitX;
+        this.hitY = _hitY;
+        this.distance = _distance;
     }
 
     GetX() {

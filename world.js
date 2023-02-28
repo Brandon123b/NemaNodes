@@ -74,7 +74,7 @@ class World {
     for (let obj of this.getObjectsAtZone(x,y))
 
     // Take the square of radius to avoid taking the square root of the sum of squares
-    if ((obj.worldPos.x-worldPosX)**2 + (obj.worldPos.y-worldPosY)**2 <= radius**2) 
+    if ((obj.worldPos.x-worldPosX)**2 + (obj.worldPos.y-worldPosY)**2 <= radius * radius) 
       results.push(obj)
 
     return results
