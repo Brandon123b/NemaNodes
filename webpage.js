@@ -29,12 +29,11 @@ let n1 = new Nematode()
 let n2 = new Nematode()
 let n3 = new Nematode()
 
-world.add(n1)
-world.add(n2)
-world.add(n3)
-world.updatePos(n2, new PIXI.Point(10,10))
-world.updatePos(n1, new PIXI.Point(20,20))
-world.updatePos(n3, new PIXI.Point(600,600))
+
+for (let i = 0; i < 100; i++) {
+    let n = new Nematode()
+    world.add(n)
+}
 
 
 // Start the game loop
