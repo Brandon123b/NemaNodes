@@ -24,34 +24,51 @@ document.body.appendChild(app.view);
 // Create list of nematodes
 let world = new World(1000,1000,10,10)
 
-// Add a nematode to the list
-let n1 = new Nematode()
-let n2 = new Nematode()
-let n3 = new Nematode()
+// Want to separete this nematode to draw the neural network
+var firstNeatode;
 
-world.add(n1)
-world.add(n2)
-world.add(n3)
-world.updatePos(n2, new PIXI.Point(10,10))
-world.updatePos(n1, new PIXI.Point(20,20))
-world.updatePos(n3, new PIXI.Point(600,600))
+// Add some nematodes to the world
+for (let i = 0; i < 300; i++) {
+    let n = new Nematode()
+    world.add(n)
+
+    if (firstNeatode == undefined) {
+        firstNeatode = n;
+    }
+}
+
+// Create the fps counter
+fpsCounter = new PIXI.Text("FPS: 0", {fontFamily : 'Arial', fontSize: 20, fill : 0x00FF00, align : 'center'});
+fpsCounter.x = 10;
+fpsCounter.y = 8;
+app.stage.addChild(fpsCounter);
 
 
 // Start the game loop
-app.ticker.add((delta) => {
-    GameLoop(delta);
+app.ticker.add(() => {
+
+    // Find the time in seconds since the last frame
+    var delta = app.ticker.deltaMS / 1000;
+    GameLoop(delta );
 });
 
 
 /**
  * GameLoop Called every frame from the ticker 
- * @param {number} delta - The time since the last frame
+ * @param {number} delta - Time since last frame in seconds
 */
 function GameLoop(delta) {
+
+    // Clear the graphics
+    world.canvas.worldGraphics.clear();
+    world.canvas.screenGraphics.clear();
 
     // Update the nematodes
     world.forEach(n => n.Update(delta))
     // update the canvas
     world.canvas.drawWorld(world)
+
+    // Update the fps counter
+    fpsCounter.text = "FPS: " + Math.round(app.ticker.FPS);
 }
 

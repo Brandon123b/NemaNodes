@@ -21,7 +21,6 @@ class Canvas {
   // something like this probably
   //window.addEventListener("resize", () => this.backGround.resize(window.innerWidth, window.innerHeight));
 
-
   // container to hold world object sprites
   // the local position of a sprite within the canvas container is 1:1 with its world object position
   this.container = new PIXI.Container()
@@ -30,6 +29,16 @@ class Canvas {
   this.container.position.set(width/2, height/2)
   this.initialScale = this.container.scale.clone()
   app.stage.addChild(this.container)
+
+  // Add a graphis object to the canvas This is for drawing to the world (like raycasts)
+  // This may/may not be kept, but it is useful for debugging
+  this.worldGraphics = new PIXI.Graphics();
+  this.container.addChild(this.worldGraphics);
+
+  // Add a graphis object to the canvas This is for drawing to the screen (like the neural network)
+  // This may/may not be kept, but it is useful for debugging
+  this.screenGraphics = new PIXI.Graphics();
+  app.stage.addChild(this.screenGraphics);
 
   // DEBUG: click on a point on the background to get the corresponding position in the nematode world
   this.backGround.on('pointerdown', e => {
@@ -86,9 +95,12 @@ class Canvas {
   // for each object in the world, call UpdateSprite
   // may optimize to calling UpdateSprite on static objects like food
   drawWorld(world) {
+
     world.forEach(o => {
       o.UpdateSprite()
     });
+
+    firstNeatode.nn.DrawNN(this.screenGraphics);
   }
 
 

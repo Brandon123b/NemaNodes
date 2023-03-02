@@ -9,29 +9,35 @@
  */
 
 // The maximum distance that the bibite can see
-var maxSeeDistance = 500;
+var maxSeeDistance = 50;
 
 // DEBUG: Should the eye rays be drawn?
-var drawEyeRays = false;
+var drawEyeRays = true;
 
 class Nematode {
 
     constructor() {
 
-        this.nn = null;                         // new NeuralNetwork(3, 2);  // The neural network of the Nematode
+        // The brain
+        this.nn = new NeatNN(5, 2)              // The neural network of the Nematode
 
+        // The body
         this.age = 0;                           // The age in seconds
         this.energy = 100;                      // The energy of the Nematode
 
-        this.maxSpeed = 1;                     // The maximum speed of the Nematode
-        this.maxTurnSpeed = 4;                  // The maximum turn speed of the Nematode
+        // The movement
+        this.maxSpeed = 80;                     // The maximum speed of the Nematode (in pixels (unzoomed) per second)
+        this.maxTurnSpeed = 120;                // The maximum turn speed of the Nematode (in degrees per second)
 
+        // The size
         this.width  = 10;                       // The width of the Nematode
         this.height = 10;                       // The height of the Nematode
-        this.angle = Math.random() * 360;       // The angle of the Nematode
-        this.direction = new PIXI.Point(0,1).rotate(Math.random()*360)
 
-        this.worldPos = new PIXI.Point(0,0);  // The position of the Nematode in the world    TODO: What is the best way to store this?
+        // The direction (normalized)
+        this.direction = new PIXI.Point(1,0).rotate(Math.random()*360)
+
+        // The position (in the world)
+        this.worldPos = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250);    // The position of the Nematode in the world
 
         // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
         this.sprite = PIXI.Sprite.from('Bibite.png');
@@ -46,36 +52,59 @@ class Nematode {
     * @param {number} delta - The time since the last update in seconds
     */
     Update(delta) {
+        
+        // Set the neural network inputs from the eye raycasts
+
+        this.nn.SetInput(0, this.EyeRaycast(-25));
+        this.nn.SetInput(1, this.EyeRaycast(0));
+        this.nn.SetInput(2, this.EyeRaycast(25));
+        this.nn.SetInput(3, this.age / 60 - 1);
+        this.nn.SetInput(4, this.energy / 100 - 1);
+
+        // Run the neural network
+        this.nn.RunNN();
+
+        // Get the rotation and speed from the neural network
+        var rotate = this.nn.GetOutput(0) * this.maxTurnSpeed * delta;
+        var speed  = this.nn.GetOutput(1) * this.maxSpeed     * delta;
+
+        // Update the bibite's rotation
+        this.direction.rotate(rotate);
+
+        // If speed is negative, halve it (Make backwards movement slower to encourage forward movement)
+        speed = (speed < 0) ? speed *= 0.5 : speed;
+
+        // Update the bibite's position
+        this.worldPos.addXY( this.direction.x * speed, 
+                             this.direction.y * speed );
 
         // Increase the age of the bibite
         this.age += delta;
+
+        // Decrease the energy of the bibite
+        this.energy -= delta;
+    }
+
+    // Returns the ratio of the distance to the closest food to the max distance
+    // Returns -1 if no food is found
+    EyeRaycast(angleFromMiddle) {
         
-        // Set the neural network inputs from the eye raycasts
-        //this.nn.SetInput(0, this.EyeRaycast(-30));
-        //this.nn.SetInput(1, this.EyeRaycast(0));
-        //this.nn.SetInput(2, this.EyeRaycast(30));
+        // Create a raycast result object
+        var raycastResult = new RaycastResult2D();
 
-        // Run the neural network
-        //this.nn.RunNN();
+        // Calculate the angle of the sight line in radians
+        var theta = (this.direction.getAngle() + angleFromMiddle) * Math.PI / 180;
 
-        // Update the bibite's position and rotation from the neural network's outputs
-        this.angle += /*this.nn.GetOutput(0) * */ delta * this.maxTurnSpeed;
-        this.direction.rotateInPlace(delta * this.maxTurnSpeed)
+        // Get the direction of the sight line
+        var dirX = Math.cos(theta);
+        var dirY = Math.sin(theta);
 
-        // Calculate the speed of the bibite
-        var speed = /*this.nn.GetOutput(1) * */ delta * this.maxSpeed;
-
-        // If speed is negative, halve it (Make backwards movement slower to encourage forward movement)
-        if (speed < 0)
-            speed /= 2;
-
-        let newPos = this.worldPos.add(
-            new PIXI.Point(
-                Math.cos(this.angle * Math.PI / 180) * delta * speed,
-                Math.sin(this.angle * Math.PI / 180) * delta * speed)
-        )
-        world.updatePos(this, newPos)
-
+        // Send the raycast
+        if (Raycast(raycastResult, this.sprite.x, this.sprite.y, dirX, dirY, maxSeeDistance, drawEyeRays))
+            return (1 - raycastResult.GetDistance() / maxSeeDistance);
+        
+        // Return -1 if no food is found
+        return -1;
     }
 
     // called by drawing.js
@@ -85,7 +114,20 @@ class Nematode {
         this.sprite.y = this.worldPos.y;
         this.sprite.width = this.width;
         this.sprite.height = this.height;
-        //this.sprite.angle = this.angle;
         this.sprite.angle = this.direction.getAngle();
     }
+
+    // TEMP FOR TESTING RAYCASTS
+    GetRadius() {
+        return this.width / 2;
+    }
+
+    GetX() {
+        return this.worldPos.x;
+    }
+
+    GetY() {
+        return this.worldPos.y;
+    }
 }
+
