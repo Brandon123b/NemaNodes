@@ -26,7 +26,8 @@ class Canvas {
   this.container = new PIXI.Container()
   this.container.interactive = true // mark interactive to register clicks on objects
   this.container.pivot.set(width/2, height/2)
-  this.container.position.set(width/2, height/2)
+  this.container.position.set(app.screen.width, app.screen.height)
+  console.log(this.container.position)
   this.initialScale = this.container.scale.clone()
   app.stage.addChild(this.container)
 
