@@ -84,6 +84,11 @@ class Nematode {
 
         // Decrease the energy of the bibite
         this.energy -= delta;
+
+        // update sprite
+        this.sprite.width = this.width
+        this.sprite.height = this.height
+        this.sprite.angle = this.direction.getAngle()
     }
 
     // Returns the ratio of the distance to the closest food to the max distance
@@ -105,16 +110,6 @@ class Nematode {
         
         // Return -1 if no food is found
         return -1;
-    }
-
-    // called by drawing.js
-    UpdateSprite() {
-        // Set the sprite values
-        //this.sprite.x = this.worldPos.x;
-        //this.sprite.y = this.worldPos.y;
-        this.sprite.width = this.width;
-        this.sprite.height = this.height;
-        this.sprite.angle = this.direction.getAngle();
     }
 
     // TEMP FOR TESTING RAYCASTS

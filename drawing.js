@@ -17,6 +17,7 @@ class Canvas {
   this.backGround.tint = 0xff3333;
   this.backGround.interactive = true
   app.stage.addChild(this.backGround)
+
   // TODO resize background on screen change
   // something like this probably
   //window.addEventListener("resize", () => this.backGround.resize(window.innerWidth, window.innerHeight));
@@ -88,19 +89,13 @@ class Canvas {
     this.container.addChild(sprite)
   }
 
-  // for each object in the world, call UpdateSprite
-  // may optimize to calling UpdateSprite on static objects like food
+  
   drawWorld(world) {
     if (world.drawZones) {
       this.worldGraphics.lineStyle(2, 0x00ffff)
       for (const [x,y] of world.getOccupiedZones())
       this.worldGraphics.drawRect(world.zoneWidth()*x, world.zoneHeight()*y, world.zoneWidth(), world.zoneHeight())
     }
-    
-
-    world.forEach(o => {
-      o.UpdateSprite()
-    });
 
     firstNeatode.nn.DrawNN(this.screenGraphics);
   }
