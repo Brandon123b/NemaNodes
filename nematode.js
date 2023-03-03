@@ -15,8 +15,9 @@ var maxSeeDistance = 50;
 var drawEyeRays = true;
 
 class Nematode {
-
-    constructor() {
+    // provide the World object for this nematode to live in
+    constructor(world) {
+        this.world = world
 
         // The brain
         this.nn = new NeatNN(5, 2)              // The neural network of the Nematode
@@ -44,6 +45,7 @@ class Nematode {
         // Set the pivot point to the center of the bibite
         this.sprite.anchor.set(0.5);
         
+        world.add(this)
     }
 
     /*
@@ -75,8 +77,7 @@ class Nematode {
         speed = (speed < 0) ? speed *= 0.5 : speed;
 
         // Update the bibite's position
-        this.worldPos.addXY( this.direction.x * speed, 
-                             this.direction.y * speed );
+        this.world.updatePos(this, this.GetX() + this.direction.x * speed, this.GetY() + this.direction.y * speed);
 
         // Increase the age of the bibite
         this.age += delta;
@@ -88,7 +89,6 @@ class Nematode {
     // Returns the ratio of the distance to the closest food to the max distance
     // Returns -1 if no food is found
     EyeRaycast(angleFromMiddle) {
-        
         // Create a raycast result object
         var raycastResult = new RaycastResult2D();
 
@@ -128,6 +128,14 @@ class Nematode {
 
     GetY() {
         return this.worldPos.y;
+    }
+
+    GetPosition() {
+        return this.worldPos
+    }
+
+    SetPos(x, y) {
+        this.worldPos.set(x,y)
     }
 }
 

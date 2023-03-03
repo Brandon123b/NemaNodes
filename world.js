@@ -20,7 +20,7 @@ class World {
     // function to map objects to zones
 
     let obj2zone = obj => {
-      let [zoneX,zoneY] = this.#pos2zone(obj.worldPos.x, obj.worldPos.y)
+      let [zoneX,zoneY] = this.#pos2zone(obj.GetX(), obj.GetY())
       return this.#zone2hashkey(zoneX,zoneY)
     }
 
@@ -42,8 +42,8 @@ class World {
   add(obj) {
     obj.sprite.interactive = true
     obj.sprite.onclick = () => {
-      console.log("Nematode's world position: (" + obj.worldPos.x + ", " + obj.worldPos.y + ")");
-      console.log("Nematode's screen position: (", this.canvas.world2ScreenPos(obj.worldPos) , ")");
+      console.log("Nematode's world position: (" + obj.GetX() + ", " + obj.GetY() + ")");
+      console.log("Nematode's screen position: (", this.canvas.world2ScreenPos(obj.GetPosition()) , ")");
     }
     
     // TODO clamp object's position to be within world borders
@@ -54,11 +54,11 @@ class World {
 
   // update the position of the object
   // NOTE: this will modify the object's worldPos field
-  updatePos(obj, newWorldPos) {
+  updatePos(obj, newX, newY) {
     if (!this.zones.remove(obj))
       throw `Object ${obj} position cannot be updated because it does not exist in the world`
     // TODO clamp newWorldPos to be within world borders
-    obj.worldPos = newWorldPos
+    obj.SetPos(newX, newY)
     this.zones.insert(obj)
   }
 
