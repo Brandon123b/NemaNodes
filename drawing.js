@@ -93,6 +93,12 @@ class Canvas {
   // for each object in the world, call UpdateSprite
   // may optimize to calling UpdateSprite on static objects like food
   drawWorld(world) {
+    if (world.drawZones) {
+      this.worldGraphics.lineStyle(2, 0x00ffff)
+      for (const [x,y] of world.getOccupiedZones())
+      this.worldGraphics.drawRect(world.zoneWidth()*x, world.zoneHeight()*y, world.zoneWidth(), world.zoneHeight())
+    }
+    
 
     world.forEach(o => {
       o.UpdateSprite()
