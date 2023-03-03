@@ -42,7 +42,7 @@ class World {
   }
 
   // add an object to the world
-  // an object should implement a worldPos field which is a PIXI.Point
+  // an object should implement GetX(), GetY(), GetPosition(), SetPos()
   add(obj) {
     obj.sprite.interactive = true
     obj.sprite.onclick = () => {
@@ -54,6 +54,7 @@ class World {
     this.#zones.insert(obj)
     // add the game object so it can be drawn
     this.canvas.add(obj.sprite)
+
   }
 
   // update the position of the object
