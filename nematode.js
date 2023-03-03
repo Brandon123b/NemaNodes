@@ -37,13 +37,13 @@ class Nematode {
         // The direction (normalized)
         this.direction = new PIXI.Point(1,0).rotate(Math.random()*360)
 
-        // The position (in the world)
-        this.worldPos = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250);    // The position of the Nematode in the world
-
         // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
         this.sprite = PIXI.Sprite.from('Bibite.png');
         // Set the pivot point to the center of the bibite
         this.sprite.anchor.set(0.5);
+
+        // the position of this nematode in the world is maintained by its sprite position
+        this.sprite.position = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250)
         
         world.add(this)
     }
@@ -110,8 +110,8 @@ class Nematode {
     // called by drawing.js
     UpdateSprite() {
         // Set the sprite values
-        this.sprite.x = this.worldPos.x;
-        this.sprite.y = this.worldPos.y;
+        //this.sprite.x = this.worldPos.x;
+        //this.sprite.y = this.worldPos.y;
         this.sprite.width = this.width;
         this.sprite.height = this.height;
         this.sprite.angle = this.direction.getAngle();
@@ -123,19 +123,19 @@ class Nematode {
     }
 
     GetX() {
-        return this.worldPos.x;
+        return this.sprite.position.x;
     }
 
     GetY() {
-        return this.worldPos.y;
+        return this.sprite.position.y;
     }
 
     GetPosition() {
-        return this.worldPos
+        return this.sprite.position
     }
 
     SetPos(x, y) {
-        this.worldPos.set(x,y)
+        this.sprite.position.set(x,y)
     }
 }
 
