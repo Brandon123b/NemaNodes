@@ -50,10 +50,7 @@ class Canvas {
   })
 
   // set up callbacks for mouse drag behavior (for panning)
-  this.backGround
-    .on('pointerdown', onDragStart, this.container)
-    .on('pointerup', onDragEnd)
-    .on('pointerupoutside', onDragEnd)
+  mkDraggable(this.backGround, this.container)
   
 
   // on mouse wheel, change the zoom level
@@ -107,28 +104,45 @@ class Canvas {
 
 }
 
-// general code for dragging
-let dragTarget = null
-let dragStart = new PIXI.Point()
+// register events to make an object respond to mouse dragging
+// registerDisplayObject: display object to register the intial mouse drag
+// dragTarget: the displayObject whose coordinate space we use to calculate mouse position change
+// displaceFunc: function (dx, dy) => ... action to perform given mouse displacement (by default, simply translate dragTarget's position)
+function mkDraggable(registerDisplayObject, dragTarget, displaceFunc) {
+  let dragging = false
+  let dragStart = null
 
-function onDragMove(event) {
-  if (dragTarget) {
-      const { x, y } = dragStart;
-      dragTarget.parent.toLocal(event.global, null, dragStart);
-      dragTarget.x += (dragStart.x - x);
-      dragTarget.y += (dragStart.y - y);
+  // default action is to translate the target object's position point
+  if (!displaceFunc)
+    displaceFunc = (dx, dy) => {dragTarget.x += dx; dragTarget.y += dy}
+  
+  // while dragging, apply displaceFunc to the change in mouse position
+  let onDragMove = function(mouseEvent) {
+    if (dragging) {
+      const { x, y } = dragStart
+      dragTarget.parent.toLocal(mouseEvent.global, null, dragStart)
+      displaceFunc(dragStart.x - x, dragStart.y - y)
+    }
   }
-}
 
-function onDragStart(event) {
-  dragTarget = this;
-  app.stage.on('pointermove', onDragMove);
-  dragTarget.parent.toLocal(event.global, null, dragStart);
-}
-
-function onDragEnd() {
-  if (dragTarget) {
-      app.stage.off('pointermove', onDragMove);
-      dragTarget = null;
+  // begin tracking mouse position
+  let onDragStart = function(mouseEvent) {
+    dragging = true
+    app.stage.on('pointermove', onDragMove)
+    dragStart = dragTarget.parent.toLocal(mouseEvent.global)
   }
+
+  // deregister the callback placed on the stage to stop dragging
+  let onDragEnd = function() {
+    if (dragging) {
+      app.stage.off('pointermove', onDragMove)
+      dragging = false
+      dragStart = null
+    }
+  }
+
+  registerDisplayObject
+    .on('pointerdown', onDragStart)
+    .on('pointerup', onDragEnd)
+    .on('pointerupoutside', onDragEnd)
 }
