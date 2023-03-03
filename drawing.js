@@ -25,9 +25,7 @@ class Canvas {
   // the local position of a sprite within the canvas container is 1:1 with its world object position
   this.container = new PIXI.Container()
   this.container.interactive = true // mark interactive to register clicks on objects
-  this.container.pivot.set(width/2, height/2)
-  this.container.position.set(app.screen.width, app.screen.height)
-  console.log(this.container.position)
+  this.container.position.set(app.screen.width/2, app.screen.height/2)
   this.initialScale = this.container.scale.clone()
   app.stage.addChild(this.container)
 
