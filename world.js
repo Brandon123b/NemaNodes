@@ -5,61 +5,75 @@
  */
 
 class World {
+  #width
+  #height
+  #zoneWidth
+  #zoneHeight
+
+// hash table that maps game objects to a zone
+  #zones = new HashTable(obj => {
+    let [zoneX,zoneY] = this.#pos2zone(obj.GetX(), obj.GetY())
+    return this.#zone2hashkey(zoneX,zoneY)
+  })
+
   // set the size of the world in the x-direction (width)
   // set the size of the world in the y-direction (height)
   // give the size of a world zone
   constructor(worldWidth, worldHeight, zoneWidth, zoneHeight) {
-    this.width = worldWidth
-    this.height = worldHeight
-    this.zoneWidth = zoneWidth
-    this.zoneHeight = zoneHeight
+    this.#width = worldWidth
+    this.#height = worldHeight
+    this.#zoneWidth = zoneWidth
+    this.#zoneHeight = zoneHeight
 
     this.maxNumFood = 1000
     this.foodReplenishRate = 1 // food added per second
-
-    // function to map objects to zones
-
-    let obj2zone = obj => {
-      let [zoneX,zoneY] = this.#pos2zone(obj.worldPos.x, obj.worldPos.y)
-      return this.#zone2hashkey(zoneX,zoneY)
-    }
-
-    // hash table that maps game objects to a zone
-    this.zones = new HashTable(obj2zone)
+    
     // the canvas holds a container that we draw the objects on
     this.canvas = new Canvas(worldWidth, worldHeight)
+
+    this.drawZones = false
   }
 
   // remove an object from the world
   destroy(obj) {
-    if (!this.zones.remove(obj))
+    if (!this.#zones.remove(obj))
       throw `Object ${obj} cannot be destroyed because it does not exist in the world`
     obj.sprite.destroy()
   }
 
   // add an object to the world
-  // an object should implement a worldPos field which is a PIXI.Point
+  // an object should implement GetX(), GetY(), GetPosition(), SetPos()
   add(obj) {
     obj.sprite.interactive = true
     obj.sprite.onclick = () => {
-      console.log("Nematode's world position: (" + obj.worldPos.x + ", " + obj.worldPos.y + ")");
-      console.log("Nematode's screen position: (", this.canvas.world2ScreenPos(obj.worldPos) , ")");
+      console.log("Nematode's world position: (" + obj.GetX() + ", " + obj.GetY() + ")");
+      console.log("Nematode's screen position: (", this.canvas.world2ScreenPos(obj.GetPosition()) , ")");
     }
     
     // TODO clamp object's position to be within world borders
-    this.zones.insert(obj)
+    this.#zones.insert(obj)
     // add the game object so it can be drawn
     this.canvas.add(obj.sprite)
+
   }
 
   // update the position of the object
-  // NOTE: this will modify the object's worldPos field
-  updatePos(obj, newWorldPos) {
-    if (!this.zones.remove(obj))
-      throw `Object ${obj} position cannot be updated because it does not exist in the world`
+  // NOTE: this will modify the object's position
+  updatePos(obj, newX, newY) {
     // TODO clamp newWorldPos to be within world borders
-    obj.worldPos = newWorldPos
-    this.zones.insert(obj)
+    let {x,y} = obj.GetPosition()
+    let [oldzx, oldzy] = this.#pos2zone(x,y)
+    let [newzx,newzy] = this.#pos2zone(newX, newY)
+
+    let zoneChange = (oldzx != newzx) || (oldzy != newzy)
+
+    // if the nematode is changing zones then update the zone hash table
+    if (zoneChange && !this.#zones.remove(obj))
+      throw `Object ${obj} position cannot be updated because it does not exist in the world`
+
+    obj.SetPos(newX, newY)
+    if (zoneChange) this.#zones.insert(obj)
+
   }
 
   // return a list of objects from the given area
@@ -74,7 +88,7 @@ class World {
     for (let obj of this.getObjectsAtZone(x,y))
 
     // Take the square of radius to avoid taking the square root of the sum of squares
-    if ((obj.worldPos.x-worldPosX)**2 + (obj.worldPos.y-worldPosY)**2 <= radius * radius) 
+    if ((obj.GetX()-worldPosX)**2 + (obj.GetY()-worldPosY)**2 <= radius * radius) 
       results.push(obj)
 
     return results
@@ -82,15 +96,23 @@ class World {
 
   // return array of items currently in the given zone
   getObjectsAtZone(zoneX, zoneY) {
-    let results = this.zones.getItemsWithKey(this.#zone2hashkey(zoneX,zoneY))
+    let results = this.#zones.getItemsWithKey(this.#zone2hashkey(zoneX,zoneY))
     if (results)
       return [...results]
     else return []
   }
 
+  // return the currently occupied zones: [[0,1], [-2,2], [5,0]]
+  getOccupiedZones() {
+    return this.#zones.keys().map(function(k) {
+      const [x,y] = k.split(',')
+      return [parseInt(x), parseInt(y)]
+    })
+  }
+
   // get zone coordinates from world coordinates
   #pos2zone(worldPosX,worldPosY) {
-    return [Math.floor(worldPosX/this.zoneWidth), Math.floor(worldPosY/this.zoneHeight)]
+    return [Math.floor(worldPosX/this.#zoneWidth), Math.floor(worldPosY/this.#zoneHeight)]
   }
 
   // create hash key of zone coordinates from position
@@ -100,7 +122,15 @@ class World {
 
   // perform an action on each object of the world
   forEach(f) {
-    this.zones.forEachBucket(zone => zone.forEach(f))
+    this.#zones.forEachBucket(zone => zone.forEach(f))
+  }
+
+  zoneHeight() {
+    return this.#zoneHeight
+  }
+
+  zoneWidth() {
+    return this.#zoneWidth
   }
 
 }

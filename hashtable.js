@@ -48,4 +48,9 @@ class HashTable {
     return this.underlying[key];
   }
 
+  // return the keys of the hash table
+  keys() {
+    return Object.keys(this.underlying)
+  }
+
 }

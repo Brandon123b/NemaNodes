@@ -15,8 +15,9 @@ var maxSeeDistance = 50;
 var drawEyeRays = true;
 
 class Nematode {
-
-    constructor() {
+    // provide the World object for this nematode to live in
+    constructor(world) {
+        this.world = world
 
         // The brain
         this.nn = new NeatNN(5, 2)              // The neural network of the Nematode
@@ -36,14 +37,29 @@ class Nematode {
         // The direction (normalized)
         this.direction = new PIXI.Point(1,0).rotate(Math.random()*360)
 
-        // The position (in the world)
-        this.worldPos = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250);    // The position of the Nematode in the world
-
         // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
         this.sprite = PIXI.Sprite.from('Bibite.png');
         // Set the pivot point to the center of the bibite
         this.sprite.anchor.set(0.5);
+
+        // the position of this nematode in the world is maintained by its sprite position
+        this.sprite.position = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250)
+
+        // random color tint for sprite
+        this.baseColor = Math.random() * 0xFFFFFF
+        this.sprite.tint = this.baseColor
+
+        // set flag to true to prevent nematode from moving
+        this.paralyzed = false
         
+        world.add(this)
+
+        // make nematodes draggable
+        createDragAction(this.sprite, this.sprite,
+            (x,y) => this.paralyzed = true,
+            (dx,dy) => this.world.updatePos(this, this.GetX()+dx, this.GetY()+dy),
+            (x,y) => this.paralyzed = false
+        )
     }
 
     /*
@@ -69,26 +85,29 @@ class Nematode {
         var speed  = this.nn.GetOutput(1) * this.maxSpeed     * delta;
 
         // Update the bibite's rotation
-        this.direction.rotate(rotate);
+        if (!this.paralyzed) this.direction.rotate(rotate);
 
         // If speed is negative, halve it (Make backwards movement slower to encourage forward movement)
         speed = (speed < 0) ? speed *= 0.5 : speed;
 
         // Update the bibite's position
-        this.worldPos.addXY( this.direction.x * speed, 
-                             this.direction.y * speed );
+        if (!this.paralyzed) this.world.updatePos(this, this.GetX() + this.direction.x * speed, this.GetY() + this.direction.y * speed);
 
         // Increase the age of the bibite
         this.age += delta;
 
         // Decrease the energy of the bibite
         this.energy -= delta;
+
+        // update sprite
+        this.sprite.width = this.width
+        this.sprite.height = this.height
+        this.sprite.angle = this.direction.getAngle()
     }
 
     // Returns the ratio of the distance to the closest food to the max distance
     // Returns -1 if no food is found
     EyeRaycast(angleFromMiddle) {
-        
         // Create a raycast result object
         var raycastResult = new RaycastResult2D();
 
@@ -107,27 +126,25 @@ class Nematode {
         return -1;
     }
 
-    // called by drawing.js
-    UpdateSprite() {
-        // Set the sprite values
-        this.sprite.x = this.worldPos.x;
-        this.sprite.y = this.worldPos.y;
-        this.sprite.width = this.width;
-        this.sprite.height = this.height;
-        this.sprite.angle = this.direction.getAngle();
-    }
-
     // TEMP FOR TESTING RAYCASTS
     GetRadius() {
         return this.width / 2;
     }
 
     GetX() {
-        return this.worldPos.x;
+        return this.sprite.position.x;
     }
 
     GetY() {
-        return this.worldPos.y;
+        return this.sprite.position.y;
+    }
+
+    GetPosition() {
+        return this.sprite.position
+    }
+
+    SetPos(x, y) {
+        this.sprite.position.set(x,y)
     }
 }
 
