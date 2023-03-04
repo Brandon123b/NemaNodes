@@ -44,6 +44,10 @@ class Nematode {
 
         // the position of this nematode in the world is maintained by its sprite position
         this.sprite.position = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250)
+
+        // random color tint for sprite
+        this.baseColor = Math.random() * 0xFFFFFF
+        this.sprite.tint = this.baseColor
         
         world.add(this)
     }
