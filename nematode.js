@@ -48,8 +48,18 @@ class Nematode {
         // random color tint for sprite
         this.baseColor = Math.random() * 0xFFFFFF
         this.sprite.tint = this.baseColor
+
+        // set flag to true to prevent nematode from moving
+        this.paralyzed = false
         
         world.add(this)
+
+        // make nematodes draggable
+        createDragAction(this.sprite, this.sprite,
+            (x,y) => this.paralyzed = true,
+            (dx,dy) => this.world.updatePos(this, this.GetX()+dx, this.GetY()+dy),
+            (x,y) => this.paralyzed = false
+        )
     }
 
     /*
@@ -75,13 +85,13 @@ class Nematode {
         var speed  = this.nn.GetOutput(1) * this.maxSpeed     * delta;
 
         // Update the bibite's rotation
-        this.direction.rotate(rotate);
+        if (!this.paralyzed) this.direction.rotate(rotate);
 
         // If speed is negative, halve it (Make backwards movement slower to encourage forward movement)
         speed = (speed < 0) ? speed *= 0.5 : speed;
 
         // Update the bibite's position
-        this.world.updatePos(this, this.GetX() + this.direction.x * speed, this.GetY() + this.direction.y * speed);
+        if (!this.paralyzed) this.world.updatePos(this, this.GetX() + this.direction.x * speed, this.GetY() + this.direction.y * speed);
 
         // Increase the age of the bibite
         this.age += delta;
