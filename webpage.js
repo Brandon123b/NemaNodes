@@ -37,6 +37,12 @@ for (let i = 0; i < 100; i++) {
     }
 }
 
+//Add some food for testing
+for (let i = 0; i < 15; i++) {
+    food_init_pos = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250)
+    let n = new Food(world, food_init_pos)
+}
+
 // Create the fps counter
 fpsCounter = new PIXI.Text("FPS: 0", {fontFamily : 'Arial', fontSize: 20, fill : 0x00FF00, align : 'center'});
 fpsCounter.x = 10;
