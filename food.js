@@ -17,12 +17,17 @@ class Food {
         this.height = 10
 
         this.age = 0
+        this.spriteScaleX = 0.25 //scale sprite as needed
+        this.spriteScaleY = 0.25
 
         this.sprite = PIXI.Sprite.from('mc_cake_sprite.png') //make real sprites later
         this.sprite.anchor.set(0.5)
+        //this.sprite.scale.set(spriteScaleX, spriteScaleY)
         //set sprite position from constructor params
-        this.sprite.position = new PIXI.Point(position[0], position[1])
-
+        this.sprite.position = position
+        this.sprite.width = this.width
+        this.sprite.height = this.height
+        world.add(this)
 
         // make food draggable
         createDragAction(this.sprite, this.sprite,
@@ -38,7 +43,7 @@ class Food {
     * Currently: updates age
     * @param {number} delta - time since last udpate
     */
-    update(delta) {
+    Update(delta) {
         this.age += delta
     }
 
@@ -65,7 +70,9 @@ class Food {
         this.sprite.position.set(x,y)
     }
 
-    
+    GetRadius() {
+        return this.width / 2;
+    }
     
 
 }
