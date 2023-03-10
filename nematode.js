@@ -30,8 +30,8 @@ class Nematode {
         this.maxEnergy = 80;                        // The maximum energy of the Nematode (set based on nematode size in Update)
         
         // The size (TODO: Will be updated when the nematodes sprites are finished)
-        this.size  =      5 + Math.random() * 10;   // The size of the Nematode (in pixels) (Randomly chosen between 5 and 15)
-        this.growRate = .05 + Math.random() * .1;   // The rate at which the Nematode grows (in pixels per second)
+        this.size  =      5 + Math.random() *  10;  // The size of the Nematode (in pixels) (Randomly chosen between 5 and 15)
+        this.growRate = .05 + Math.random() * .15;  // The rate at which the Nematode grows (in pixels per second)
 
         // The movement
         this.maxSpeed = -1;                         // The maximum speed of the Nematode (set in Update) (in pixels per second) 
@@ -177,7 +177,7 @@ class Nematode {
         var xPos = 10;          // Left padding
         var yPos = 30 + 200;    // Top padding + the height of the nn drawing
         var width = 300;
-        var height = 300;
+        var height = 350;
 
         // Draw the background
         graphics.beginFill(0x000000, 0.5);
@@ -200,7 +200,9 @@ class Nematode {
         text.text += "\n";
         text.text += "\nMax Speed: " + this.maxSpeed.toFixed(2) + " pixels/s";
         text.text += "\nTurn Speed: " + this.maxTurnSpeed.toFixed(2);
+        text.text += "\n";
         text.text += "\nSize: " + this.size.toFixed(2) + " pixels";
+        text.text += "\nGrow Rate: " + this.growRate.toFixed(2) + " pixels/s";
         text.text += "\n";
         text.text += "\nEnergy Consumption: ";
         text.text += "\n  Existance: " + 1 + " energy/s";
