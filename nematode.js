@@ -16,8 +16,7 @@ var drawEyeRays = true;
 
 class Nematode {
     // provide the World object for this nematode to live in
-    constructor(world) {
-        this.world = world
+    constructor() {
 
         // The brain
         this.nn = new NeatNN(5, 2)              // The neural network of the Nematode
@@ -52,7 +51,7 @@ class Nematode {
         // set flag to true to prevent nematode from moving
         this.paralyzed = false
         
-        world.add(this)
+        world.addNematode(this)
 
         // make nematodes draggable
         createDragAction(this.sprite, this.sprite,
@@ -91,7 +90,7 @@ class Nematode {
         speed = (speed < 0) ? speed *= 0.5 : speed;
 
         // Update the bibite's position
-        if (!this.paralyzed) this.world.updatePos(this, this.GetX() + this.direction.x * speed, this.GetY() + this.direction.y * speed);
+        if (!this.paralyzed) world.updateNematodePosition(this, this.GetX() + this.direction.x * speed, this.GetY() + this.direction.y * speed);
 
         // Increase the age of the bibite
         this.age += delta;

@@ -30,7 +30,7 @@ var firstNeatode;
 
 // Add some nematodes to the world
 for (let i = 0; i < 100; i++) {
-    let n = new Nematode(world)
+    let n = new Nematode()
 
     if (firstNeatode == undefined) {
         firstNeatode = n;
@@ -70,7 +70,7 @@ function GameLoop(delta) {
     world.canvas.screenGraphics.clear();
 
     // Update the nematodes
-    world.forEach(n => n.Update(delta))
+    world.forEachNematode(n => n.Update(delta))
     // update the canvas
     world.canvas.drawWorld(world)
 

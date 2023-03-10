@@ -27,7 +27,7 @@ class Food {
         this.sprite.position = position
         this.sprite.width = this.width
         this.sprite.height = this.height
-        world.add(this)
+        world.addFood(this)
 
         // make food draggable
         createDragAction(this.sprite, this.sprite,
