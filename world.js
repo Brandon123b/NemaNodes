@@ -32,6 +32,9 @@ class World {
     this.#zoneWidth = zoneWidth
     this.#zoneHeight = zoneHeight
 
+    // The currently selected nematode
+    this.selectedNematode = null
+
     this.maxNumFood = 1000
     this.foodReplenishRate = 1 // food added per second
     
@@ -64,6 +67,8 @@ class World {
     obj.sprite.onclick = () => {
       console.log("Nematode's world position: (" + obj.GetX() + ", " + obj.GetY() + ")");
       console.log("Nematode's screen position: (", this.canvas.world2ScreenPos(obj.GetPosition()) , ")");
+
+      this.selectedNematode = obj
     }
     
     // TODO clamp object's position to be within world borders

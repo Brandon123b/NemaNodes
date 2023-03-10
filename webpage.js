@@ -25,16 +25,9 @@ document.body.appendChild(app.view);
 let world = new World(1000,1000,100,100)
 world.drawZones = true
 
-// Want to separete this nematode to draw the neural network
-var firstNeatode;
-
 // Add some nematodes to the world
 for (let i = 0; i < 100; i++) {
     let n = new Nematode()
-
-    if (firstNeatode == undefined) {
-        firstNeatode = n;
-    }
 }
 
 //Add some food for testing

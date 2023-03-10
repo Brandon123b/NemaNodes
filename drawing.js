@@ -96,7 +96,8 @@ class Canvas {
       this.worldGraphics.drawRect(world.zoneWidth()*x, world.zoneHeight()*y, world.zoneWidth(), world.zoneHeight())
     }
 
-    firstNeatode.nn.DrawNN(this.screenGraphics);
+    if (world.selectedNematode != null)
+      world.selectedNematode.nn.DrawNN(this.screenGraphics);
   }
 
 
