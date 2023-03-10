@@ -1,6 +1,6 @@
-// not currently used because we have no food objects
-// We should consider a function that returns all food objects in a given area (instead of including the nematodes)
-// Food objects should have a worldPos field and a radius field
+// not currently used because we have no circles objects
+// We should consider a function that returns all circles objects in a given area (instead of including the nematodes)
+// circles objects should have a worldPos field and a radius field
 
 
 // Raycasts a ray against all circles in the scene
@@ -13,13 +13,13 @@ function Raycast(raycastResult, x, y, dirX, dirY, maxLength, drawRay = false) {
 
     tempResult = new RaycastResult2D();
 
-    food = world.getFoodAt(x, y, maxLength * 1.1);
+    circles = world.getFoodAt(x, y, maxLength * 1.1);
 
     // Loop through all circles in the scene
-    for (var i = 0; i < food.length; i++) {
+    for (var i = 0; i < circles.length; i++) {
 
         // If the ray did not hit a circle, continue
-        if (!RaycastCircle(tempResult, x, y, dirX, dirY, food[i], maxLength))
+        if (!RaycastCircle(tempResult, x, y, dirX, dirY, circles[i], maxLength))
             continue;
         
         // If the hit distance is less than the current hit distance, set the current hit distance to the new hit distance

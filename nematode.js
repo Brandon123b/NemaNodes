@@ -27,14 +27,15 @@ class Nematode {
         // The body
         this.age = 0;                               // The age in seconds
         this.energy = 30 + Math.random() * 60;      // The energy of the Nematode
-
-        // The movement
-        this.maxSpeed = 80;                         // The maximum speed of the Nematode (in pixels (unzoomed) per second)
-        this.maxTurnSpeed = 120;                    // The maximum turn speed of the Nematode (in degrees per second)
-
+        
         // The size (TODO: Will be updated when the nematodes sprites are finished)
         this.size  =      5 + Math.random() * 10;   // The size of the Nematode (in pixels) (Randomly chosen between 5 and 15)
         this.growRate = .05 + Math.random() * .1;   // The rate at which the Nematode grows (in pixels per second)
+
+        // The movement
+        this.maxSpeed = -1;                          // The maximum speed of the Nematode (set in Update) (in pixels per second) 
+        this.maxTurnSpeed = 120;                    // The maximum turn speed of the Nematode (in degrees per second)
+
 
         // The direction (normalized)
         this.direction = new PIXI.Point(1,0).rotate(Math.random()*360)
@@ -106,13 +107,16 @@ class Nematode {
 
         // Increase the age of the bibite (in seconds)
         this.age += delta;
+
+        // Increase the size of the bibite and set the max speed to adjust for the new size
         this.size += this.growRate * delta;
+        this.maxSpeed = 40 + 200 / this.size;                   // size must be greater than 0
 
         // Decrease the energy of the bibite
         var energyLoss = 1;                                     // Initial energy loss is 1 per second
         energyLoss += Math.abs(speed ) / this.maxSpeed;         // Multiply energy loss by the ratio of the speed to the max speed
         energyLoss += this.nn.GetPenalty();                     // Multiply energy loss by the penalty of the neural network
-        energyLoss *= 1 + this.age / 300;                        // Multiply energy loss by the ratio of the age to a constant
+        energyLoss *= 1 + this.age / 300;                       // Multiply energy loss by the ratio of the age to a constant
         this.energy -= energyLoss * delta;                      // Decrease the energy by the energy loss
 
         // update sprite

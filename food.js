@@ -85,4 +85,8 @@ class Food {
         return 30;
     }
 
+    toString() {
+        return `{Food at (${this.GetX()}, ${this.GetY()})}`
+    }
+
 }
