@@ -110,7 +110,7 @@ class Nematode {
 
         // Increase the size of the bibite and set the max speed to adjust for the new size
         this.size += this.growRate * delta;
-        this.maxSpeed = 40 + 200 / this.size;                   // size must be greater than 0
+        this.maxSpeed = 20 + 400 / this.size;                   // size must be greater than 0
         this.maxEnergy = 80 + this.size * 2;
 
         // Decrease the energy of the bibite
