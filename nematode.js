@@ -31,7 +31,7 @@ class Nematode {
         
         // The size (TODO: Will be updated when the nematodes sprites are finished)
         this.size  =      5 + Math.random() *  10;  // The size of the Nematode (in pixels) (Randomly chosen between 5 and 15)
-        this.growRate = .05 + Math.random() * .15;  // The rate at which the Nematode grows (in pixels per second)
+        this.growRate = .05 + Math.random() * .08;  // The rate at which the Nematode grows (in pixels per second)
 
         // The movement
         this.maxSpeed = -1;                         // The maximum speed of the Nematode (set in Update) (in pixels per second) 
