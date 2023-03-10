@@ -64,12 +64,9 @@ class World {
 
     // make the nematode clickable
     obj.sprite.interactive = true
-    obj.sprite.onclick = () => {
-      console.log("Nematode's world position: (" + obj.GetX() + ", " + obj.GetY() + ")");
-      console.log("Nematode's screen position: (", this.canvas.world2ScreenPos(obj.GetPosition()) , ")");
 
-      this.selectedNematode = obj
-    }
+    // when the nematode is clicked, select it
+    obj.sprite.onclick = () => { this.selectedNematode = obj }
     
     // TODO clamp object's position to be within world borders
     this.#nematodeZones.insert(obj)

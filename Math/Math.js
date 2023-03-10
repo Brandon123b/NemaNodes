@@ -25,7 +25,7 @@ function Raycast(raycastResult, x, y, dirX, dirY, maxLength, drawRay = false) {
         // If the hit distance is less than the current hit distance, set the current hit distance to the new hit distance
         if (!hasHit || tempResult.GetDistance() < raycastResult.GetDistance()){
             hasHit = true
-            raycastResult.Set(tempResult.GetX(), tempResult.GetY(), tempResult.GetDistance());
+            raycastResult.SetFrom(tempResult);
         }
     }
 
@@ -82,7 +82,7 @@ function RaycastCircle(raycastResult, x, y, dirX, dirY, circle, maxLength) {
         if (x == circle.GetX() && y == circle.GetY())
             return false;
 
-        raycastResult.Set(x, y, 0);
+        raycastResult.Set(x, y, 0, circle);
         return true;
     }
 
@@ -104,7 +104,7 @@ function RaycastCircle(raycastResult, x, y, dirX, dirY, circle, maxLength) {
         return false;
 
     // Set the raycast result
-    raycastResult.Set(x + t * dirX, y + t * dirY, t);
+    raycastResult.Set(x + t * dirX, y + t * dirY, t, circle);
 
     // Raycast was successful
     return true;
@@ -112,10 +112,19 @@ function RaycastCircle(raycastResult, x, y, dirX, dirY, circle, maxLength) {
 
 class RaycastResult2D {
     
-    Set(_hitX, _hitY, _distance) {
+    Set(_hitX, _hitY, _distance, _hitObject) {
         this.hitX = _hitX;
         this.hitY = _hitY;
         this.distance = _distance;
+
+        if (_hitObject == undefined)
+            throw "RaycastResult2D.Set: _hitObject is undefined";
+
+        this.hitObject = _hitObject;
+    }
+
+    SetFrom(raycastResult2D){
+        this.Set(raycastResult2D.GetX(), raycastResult2D.GetY(), raycastResult2D.GetDistance(), raycastResult2D.GetHitObject());
     }
 
     GetX() {
@@ -130,9 +139,14 @@ class RaycastResult2D {
         return this.distance;
     }
 
+    GetHitObject() {
+        return this.hitObject;
+    }
+
     Clear() {
         this.hitX = 0;
         this.hitY = 0;
         this.distance = 0;
+        this.hitObject = null;
     }
 }

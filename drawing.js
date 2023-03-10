@@ -42,10 +42,10 @@ class Canvas {
 
   // DEBUG: click on a point on the background to get the corresponding position in the nematode world
   this.backGround.on('pointerdown', e => {
-    console.log("Screen Pos of click: (" + e.data.global.x + ", " + e.data.global.y + ")");
+    //console.log("Screen Pos of click: (" + e.data.global.x + ", " + e.data.global.y + ")");
 	  var screenPos = new PIXI.Point(e.data.global.x, e.data.global.y);
 	  var worldPos = this.screen2WorldPos(e.data.global);
-	  console.log("World Pos of click: (" + worldPos.x + ", " + worldPos.y + ")");
+	  //console.log("World Pos of click: (" + worldPos.x + ", " + worldPos.y + ")");
   })
 
   // set up callbacks for mouse drag behavior (for panning)
@@ -96,8 +96,11 @@ class Canvas {
       this.worldGraphics.drawRect(world.zoneWidth()*x, world.zoneHeight()*y, world.zoneWidth(), world.zoneHeight())
     }
 
-    if (world.selectedNematode != null)
+    // draw the selected nematode's neural network and stats
+    if (world.selectedNematode != null){
       world.selectedNematode.nn.DrawNN(this.screenGraphics);
+      world.selectedNematode.DrawStats(this.screenGraphics);
+    }
   }
 
 

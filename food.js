@@ -62,6 +62,7 @@ class Food {
     GetAge() {
         return this.age
     }
+
     GetPosition() {
         return this.sprite.position
     }
@@ -74,5 +75,14 @@ class Food {
         return this.width / 2;
     }
     
+    /* Called when a nematode eats this food
+    *  Removes the food from the world
+    *  Returns the nutrition value of the food (TODO: add nutrition value to food)
+    */
+    Eat(){
+        this.world.destroyFood(this)
+
+        return 30;
+    }
 
 }

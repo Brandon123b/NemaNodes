@@ -16,10 +16,6 @@ var height = window.innerHeight
 app = new PIXI.Application({width, height});
 document.body.appendChild(app.view);
 
-// Simple background color
-//app.renderer.background.color = 0x0000FF;
-
-// resize app window
 
 // Create list of nematodes
 let world = new World(1000,1000,100,100)
@@ -27,11 +23,11 @@ world.drawZones = true
 
 // Add some nematodes to the world
 for (let i = 0; i < 100; i++) {
-    let n = new Nematode()
+    world.selectedNematode = new Nematode()
 }
 
 //Add some food for testing
-for (let i = 0; i < 15; i++) {
+for (let i = 0; i < 1000; i++) {
     food_init_pos = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250)
     let n = new Food(world, food_init_pos)
 }
@@ -61,6 +57,7 @@ function GameLoop(delta) {
     // Clear the graphics
     world.canvas.worldGraphics.clear();
     world.canvas.screenGraphics.clear();
+    world.canvas.screenGraphics.removeChildren();
 
     // Update the nematodes
     world.forEachNematode(n => n.Update(delta))
