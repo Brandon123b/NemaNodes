@@ -13,8 +13,8 @@ class Food {
     constructor(world, position) {
         this.world = world
 
-        this.width = 10
-        this.height = 10
+        this.width = 6
+        this.height = 6
 
         this.age = 0
         this.spriteScaleX = 0.25 //scale sprite as needed

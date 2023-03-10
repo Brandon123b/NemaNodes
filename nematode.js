@@ -26,16 +26,16 @@ class Nematode {
 
         // The body
         this.age = 0;                               // The age in seconds
-        this.energy = 30 + Math.random() * 60;      // The energy of the Nematode
+        this.energy = 30 + Math.random() * 60;      // The energy of the Nematode (Randomly chosen between 30 and 90)
+        this.maxEnergy = 80;                        // The maximum energy of the Nematode (set based on nematode size in Update)
         
         // The size (TODO: Will be updated when the nematodes sprites are finished)
         this.size  =      5 + Math.random() * 10;   // The size of the Nematode (in pixels) (Randomly chosen between 5 and 15)
         this.growRate = .05 + Math.random() * .1;   // The rate at which the Nematode grows (in pixels per second)
 
         // The movement
-        this.maxSpeed = -1;                          // The maximum speed of the Nematode (set in Update) (in pixels per second) 
+        this.maxSpeed = -1;                         // The maximum speed of the Nematode (set in Update) (in pixels per second) 
         this.maxTurnSpeed = 120;                    // The maximum turn speed of the Nematode (in degrees per second)
-
 
         // The direction (normalized)
         this.direction = new PIXI.Point(1,0).rotate(Math.random()*360)
@@ -111,6 +111,7 @@ class Nematode {
         // Increase the size of the bibite and set the max speed to adjust for the new size
         this.size += this.growRate * delta;
         this.maxSpeed = 40 + 200 / this.size;                   // size must be greater than 0
+        this.maxEnergy = 80 + this.size * 2;
 
         // Decrease the energy of the bibite
         var energyLoss = 1;                                     // Initial energy loss is 1 per second
@@ -152,6 +153,9 @@ class Nematode {
             // If the raycast is close enough to the food, eat it
             if (raycastResult.GetDistance() < this.size / 2) 
                 this.energy += raycastResult.GetHitObject().Eat();
+
+                // Clamp the energy to the max energy
+                this.energy = Math.min(this.energy, this.maxEnergy);
             
             // Return the ratio of the distance to the closest food to the max distance
             return (1 - raycastResult.GetDistance() / maxSeeDistance);
@@ -173,7 +177,7 @@ class Nematode {
         var xPos = 10;          // Left padding
         var yPos = 30 + 200;    // Top padding + the height of the nn drawing
         var width = 300;
-        var height = 200;
+        var height = 300;
 
         // Draw the background
         graphics.beginFill(0x000000, 0.5);
@@ -192,13 +196,18 @@ class Nematode {
         text.text = "Nematode Stats:";
         text.text += "\n";
         text.text += "\nAge: " + this.age.toFixed(2) + "s";
-        text.text += "\nEnergy: " + this.energy.toFixed(2);
+        text.text += "\nEnergy: " + this.energy.toFixed(2) + " / " + this.maxEnergy.toFixed(2);
         text.text += "\n";
-        text.text += "\nSpeed: " + this.maxSpeed.toFixed(2);
+        text.text += "\nMax Speed: " + this.maxSpeed.toFixed(2) + " pixels/s";
         text.text += "\nTurn Speed: " + this.maxTurnSpeed.toFixed(2);
         text.text += "\nSize: " + this.size.toFixed(2) + " pixels";
         text.text += "\n";
-        text.text += "\nPenalty: " + this.nn.GetPenalty().toFixed(3) + " energy/s";
+        text.text += "\nEnergy Consumption: ";
+        text.text += "\n  Existance: " + 1 + " energy/s";
+        text.text += "\n  Movement: " + (Math.abs(this.nn.GetOutput(1) * this.maxSpeed ) / this.maxSpeed).toFixed(3) + " energy/s";
+        text.text += "\n  NN Penalty: " + this.nn.GetPenalty().toFixed(3) + " energy/s";
+        text.text += "\n  Age: " + (1 + this.age / 300).toFixed(3) + " times the normal rate";
+        text.text += "\n";
         text.text += "\nTint: " + this.sprite.tint.toString(16);
 
     }
