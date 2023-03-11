@@ -53,6 +53,7 @@ function mkCircle(radius, fillColor, borderColor, borderPct, fillAlpha, borderAl
  * min: minimum value,
  * max: maximum value,
  * default: initial value,
+ * increment: increment when changing value
  * length: physical length,
  * fill: color source for the slider fill,
  * bg: background color source for the slider,
@@ -66,6 +67,7 @@ function mkSlider(opts) {
     min: 0,
     max: 100,
     default: 50,
+    increment: 1,
     length: 100,
     fill: 0xffffff,
     bg: 0x000000,
@@ -73,6 +75,7 @@ function mkSlider(opts) {
   })
 
   let container = new PIXI.Container()
+  let value = opts.default
 
   // draw the background of slider
   let sliderbg = new PIXI.Graphics()
@@ -97,18 +100,27 @@ function mkSlider(opts) {
 
   let range = opts.max - opts.min
 
-  // retrieve the value of the slider from the position of the knob
-  let getValue = () => (range/opts.length)*knob.x + opts.min
+  // retrieve the value converted from knob position
+  let getValue = (knobx) => (range/opts.length)*knobx + opts.min
 
-  // set initial knob position
-  knob.x = (opts.default-opts.min)*opts.length/range
+  // set knob position based on current value
+  let setKnob = () => knob.x = (value-opts.min)*opts.length/range
+  
+  setKnob()
   drawFill()
 
   let moveKnob = function(dx) {
-    let initialX = knob.x
-    knob.position.addXY(dx, 0).clamp([0, opts.length], [0,0])
-    if (knob.x != initialX) {
-      opts.onChange(getValue(), knob.x)
+    let initialValue = value
+    // get number of increments the value should change by
+    let delta = Math.floor(Math.abs(getValue(dx)/opts.increment))*Math.sign(dx)
+    
+    value += delta*opts.increment
+    if (value > opts.max) value = opts.max
+    if (value < opts.min) value = opts.min
+    setKnob()
+    
+    if (value != initialValue) {
+      opts.onChange(value, knob.x)
       drawFill()
     }
   }
