@@ -40,16 +40,13 @@ class Canvas {
   this.screenGraphics = new PIXI.Graphics();
   app.stage.addChild(this.screenGraphics);
 
-  // DEBUG: click on a point on the background to get the corresponding position in the nematode world
-  this.backGround.on('pointerdown', e => {
-    console.log("Screen Pos of click: (" + e.data.global.x + ", " + e.data.global.y + ")");
-	  var screenPos = new PIXI.Point(e.data.global.x, e.data.global.y);
-	  var worldPos = this.screen2WorldPos(e.data.global);
-	  console.log("World Pos of click: (" + worldPos.x + ", " + worldPos.y + ")");
-  })
 
   // set up callbacks for mouse drag behavior (for panning)
-  createDragAction(this.backGround, this.container)
+  createDragAction(this.backGround, this.container,
+    null,
+    (dx,dy) => { if (Keys.keyPressed('Shift')) this.container.position.addXY(dx,dy) },
+    null  
+  )
 
   // on mouse wheel, change the zoom level
   let onScroll = e => {
