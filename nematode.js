@@ -16,7 +16,7 @@ var drawEyeRays = true;
 
 class Nematode {
     // provide the World object for this nematode to live in
-    constructor() {
+    constructor(world) {
 
         // The brain
         this.nn = new NeatNN(5, 2)              // The neural network of the Nematode
@@ -52,11 +52,11 @@ class Nematode {
         this.paralyzed = false
         
         world.addNematode(this)
-
+        this.world = world
         // make nematodes draggable
         createDragAction(this.sprite, this.sprite,
             (x,y) => this.paralyzed = true,
-            (dx,dy) => this.world.updatePos(this, this.GetX()+dx, this.GetY()+dy),
+            (dx,dy) => this.world.updateNematodePosition(this, this.GetX()+dx, this.GetY()+dy),
             (x,y) => this.paralyzed = false
         )
     }
