@@ -1,12 +1,12 @@
-// register events to make an object respond to mouse dragging
-// registerDisplayObject: display object to register the intial mouse drag
-// dragTarget: the displayObject whose coordinate space we use to translate mouse coordinates into 
-//
-// these 3 parameters are procedures to perform during the mouse dragging
-// they each take the coordinates of the mouse translated into the dragTarget's parent's coordinate space
-// dragStartAction: function (x, y) => ... action to take when dragging begins
-// dragMoveFunction: function (dx, dy) => ... action to perform given mouse displacement (by default, simply translate dragTarget's position)
-// dragEndAction: function (x, y) => ... action to perform when dragging ends
+/**
+ * Register mouse drag events for some object
+ * 
+ * @param {PIXI.DisplayObject} registerDisplayObject object to register initial mouse click on 
+ * @param {PIXI.DisplayObject} dragTarget object whose coordinate space is used
+ * @param {function} dragStartAction function (x, y) => ... action to take when dragging begins
+ * @param {function} dragMoveAction function (dx, dy) => ... action to perform given mouse displacement (by default, simply translate dragTarget's position)
+ * @param {function} dragEndAction function (x, y) => ... action to perform when dragging ends
+ */
 function createDragAction(registerDisplayObject, dragTarget, dragStartAction, dragMoveAction, dragEndAction) {
   let dragging = false
   let previousMousePoint = null
@@ -53,4 +53,20 @@ function createDragAction(registerDisplayObject, dragTarget, dragStartAction, dr
     .on('pointerdown', onDragStart)
     .on('pointerup', onDragEnd)
     .on('pointerupoutside', onDragEnd)
+}
+
+/**
+ * Fill the undefined attributes of the given object according to the default object
+ * 
+ * useful for objects used to pass parameters
+ * 
+ * @param {object} obj 
+ * @param {object} defaults 
+ */
+function fillDefaults(obj, defaults) {
+  for (prop in defaults)
+  if (obj[prop] === undefined)
+    obj[prop] = defaults[prop]
+
+  return obj
 }
