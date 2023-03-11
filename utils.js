@@ -56,6 +56,25 @@ function createDragAction(registerDisplayObject, dragTarget, dragStartAction, dr
 }
 
 /**
+ * 
+ * Deregister drag actions from the obj
+ * Omit the function parameters to remove all drag actions
+ * 
+ * @param {PIXI.DisplayObject} registerObject to deregister actions on
+ * @param {*} onDragStart 
+ * @param {*} onDragMove 
+ * @param {*} onDragEnd 
+ */
+function removeDragAction(registerObject, onDragStart, onDragMove, onDragEnd) {
+  registerObject
+    .off('pointerdown', onDragStart)
+    .off('pointerup', onDragEnd)
+    .off('pointerupoutside', onDragEnd)
+
+  app.stage.off('pointermove', onDragMove)
+}
+
+/**
  * Fill the undefined attributes of the given object according to the default object
  * 
  * useful for objects used to pass parameters
@@ -69,4 +88,11 @@ function fillDefaults(obj, defaults) {
     obj[prop] = defaults[prop]
 
   return obj
+}
+
+
+function addBlur(obj, amount) {
+  let blur = new PIXI.BlurFilter(amount)
+  if (obj.filters) obj.filters.push(blur)
+  else obj.filters = [blur]
 }
