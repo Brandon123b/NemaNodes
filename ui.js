@@ -1,6 +1,3 @@
-
-// TODO move button and slider constructors into their own class to support methods more easily
-
 /**
  * Create a UI circle that can be manipulated
  * 
@@ -28,7 +25,8 @@ function mkCircle(radius, fillColor, borderColor, borderPct, fillAlpha, borderAl
   }
   
   // apply blur filter to make circle less pixelated
-  g.filters = [new PIXI.BlurFilter(0.3)]
+  addBlur(g, 0.3)
+
   draw()
   let container = new PIXI.Container()
   container.addChild(g)
@@ -152,6 +150,7 @@ function mkButton(opts) {
     activeFillAlpha: 1
   })
 
+  let actions = [opts.onToggle]
   let container = new PIXI.Container()
 
   // initial state
@@ -171,9 +170,10 @@ function mkButton(opts) {
   btn.filters = [btnfilter]
 
   // toggle button state
-  let toggle = () => {
-    toggled = !toggled
-    opts.onToggle(toggled)
+  let toggle = (enabled) => {
+    toggled = enabled
+    for (action of actions)
+      action(toggled)
     btn.setFillColor(fill())
     btn.setFillAlpha(alpha())
   }
@@ -189,7 +189,7 @@ function mkButton(opts) {
   // on mouse up, perform toggle action
   let onUp = function() {
     btnfilter.brightness(1, false)
-    toggle()
+    toggle(!toggled)
     btn.setBorderPct(0.25)
     app.stage.off("pointerup", onUp)
     app.stage.off("pointerupoutside", onUp)
@@ -215,6 +215,7 @@ function mkButton(opts) {
   // create methods for toggling and getting status
   outerContainer.toggled = () => toggled
   outerContainer.toggle = toggle
+  outerContainer.addAction = (action) => actions.push(action)
 
   return outerContainer
 }
@@ -224,7 +225,8 @@ class UICard {
   constructor(width) {
     this.container = new PIXI.Container()
     this.width = width
-    this.margin = 5
+    this.margin = 10
+    this.padding = 5
     // track the next y-position for the next UI element in this card to be added
     this.nextPos = this.margin
 
@@ -234,7 +236,8 @@ class UICard {
 
     this.textStyle = new PIXI.TextStyle({
       wordWrap: true,
-      wordWrapWidth: this.width - this.margin*2
+      wordWrapWidth: this.width - this.margin*2,
+      fontSize: 18
     })
   }
 
@@ -248,22 +251,51 @@ class UICard {
     // black border
     this.card.lineStyle(2,0)
     this.card.drawRoundedRect(0,0,this.width,height,10)
+    this.card.drawRoundedRect(0,0,this.width-4,height-5,10)
     
     this.card.interactive = true
     createDragAction(this.card, this.container)
 
+    addBlur(this.card, 0.5)
+
     return this.container
   }
 
-  #addElement(element, x) {
-    this.container.addChild(element)
-  
-    element.y = this.nextPos + element.height/2
-    element.x = this.margin + x
-
-    this.nextPos = element.y + element.height/2 + this.margin
+  #textStyle(opts) {
+    let sty = this.textStyle.clone()
+    for (prop in opts) sty[prop] = opts[prop]
+    return sty
   }
 
+  // add the given UI element to the next row on the card
+  #addElement(element) {
+    this.container.addChild(element)
+  
+    element.y = this.nextPos
+    element.x = this.margin
+
+    this.nextPos = element.y + element.height + this.padding
+  }
+
+  // call this to start adding a mutually exclusive group of toggle buttons
+  startToggleGroup() {
+    this.toggleGroup = []
+    return this
+  }
+
+  // add callbacks to all toggle buttons so that they are mutually exclusive
+  endToggleGroup() {
+    for (const toggle1 of this.toggleGroup)
+    for (const toggle2 of this.toggleGroup)
+    if (toggle1 != toggle2)
+    toggle1.addAction(enabled => {
+      if (enabled) toggle2.toggle(false)
+    })
+    this.toggleGroup = null
+    return this
+  }
+
+  // add a button element to the UI card
   #buttonElement(onClick, label, toggled) {
     let btnContainer = new PIXI.Container()
 
@@ -281,53 +313,56 @@ class UICard {
       activeFillAlpha: isToggle ? 1 : 0.35
     })
     btnContainer.addChild(btn)
+    btn.position.set(btn.width/2)
+    
+    // is this button part of a group of mutually exclusive toggles
+    if (this.toggleGroup) this.toggleGroup.push(btn)
 
     if (label) {
-      let text = new PIXI.Text(label, {
-        wordWrap: true,
+      let text = new PIXI.Text(label, this.#textStyle({
         wordWrapWidth: this.width - btn.width - this.margin*2,
         fontSize: btn.height
-      })
+      }))
 
-      text.x += this.margin + (btn.width/2)
-      text.y = -text.height/2
+      text.x = btn.x + btn.width
+      text.y = -1 // small tweak
       btnContainer.addChild(text)
     } 
 
-    this.#addElement(btnContainer, btn.width/2)
+    this.#addElement(btnContainer)
   }
 
+  // add text to the next row with the given size
   addText(string, fontsize) {
-    let sty = this.textStyle.clone()
-    sty.fontSize = fontsize
-    let text = new PIXI.Text(string, sty)
-    console.log(text.pivot.y)
-    text.pivot.y = -text.height/2
-    this.#addElement(text, 0)
+    let text = new PIXI.Text(string, this.#textStyle({
+      fontSize: fontsize
+    }))
+    this.#addElement(text)
     return this
   }
 
+  // add a button to the UI card that performs some action on click
   addButton(onClick, label) {
     this.#buttonElement(onClick, label)
     return this
   }
 
+  // add a checkbox toggle button that performs some action
+  // onToggle: (boolean) => ...
+  // enabled: initial state
   addToggle(onToggle, label, enabled) {
     this.#buttonElement(onToggle, label, enabled)
     return this
   }
 
+  // add a slider element to the UI card
+  // onChange: (newValue) => ....
   addSlider(onChange, min, max, initial, label) {
     let sliderContainer = new PIXI.Container()
 
-    let labelText = new PIXI.Text(label + ": " + initial, {
-      wordWrap: true,
-      wordWrapWidth: this.width - this.margin*2,
-      fontSize: 18
-    })
+    let labelText = new PIXI.Text(label + ": " + initial, this.#textStyle())
 
     labelText.x += this.margin
-    labelText.y = -labelText.height/2
     sliderContainer.addChild(labelText)
 
     // when moving the slider knob, carry out action
@@ -347,7 +382,7 @@ class UICard {
       bg: 0
     })
 
-    s.y += labelText.height/2 + this.margin
+    s.y += labelText.height + this.padding
     sliderContainer.addChild(s)
 
     this.#addElement(sliderContainer, 0)
