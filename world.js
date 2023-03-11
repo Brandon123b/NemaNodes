@@ -42,6 +42,23 @@ class World {
     this.drawZones = false
     this.drawEyeRays = false
     this.draggableObjects = false // flag for enabled ability to drag world objects
+
+    // create food brush action for dragging
+    this.foodBrushOn = false
+    this.foodBrushRadius = 10
+    createDragAction(this.canvas.backGround, this.canvas.container,
+      null,
+      (dx,dy,x,y) => {
+        if (this.foodBrushOn && Math.random() < 0.2) {
+          // place a new food object in a random spot near mouse
+          let pos = this.canvas.screen2WorldPos({x: x, y: y})
+          let delta = new PIXI.Point(0,this.foodBrushRadius).rotate(Math.random()*360)
+          delta.multiplyScalar(Math.random(), delta)
+          new Food(this, pos.add(delta))
+        }
+      },
+      null
+    )
   }
 
   // remove a nematode from the world

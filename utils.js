@@ -4,7 +4,7 @@
  * @param {PIXI.DisplayObject} registerDisplayObject object to register initial mouse click on 
  * @param {PIXI.DisplayObject} dragTarget object whose coordinate space is used
  * @param {function} dragStartAction function (x, y) => ... action to take when dragging begins
- * @param {function} dragMoveAction function (dx, dy) => ... action to perform given mouse displacement (by default, simply translate dragTarget's position)
+ * @param {function} dragMoveAction function (dx, dy, x, y) => ... action to perform given mouse displacement (by default, simply translate dragTarget's position)
  * @param {function} dragEndAction function (x, y) => ... action to perform when dragging ends
  */
 function createDragAction(registerDisplayObject, dragTarget, dragStartAction, dragMoveAction, dragEndAction) {
@@ -26,7 +26,7 @@ function createDragAction(registerDisplayObject, dragTarget, dragStartAction, dr
     if (dragging) {
       const { x, y } = previousMousePoint
       dragTarget.parent.toLocal(mouseEvent.global, null, previousMousePoint)
-      dragMoveAction(previousMousePoint.x - x, previousMousePoint.y - y)
+      dragMoveAction(previousMousePoint.x - x, previousMousePoint.y - y, previousMousePoint.x, previousMousePoint.y)
     }
   }
 
@@ -100,7 +100,7 @@ function addBlur(obj, amount) {
 // static class to query if a key is being pressed
 class Keys {
   static #pressedKeys = new Set()
-  static debug = true
+  static debug = false
 
   static {
     addEventListener("keydown", e => {
