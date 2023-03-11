@@ -30,11 +30,17 @@ var firstNeatode;
 
 // Add some nematodes to the world
 for (let i = 0; i < 100; i++) {
-    let n = new Nematode(world)
+    let n = new Nematode()
 
     if (firstNeatode == undefined) {
         firstNeatode = n;
     }
+}
+
+//Add some food for testing
+for (let i = 0; i < 15; i++) {
+    food_init_pos = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250)
+    let n = new Food(world, food_init_pos)
 }
 
 // Create the fps counter
@@ -64,7 +70,7 @@ function GameLoop(delta) {
     world.canvas.screenGraphics.clear();
 
     // Update the nematodes
-    world.forEach(n => n.Update(delta))
+    world.forEachNematode(n => n.Update(delta))
     // update the canvas
     world.canvas.drawWorld(world)
 
