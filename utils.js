@@ -96,3 +96,30 @@ function addBlur(obj, amount) {
   if (obj.filters) obj.filters.push(blur)
   else obj.filters = [blur]
 }
+
+// static class to query if a key is being pressed
+class Keys {
+  static #pressedKeys = new Set()
+  static debug = true
+
+  static {
+    addEventListener("keydown", e => {
+      if (!e.repeat) {
+        this.#pressedKeys.add(e.key)
+        if (this.debug) console.log(e.key, "pressed")
+      }
+    })
+    addEventListener("keyup", e => {
+      this.#pressedKeys.delete(e.key)
+      if (this.debug) console.log(e.key, "lifted")
+    })
+  }
+
+  /**
+   * Return true if the given key is being pressed
+   * @param {string} key string like 'd' or 'W' or 'Shift' 
+   */
+  static keyPressed(key) {
+    return this.#pressedKeys.has(key)
+  }
+}
