@@ -100,25 +100,20 @@ function mkSlider(opts) {
 
   let range = opts.max - opts.min
 
-  // retrieve the value converted from knob position
-  let getValue = (knobx) => (range/opts.length)*knobx + opts.min
-
-  // set knob position based on current value
-  let setKnob = () => knob.x = (value-opts.min)*opts.length/range
-  
   // quantize the slider value to the increment
   let quantize = x => Math.floor((x-opts.min)/opts.increment)*opts.increment + opts.min
 
-  setKnob()
+  // retrieve the unquantized value converted from knob position
+  let getValue = (knobx) => (range/opts.length)*knobx + opts.min
+
+  knob.x = (value-opts.min)*opts.length/range
   drawFill()
 
   let moveKnob = function(dx) {
     let initialValue = value
     
     knob.position.addXY(dx,0).clamp([0,opts.length], [0,0])
-    value = getValue(knob.x)
-    setKnob()
-    value = quantize(value)
+    value = quantize(getValue(knob.x))
 
     if (value != initialValue) {
       opts.onChange(value, knob.x)
@@ -250,7 +245,7 @@ class UICard {
     this.textStyle = new PIXI.TextStyle({
       wordWrap: true,
       wordWrapWidth: this.width - this.margin*2,
-      fontSize: 18
+      fontSize: 16
     })
   }
 
@@ -274,9 +269,12 @@ class UICard {
     return this.container
   }
 
+  // create a new TextStyle object using the this.textStyle for defaults
   #textStyle(opts) {
     let sty = this.textStyle.clone()
-    for (prop in opts) sty[prop] = opts[prop]
+    for (const prop in opts)
+    if (opts[prop] != undefined)
+    sty[prop] = opts[prop]
     return sty
   }
 
