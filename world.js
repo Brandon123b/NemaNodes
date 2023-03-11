@@ -34,11 +34,14 @@ class World {
 
     this.maxNumFood = 1000
     this.foodReplenishRate = 1 // food added per second
+    this.maxReplenishRate = 100
     
     // the canvas holds a container that we draw the objects on
     this.canvas = new Canvas(worldWidth, worldHeight)
 
     this.drawZones = false
+    this.drawEyeRays = false
+    this.draggableObjects = false // flag for enabled ability to drag world objects
   }
 
   // remove a nematode from the world
