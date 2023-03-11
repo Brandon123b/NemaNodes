@@ -106,19 +106,20 @@ function mkSlider(opts) {
   // set knob position based on current value
   let setKnob = () => knob.x = (value-opts.min)*opts.length/range
   
+  // quantize the slider value to the increment
+  let quantize = x => Math.floor((x-opts.min)/opts.increment)*opts.increment + opts.min
+
   setKnob()
   drawFill()
 
   let moveKnob = function(dx) {
     let initialValue = value
-    // get number of increments the value should change by
-    let delta = Math.floor(Math.abs(getValue(dx)/opts.increment))*Math.sign(dx)
     
-    value += delta*opts.increment
-    if (value > opts.max) value = opts.max
-    if (value < opts.min) value = opts.min
+    knob.position.addXY(dx,0).clamp([0,opts.length], [0,0])
+    value = getValue(knob.x)
     setKnob()
-    
+    value = quantize(value)
+
     if (value != initialValue) {
       opts.onChange(value, knob.x)
       drawFill()
@@ -367,9 +368,17 @@ class UICard {
     return this
   }
 
-  // add a slider element to the UI card
-  // onChange: (newValue) => ....
-  addSlider(onChange, min, max, initial, label) {
+  /**
+   * Add a slider element to this UI
+   * @param {function} onChange function applied to the sliders value 
+   * @param {number} min minimum value for slider
+   * @param {number} max maximum value for slider
+   * @param {number} initial initial value for slider
+   * @param {number} increment
+   * @param {string} label 
+   * @returns 
+   */
+  addSlider(onChange, min, max, initial, increment, label) {
     let sliderContainer = new PIXI.Container()
 
     let labelText = new PIXI.Text(label + ": " + initial, this.#textStyle())
@@ -389,6 +398,7 @@ class UICard {
       min: min,
       max: max,
       default: initial,
+      increment: increment,
       length: this.width - this.margin*2,
       fill: 0,
       bg: 0
