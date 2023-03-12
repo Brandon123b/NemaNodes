@@ -50,3 +50,11 @@ PIXI.Point.prototype.clamp = function(xbounds, ybounds) {
     return this
 }
 PIXI.ObservablePoint.prototype.clamp = PIXI.Point.prototype.clamp
+
+// perturb the given Point by moving it randomly by at the most radius distance
+PIXI.Point.prototype.perturb = function(radius) {
+    let delta = new PIXI.Point(0,radius).rotate(Math.random()*360)
+    delta.multiplyScalar(Math.random(), delta)
+    this.addXY(delta.x, delta.y)
+}
+PIXI.ObservablePoint.prototype.perturb = PIXI.Point.prototype.perturb
