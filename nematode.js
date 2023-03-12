@@ -8,55 +8,52 @@
  * The bibite moves in the direction of the rotation and at the speed.
  */
 
-// The maximum distance that the bibite can see
-var maxSeeDistance = 50;
+// A static variable to keep track of nematode variables
+var NematodeVars = {
+    maxSeeDistance: 50,
+    maxSize: 100,
+    minSize: 10,
+    maturityAge: 40         // The age at which the bibite can reproduce
+}
+
 
 // DEBUG: Should the eye rays be drawn?
-var drawEyeRays = true;
+var drawEyeRays = false;
 
 class Nematode {
     
-    constructor() {
+    // If createNew is false, the bibite is being created from a parent
+    constructor(createNew = true) {
 
-        // Is the bibite still alive?
-        this.alive = true;
+        this.alive = true;              // Nematodes are (hopefully) alive by default
+        this.paralyzed = false;          // set flag to true to prevent nematode from moving
 
-        // The brain
-        this.nn = new NeatNN(5, 2)                  // The neural network of the Nematode
+        // If the bibite is not being created from a parent, return
+        if (!createNew) 
+            return;
 
-        // The body
-        this.age = 0;                               // The age in seconds
-        this.energy = 30 + Math.random() * 60;      // The energy of the Nematode (Randomly chosen between 30 and 90)
-        this.maxEnergy = 80;                        // The maximum energy of the Nematode (set based on nematode size in Update)
+        this.nn = new NeatNN(5, 2)      // The brain of the Nematode
+
+        {   // TODO: Update the bibite's sprite(s) and color by calling a new function (or something) when implementing
+
+            // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
+            this.sprite = PIXI.Sprite.from('Bibite.png');
+            // Set the pivot point to the center of the bibite
+            this.sprite.anchor.set(0.5);
+
+            // random color tint for sprite
+            this.baseColor = Math.round(Math.random() * 0xFFFFFF)
+            this.sprite.tint = this.baseColor
+
+        }
+
+        // Set position and direction to random values
+        this.direction = new PIXI.Point().RandomDirection();
+        this.sprite.position = new PIXI.Point().RandomPosition(500);
+
+        this.SetInitialStats();         // Set the initial stats of the bibite
         
-        // The size (TODO: Will be updated when the nematodes sprites are finished)
-        this.size  =      5 + Math.random() *  10;  // The size of the Nematode (in pixels) (Randomly chosen between 5 and 15)
-        this.growRate = .05 + Math.random() * .08;  // The rate at which the Nematode grows (in pixels per second)
-
-        // The movement
-        this.maxSpeed = -1;                         // The maximum speed of the Nematode (set in Update) (in pixels per second) 
-        this.maxTurnSpeed = 120;                    // The maximum turn speed of the Nematode (in degrees per second)
-
-        // The direction (normalized)
-        this.direction = new PIXI.Point(1,0).rotate(Math.random()*360)
-
-        // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
-        this.sprite = PIXI.Sprite.from('Bibite.png');
-        // Set the pivot point to the center of the bibite
-        this.sprite.anchor.set(0.5);
-
-        // the position of this nematode in the world is maintained by its sprite position
-        this.sprite.position = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250)
-
-        // random color tint for sprite
-        this.baseColor = Math.round(Math.random() * 0xFFFFFF)
-        this.sprite.tint = this.baseColor
-
-        // set flag to true to prevent nematode from moving
-        this.paralyzed = false
-        
-        // Tell the world that this bibite exists
-        world.addNematode(this)
+        world.addNematode(this)         // Tell the world that this bibite exists
 
         // make nematodes draggable
         createDragAction(this.sprite, this.sprite,
@@ -72,7 +69,7 @@ class Nematode {
     * @param {number} delta - The time since the last update in seconds
     */
     Update(delta) {
-        
+
         // If the bibite is dead, run the death animation and return
         if (!this.alive) {
             this.DeathAnimation(delta);
@@ -96,8 +93,12 @@ class Nematode {
         // If speed is negative, halve it (Make backwards movement slower to encourage forward movement)
         speed = (speed < 0) ? speed *= 0.5 : speed;
 
+        // Update the stats of the bibite
+        this.UpdateStats(delta, speed);    
+
         // Prevent the bibite from moving if it is paralyzed
         if (!this.paralyzed) {
+
             // Update the bibite's rotation
             this.direction.rotate(rotate);
 
@@ -105,12 +106,60 @@ class Nematode {
             world.updateNematodePosition(this, this.GetX() + this.direction.x * speed, this.GetY() + this.direction.y * speed);
         }
 
+        // If the bibite has no energy, kill it
+        if (this.energy <= 0) {
+            this.OnDeath();
+        }
+    }
+
+    /** Sets the initial stats of the nematode
+     *  If no parameters are given, the stats are set to random values
+     * 
+     * TODO: The size and grow rate should be updated when the sprite is changed
+     * 
+     * @param {*} energy The energy of the Nematode
+     * @param {*} size The size of the Nematode
+     * @param {*} growRate The rate at which the Nematode grows
+     */
+    SetInitialStats(energy, size, growRate){
+
+        // The age in seconds
+        this.age = 0;  
+
+        // Either set the stats to the given values or set them to random values
+        if (energy != undefined){     
+             
+            // Slighly randomize the stats to prevent clones from being identical
+            this.energy = energy;
+            this.size = size / 2;
+            this.growRate = growRate + Math.random() * .04 - .02;
+        }
+        else {
+
+            this.energy = 30 + Math.random() * 60;      // The energy of the Nematode (Randomly chosen between 30 and 90)
+            this.size  =      5 + Math.random() *  10;  // The size of the Nematode (in pixels) (Randomly chosen between 5 and 15)
+            this.growRate = .05 + Math.random() * .08;  // The rate at which the Nematode grows (in pixels per second)
+        }
+
+        // Update the stats to set the max speed and max turn speed
+        this.UpdateStats(0, 0);                            
+    }
+
+    /** Updates the stats of the Nematode
+     * Called in Update()
+     * 
+     * @param {number} delta The time since the last update in seconds
+     * @param {number} speed The speed of the Nematode
+     */
+    UpdateStats(delta, speed){
+
         // Increase the age of the bibite (in seconds)
         this.age += delta;
 
         // Increase the size of the bibite and set the max speed to adjust for the new size
         this.size += this.growRate * delta;
-        this.maxSpeed = 20 + 400 / this.size;                   // size must be greater than 0
+        this.maxSpeed = 20 + 400 / this.size;
+        this.maxTurnSpeed = 100 + 960 / this.size;
         this.maxEnergy = 80 + this.size * 2;
 
         // Decrease the energy of the bibite
@@ -120,15 +169,13 @@ class Nematode {
         energyLoss *= 1 + this.age / 300;                       // Multiply energy loss by the ratio of the age to a constant
         this.energy -= energyLoss * delta;                      // Decrease the energy by the energy loss
 
-        // update sprite
+        // Clamp the size
+        this.size = Math.min(Math.max(this.size, NematodeVars.minSize), NematodeVars.maxSize);
+
+        // update sprite (TODO: Will be updated when the nematodes sprites are finished)
         this.sprite.width = this.size
         this.sprite.height = this.size
         this.sprite.angle = this.direction.getAngle()
-
-        // If the bibite has no energy, kill it
-        if (this.energy <= 0) {
-            this.OnDeath();
-        }
     }
 
     // Returns the ratio of the distance to the closest food to the max distance
@@ -145,7 +192,7 @@ class Nematode {
         var dirY = Math.sin(theta);
 
         // Send the raycast
-        if (Raycast(raycastResult, this.sprite.x, this.sprite.y, dirX, dirY, maxSeeDistance, drawEyeRays)){
+        if (Raycast(raycastResult, this.sprite.x, this.sprite.y, dirX, dirY, NematodeVars.maxSeeDistance, drawEyeRays)){
 
             if (raycastResult.GetHitObject() == undefined)
                 console.log(raycastResult.GetHitObject())
@@ -156,9 +203,13 @@ class Nematode {
 
                 // Clamp the energy to the max energy
                 this.energy = Math.min(this.energy, this.maxEnergy);
+
+                // If the bibite is old enough and has enough energy, have a child
+                if (this.age >= NematodeVars.maturityAge && this.energy > this.maxEnergy * .8)
+                    this.OnHaveChild();
             
             // Return the ratio of the distance to the closest food to the max distance
-            return (1 - raycastResult.GetDistance() / maxSeeDistance);
+            return (1 - raycastResult.GetDistance() / NematodeVars.maxSeeDistance);
         }
 
         // Return -1 if no food is found
@@ -227,6 +278,48 @@ class Nematode {
         this.alive = false
     }
 
+    /* Called when the nematode has a child
+    *  This will create a new nematode with (nearly) the same stats as the parent
+    */
+    OnHaveChild() {
+
+        this.energy *= .5;
+
+        // Create a new nematode (false means it is not a random nematode)
+        var child = new Nematode(false);
+
+        // Clone the parent's neural network and mutate it
+        child.nn = this.nn.Clone();
+        child.nn.Mutate();
+
+        {   // TODO: Remove this block when the nematode sprites are finished using some other method to set the color an sprite
+            
+            // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
+            child.sprite = PIXI.Sprite.from('Bibite.png');
+            // Set the pivot point to the center of the bibite
+            child.sprite.anchor.set(0.5);
+
+            // the position of this nematode in the world is maintained by its sprite position
+            child.sprite.position = this.sprite.position;
+
+            // random color tint for sprite (TODO: replace with something better)
+            child.baseColor = this.baseColor;
+            child.sprite.tint = child.baseColor
+        }
+        
+        // Set position to the parent's position and give it a random direction
+        child.direction = new PIXI.Point().RandomDirection();
+        child.sprite.position = new PIXI.Point(this.sprite.position.x, this.sprite.position.y);
+
+        child.SetInitialStats(this.energy, this.size, this.growRate);
+
+        // The direction (normalized)
+        child.direction = new PIXI.Point(1,0).rotate(Math.random()*360)
+        
+        // Add the child to the list of nematodes
+        world.addNematode(child);
+    }
+
     // ------------------- Animations ------------------- //
 
     /** Called in Update() when the nematode is dead
@@ -263,11 +356,6 @@ class Nematode {
     }
 
     // ------------------- GETTERS AND SETTERS ------------------- //
-
-    // TEMP FOR TESTING RAYCASTS
-    GetRadius() {
-        return this.width / 2;
-    }
 
     GetX() {
         return this.sprite.position.x;
