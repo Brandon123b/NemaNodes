@@ -37,7 +37,12 @@ class Nematode {
         this.direction = new PIXI.Point(1,0).rotate(Math.random()*360)
 
         // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
-        this.sprite = PIXI.Sprite.from('Bibite.png');
+        //this.sprite = PIXI.Sprite.from('Bibite.png');
+        //console.log('singular sprite')
+        //console.log(this.sprite)
+        this.sprite = this.MakeSprite()
+        //console.log('piecewise sprite')
+        //console.log(q)
         // Set the pivot point to the center of the bibite
         this.sprite.anchor.set(0.5);
 
@@ -124,6 +129,42 @@ class Nematode {
         // Return -1 if no food is found
         return -1;
     }
+
+    MakeSprite() {
+        //WIP, currently just trying an idea
+
+        //positions for each chunk
+        var sample_y = [0, 0, 0, 0]
+        var sample_x = [-2, -1, 0, 1]
+
+        //trying to combine images into a single sprite but idk
+        //trying to follow https://stackoverflow.com/questions/40722796/is-it-possible-to-create-a-pixi-texture-from-multiple-image-sources-in-pixi-js
+        var stage = new PIXI.Container()
+        var reel = new PIXI.Container()
+        
+        //Add nematode chunk sprites to the container 
+        //according to the sampled xy
+        for(var i=0; i< sample_y.length; i++) {
+            var chunk = PIXI.Sprite.from('Bibite.png')
+            chunk.x = sample_x[i]
+            chunk.y = sample_y[i]
+            //chunk.anchor.set(0.5)    
+            reel.addChild(chunk)
+        }
+        //reel.defaultAnchor.x = 0.5
+        //reel.defaultAnchor.y = 0.5
+        
+        var tex = app.renderer.extract.image(reel)
+        console.log(tex)
+        var combinedSprite = new PIXI.Sprite(tex)
+        return combinedSprite
+
+    }
+
+
+//);
+
+    
 
     // TEMP FOR TESTING RAYCASTS
     GetRadius() {
