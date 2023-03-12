@@ -175,7 +175,8 @@ class World {
     createDragAction(this.canvas.backGround, this.canvas.container,
       null,
       (dx,dy,x,y) => {
-        if (flagGetter() && Math.random() < strength) {
+        // perform brush action if the supplied flag is enabled and the user isn't holding shift (for world panning)
+        if (flagGetter() && !Keys.keyPressed('Shift') && Math.random() < strength) {
           let pos = this.canvas.screen2WorldPos({x: x, y: y})
           action(pos.x,pos.y)
         }
