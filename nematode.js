@@ -224,8 +224,8 @@ class Nematode {
 
         var width = 300;
         var height = 350;
-        var xPos = 1600;          // Left padding
-        var yPos = 30 + 200;    // Top padding + the height of the nn drawing
+        var xPos = app.screen.width - width - 10;       // Left padding
+        var yPos = 30 + 200;                            // Top padding + the height of the nn drawing
 
         // Draw the background
         graphics.beginFill(0x000000, 0.5);

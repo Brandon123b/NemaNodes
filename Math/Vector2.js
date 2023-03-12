@@ -61,7 +61,7 @@ PIXI.Point.prototype.RandomPosition = function(radius) {
 
     this.RandomDirection();
 
-    var dist = Math.random() * radius;
+    var dist = Math.sqrt(Math.random()) * radius;
 
     this.x *= dist;
     this.y *= dist;
