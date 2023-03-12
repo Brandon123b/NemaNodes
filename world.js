@@ -46,19 +46,11 @@ class World {
     // create food brush action for dragging
     this.foodBrushOn = false
     this.foodBrushRadius = 10
-    createDragAction(this.canvas.backGround, this.canvas.container,
-      null,
-      (dx,dy,x,y) => {
-        if (this.foodBrushOn && Math.random() < 0.2) {
-          // place a new food object in a random spot near mouse
-          let pos = this.canvas.screen2WorldPos({x: x, y: y})
-          let delta = new PIXI.Point(0,this.foodBrushRadius).rotate(Math.random()*360)
-          delta.multiplyScalar(Math.random(), delta)
-          new Food(this, pos.add(delta))
-        }
-      },
-      null
-    )
+
+    this.nematodeBrushOn = false
+    this.nematodeBrushRadius = 10
+
+    this.#setUpBrushes()
   }
 
   // remove a nematode from the world
@@ -171,6 +163,41 @@ class World {
   // perform an action on each object of the world
   forEachNematode(f) {
     this.#nematodeZones.forEachBucket(zone => zone.forEach(f))
+  }
+
+  /**
+   * Register a brush action for the world
+   * @param {function} flagGetter returns true if this brush should be active 
+   * @param {function} action (x,y) => ... procedure applied to world coordinates of mouse on mouse move
+   * @param {number} strength strength of brush value (0 to 1)
+   */
+  createBrush(flagGetter, action, strength) {
+    createDragAction(this.canvas.backGround, this.canvas.container,
+      null,
+      (dx,dy,x,y) => {
+        if (flagGetter() && Math.random() < strength) {
+          let pos = this.canvas.screen2WorldPos({x: x, y: y})
+          action(pos.x,pos.y)
+        }
+      },
+      null
+    )
+  }
+
+  #setUpBrushes() {
+    // food brush
+    this.createBrush(() => this.foodBrushOn, (x,y) => {
+      let pos = new PIXI.Point(x,y)
+      pos.perturb(this.foodBrushRadius)
+      new Food(this, pos)
+    }, 0.25)
+
+    // nematode brush
+    this.createBrush(() => this.nematodeBrushOn, (x,y) => {
+      let pos = new PIXI.Point(x,y)
+      pos.perturb(this.nematodeBrushRadius)
+      new Nematode(this, pos)
+    }, 0.25)
   }
 
   zoneHeight() {
