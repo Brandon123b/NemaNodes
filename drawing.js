@@ -14,7 +14,7 @@ class Canvas {
   this.backGround = new PIXI.Sprite(PIXI.Texture.WHITE);
   this.backGround.width = app.screen.width;
   this.backGround.height = app.screen.height;
-  this.backGround.tint = 0xff3333;
+  this.backGround.tint = 0x999955;
   this.backGround.interactive = true
   app.stage.addChild(this.backGround)
 
