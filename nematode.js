@@ -45,6 +45,12 @@ class Nematode {
             this.baseColor = Math.round(Math.random() * 0xFFFFFF)
             this.sprite.tint = this.baseColor
 
+            // make nematodes draggable
+            createDragAction(this.sprite, this.sprite,
+                (x,y) => this.paralyzed = true,
+                (dx,dy) => world.updateNematodePosition(this, this.GetX()+dx, this.GetY()+dy),
+                (x,y) => this.paralyzed = false
+            )
         }
 
         // Set position and direction to random values
@@ -55,12 +61,6 @@ class Nematode {
         
         world.addNematode(this)         // Tell the world that this bibite exists
 
-        // make nematodes draggable
-        createDragAction(this.sprite, this.sprite,
-            (x,y) => this.paralyzed = true,
-            (dx,dy) => world.updateNematodePosition(this, this.GetX()+dx, this.GetY()+dy),
-            (x,y) => this.paralyzed = false
-        )
     }
 
     /*
@@ -305,6 +305,13 @@ class Nematode {
             // random color tint for sprite (TODO: replace with something better)
             child.baseColor = this.baseColor;
             child.sprite.tint = child.baseColor
+            
+            // make nematodes draggable
+            createDragAction(child.sprite, child.sprite,
+                (x,y) => child.paralyzed = true,
+                (dx,dy) => world.updateNematodePosition(child, child.GetX()+dx, child.GetY()+dy),
+                (x,y) => child.paralyzed = false
+            )
         }
         
         // Set position to the parent's position and give it a random direction
