@@ -90,7 +90,12 @@ function fillDefaults(obj, defaults) {
   return obj
 }
 
-
+/**
+ * Add a blur to the given objects list of filters
+ * 
+ * @param {PIXI.DisplayObject} obj obj to blur 
+ * @param {number} amount strength of blur
+ */
 function addBlur(obj, amount) {
   let blur = new PIXI.BlurFilter(amount)
   if (obj.filters) obj.filters.push(blur)
