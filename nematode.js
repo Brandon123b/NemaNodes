@@ -136,7 +136,7 @@ class Nematode {
         }
         else {
 
-            this.energy = 30 + Math.random() * 60;      // The energy of the Nematode (Randomly chosen between 30 and 90)
+            this.energy = 30 + Math.random() * 40;      // The energy of the Nematode (Randomly chosen between 30 and 70)
             this.size  =      5 + Math.random() *  10;  // The size of the Nematode (in pixels) (Randomly chosen between 5 and 15)
             this.growRate = .05 + Math.random() * .08;  // The rate at which the Nematode grows (in pixels per second)
         }
