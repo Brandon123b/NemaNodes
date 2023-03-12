@@ -11,12 +11,9 @@
 // The maximum distance that the bibite can see
 var maxSeeDistance = 50;
 
-// DEBUG: Should the eye rays be drawn?
-var drawEyeRays = true;
-
 class Nematode {
     // provide the World object for this nematode to live in
-    constructor() {
+    constructor(world, pos) {
 
         // The brain
         this.nn = new NeatNN(5, 2)              // The neural network of the Nematode
@@ -42,7 +39,7 @@ class Nematode {
         this.sprite.anchor.set(0.5);
 
         // the position of this nematode in the world is maintained by its sprite position
-        this.sprite.position = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250)
+        this.sprite.position = pos
 
         // random color tint for sprite
         this.baseColor = Math.random() * 0xFFFFFF
@@ -52,11 +49,11 @@ class Nematode {
         this.paralyzed = false
         
         world.addNematode(this)
-
+        this.world = world
         // make nematodes draggable
         createDragAction(this.sprite, this.sprite,
-            (x,y) => this.paralyzed = true,
-            (dx,dy) => this.world.updatePos(this, this.GetX()+dx, this.GetY()+dy),
+            (x,y) => this.paralyzed = this.world.draggableObjects,
+            (dx,dy) => this.world.draggableObjects && this.world.updateNematodePosition(this, this.GetX()+dx, this.GetY()+dy),
             (x,y) => this.paralyzed = false
         )
     }
@@ -118,7 +115,7 @@ class Nematode {
         var dirY = Math.sin(theta);
 
         // Send the raycast
-        if (Raycast(raycastResult, this.sprite.x, this.sprite.y, dirX, dirY, maxSeeDistance, drawEyeRays))
+        if (Raycast(raycastResult, this.sprite.x, this.sprite.y, dirX, dirY, maxSeeDistance, this.world.drawEyeRays))
             return (1 - raycastResult.GetDistance() / maxSeeDistance);
         
         // Return -1 if no food is found

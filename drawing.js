@@ -14,7 +14,7 @@ class Canvas {
   this.backGround = new PIXI.Sprite(PIXI.Texture.WHITE);
   this.backGround.width = app.screen.width;
   this.backGround.height = app.screen.height;
-  this.backGround.tint = 0xff3333;
+  this.backGround.tint = 0x999955;
   this.backGround.interactive = true
   app.stage.addChild(this.backGround)
 
@@ -40,16 +40,13 @@ class Canvas {
   this.screenGraphics = new PIXI.Graphics();
   app.stage.addChild(this.screenGraphics);
 
-  // DEBUG: click on a point on the background to get the corresponding position in the nematode world
-  this.backGround.on('pointerdown', e => {
-    console.log("Screen Pos of click: (" + e.data.global.x + ", " + e.data.global.y + ")");
-	  var screenPos = new PIXI.Point(e.data.global.x, e.data.global.y);
-	  var worldPos = this.screen2WorldPos(e.data.global);
-	  console.log("World Pos of click: (" + worldPos.x + ", " + worldPos.y + ")");
-  })
 
   // set up callbacks for mouse drag behavior (for panning)
-  createDragAction(this.backGround, this.container)
+  createDragAction(this.backGround, this.container,
+    null,
+    (dx,dy) => { if (Keys.keyPressed('Shift')) this.container.position.addXY(dx,dy) },
+    null  
+  )
 
   // on mouse wheel, change the zoom level
   let onScroll = e => {
@@ -100,61 +97,4 @@ class Canvas {
   }
 
 
-}
-
-// register events to make an object respond to mouse dragging
-// registerDisplayObject: display object to register the intial mouse drag
-// dragTarget: the displayObject whose coordinate space we use to translate mouse coordinates into 
-//
-// these 3 parameters are procedures to perform during the mouse dragging
-// they each take the coordinates of the mouse translated into the dragTarget's parent's coordinate space
-// dragStartAction: function (x, y) => ... action to take when dragging begins
-// dragMoveFunction: function (dx, dy) => ... action to perform given mouse displacement (by default, simply translate dragTarget's position)
-// dragEndAction: function (x, y) => ... action to perform when dragging ends
-function createDragAction(registerDisplayObject, dragTarget, dragStartAction, dragMoveAction, dragEndAction) {
-  let dragging = false
-  let previousMousePoint = null
-
-  if (!dragStartAction)
-    dragStartAction = (x, y) => {} // default dragstart action is NOP
-
-  // default action is to translate the target object's position point
-  if (!dragMoveAction)
-    dragMoveAction = (dx, dy) => {dragTarget.x += dx; dragTarget.y += dy}
-
-  if (!dragEndAction)
-    dragEndAction = (x, y) => {} // default ending action is NOP
-  
-  // while dragging, apply displaceFunc to the change in mouse position
-  let onDragMove = function(mouseEvent) {
-    if (dragging) {
-      const { x, y } = previousMousePoint
-      dragTarget.parent.toLocal(mouseEvent.global, null, previousMousePoint)
-      dragMoveAction(previousMousePoint.x - x, previousMousePoint.y - y)
-    }
-  }
-
-  // begin tracking mouse position
-  let onDragStart = function(mouseEvent) {
-    dragging = true
-    app.stage.on('pointermove', onDragMove)
-    previousMousePoint = dragTarget.parent.toLocal(mouseEvent.global)
-    dragStartAction(previousMousePoint.x, previousMousePoint.y)
-  }
-
-  // deregister the callback placed on the stage to stop dragging
-  let onDragEnd = function(mouseEvent) {
-    if (dragging) {
-      app.stage.off('pointermove', onDragMove)
-      dragging = false
-      previousMousePoint = null
-      const {x,y} = dragTarget.parent.toLocal(mouseEvent.global)
-      dragEndAction(x,y)
-    }
-  }
-
-  registerDisplayObject
-    .on('pointerdown', onDragStart)
-    .on('pointerup', onDragEnd)
-    .on('pointerupoutside', onDragEnd)
 }

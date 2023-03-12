@@ -23,24 +23,17 @@ document.body.appendChild(app.view);
 
 // Create list of nematodes
 let world = new World(1000,1000,100,100)
-world.drawZones = true
 
 // Want to separete this nematode to draw the neural network
 var firstNeatode;
 
 // Add some nematodes to the world
-for (let i = 0; i < 100; i++) {
-    let n = new Nematode()
+for (let i = 0; i < 5000; i++) {
+    let n = new Nematode(world, new PIXI.Point(0,0).perturb(5000))
 
     if (firstNeatode == undefined) {
         firstNeatode = n;
     }
-}
-
-//Add some food for testing
-for (let i = 0; i < 15; i++) {
-    food_init_pos = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250)
-    let n = new Food(world, food_init_pos)
 }
 
 // Create the fps counter
@@ -48,6 +41,27 @@ fpsCounter = new PIXI.Text("FPS: 0", {fontFamily : 'Arial', fontSize: 20, fill :
 fpsCounter.x = 10;
 fpsCounter.y = 8;
 app.stage.addChild(fpsCounter);
+
+// create a UI card
+let ui = new UICard(300)
+    .addText("User tools")
+    .startToggleGroup()
+    .addToggle(enabled => world.draggableObjects = enabled, "drag tool", false)
+    .addToggle(enabled => world.foodBrushOn = enabled, "food brush", false)
+    .addSlider(x => world.foodBrushRadius = x, 0, 100, world.foodBrushRadius, 1, "brush radius")
+    .addToggle(enabled => world.nematodeBrushOn = enabled, "nematode brush", false)
+    .addSlider(x => world.nematodeBrushRadius = x, 0, 100, world.nematodeBrushRadius, 1, "brush radius")
+    .endToggleGroup()
+    .addText("Environment")
+    .addSlider(x => world.maxNumFood = x, 0, world.maxNumFood*2, world.maxNumFood, 5, "max food number")
+    .addSlider(x => world.foodReplenishRate = x, 0, world.maxReplenishRate, world.foodReplenishRate, 1, "food replenish rate")
+    .addText("Debug")
+    .addToggle(enabled => world.drawZones = enabled, "draw world zones", world.drawZones)
+    .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)
+    .make()
+
+app.stage.addChild(ui)
+ui.position.y = 300
 
 
 // Start the game loop
