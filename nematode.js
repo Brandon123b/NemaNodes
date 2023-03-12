@@ -37,21 +37,18 @@ class Nematode {
         this.direction = new PIXI.Point(1,0).rotate(Math.random()*360)
 
         // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
+        //the original (single image) command
         //this.sprite = PIXI.Sprite.from('Bibite.png');
-        //console.log('singular sprite')
-        //console.log(this.sprite)
-        this.sprite = this.MakeSprite()
-        //console.log('piecewise sprite')
-        //console.log(q)
-        // Set the pivot point to the center of the bibite
-        this.sprite.anchor.set(0.5);
+        
+        //this is the part that doesn't work
+        const bibite_loaded = PIXI.Assets.load('Bibite.png');
+        bibite_loaded.then(this.MakeSprite)
+ 
+        //moved setting sprite properties to MakeSprite(), not sure if it should stay that way
 
-        // the position of this nematode in the world is maintained by its sprite position
-        this.sprite.position = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250)
-
+        
         // random color tint for sprite
         this.baseColor = Math.random() * 0xFFFFFF
-        this.sprite.tint = this.baseColor
 
         // set flag to true to prevent nematode from moving
         this.paralyzed = false
@@ -134,35 +131,55 @@ class Nematode {
         //WIP, currently just trying an idea
 
         //positions for each chunk
-        var sample_y = [0, 0, 0, 0]
-        var sample_x = [-2, -1, 0, 1]
+        var sample_y = [0, 0, 0, 0];
+        var sample_x = [-2, -1, 0, 1];
 
         //trying to combine images into a single sprite but idk
-        //trying to follow https://stackoverflow.com/questions/40722796/is-it-possible-to-create-a-pixi-texture-from-multiple-image-sources-in-pixi-js
-        var stage = new PIXI.Container()
-        var reel = new PIXI.Container()
+        
+        var reel = new PIXI.Container();
         
         //Add nematode chunk sprites to the container 
         //according to the sampled xy
         for(var i=0; i< sample_y.length; i++) {
-            var chunk = PIXI.Sprite.from('Bibite.png')
-            chunk.x = sample_x[i]
-            chunk.y = sample_y[i]
-            //chunk.anchor.set(0.5)    
-            reel.addChild(chunk)
+            var chunk = PIXI.Sprite.from('Bibite.png');
+            chunk.x = sample_x[i];
+            chunk.y = sample_y[i];
+            chunk.anchor.set(0.5);
+            reel.addChild(chunk);
         }
-        //reel.defaultAnchor.x = 0.5
-        //reel.defaultAnchor.y = 0.5
+
+        var stage = new PIXI.Container();
+        var tx = new PIXI.RenderTexture(
+            new PIXI.BaseRenderTexture(100, 100, PIXI.SCALE_MODES.LINEAR, 1))
+        for(var i=0;i<sample_y.length;i++) {
+            var s = new PIXI.Sprite(tx);
+            s.x = sample_x[i];
+            stage.addChild(s);
+        }
+        app.renderer.render(stage, {tx});
+        var tex = app.renderer.extract.image(tx);
+        tex.then(res => {
+            console.log(res)
+            document.body.appendChild(res)
+          }, console.log)
+        var combinedSprite = new PIXI.Sprite(tex);
+        this.sprite = combinedSprite;
+
+        this.sprite.anchor.set(0.5);
         
-        var tex = app.renderer.extract.image(reel)
-        console.log(tex)
-        var combinedSprite = new PIXI.Sprite(tex)
-        return combinedSprite
+        // the position of this nematode in the world is maintained by its sprite position
+        this.sprite.position = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250)
+        //return combinedSprite;
+
+        //var tex = app.renderer.extract.image(reel)
+        //console.log(tex)
+        //var combinedSprite = new PIXI.Sprite(tex)
+        //return combinedSprite
 
     }
 
 
-//);
+
 
     
 
