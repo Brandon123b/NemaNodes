@@ -1,4 +1,14 @@
 /**
+ * Code for creating UI elements
+ * 
+ * mkButton and mkSlider for creating individual UI elements
+ * 
+ * UICard is a constructor for a UI dash
+ */
+
+
+
+/**
  * Create a UI circle that can be manipulated
  * 
  * @param {number} radius radius of sprite
@@ -230,7 +240,14 @@ function mkButton(opts) {
   return outerContainer
 }
 
-
+/**
+ * Rectangular list view of UI elements
+ * 
+ * Meant to be constructed by chaining together methods like addToggle(..) and addSlider(..)
+ * 
+ * Call make() to create and retrieve this UI card's container
+ * 
+ */
 class UICard {
   constructor(width) {
     this.container = new PIXI.Container()
