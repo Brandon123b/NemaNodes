@@ -15,8 +15,8 @@ PIXI.Point.prototype.rotate = function(_angle) {
     var oldX = this.x;
 
     // Rotate the point
-    this.x = this.x * cos - this.y * sin
-    this.y = oldX   * sin + this.y * cos
+    this.x = oldX * cos - this.y * sin
+    this.y = oldX * sin + this.y * cos
 
     // Return just in case we want to chain
     return this
@@ -32,4 +32,37 @@ PIXI.Point.prototype.addXY = function(_x, _y) {
     this.x += _x
     this.y += _y
     return this
+}
+
+/** Turns this vector into a unit vector in a random direction
+ * 
+ * @returns This direction
+ */
+PIXI.Point.prototype.RandomDirection = function() {
+    this.x = 0;
+    this.y = 1;
+
+    // Rotate the point a random amount
+    this.rotate(Math.random() * 360);
+
+    // Return just in case we want to chain
+    return this
+}
+
+/** Sets this vector to a random position within a circle
+ * 
+ * @param {*} radius The radius of the circle
+ * @returns This vector
+ */
+PIXI.Point.prototype.RandomPosition = function(radius) {
+
+    this.RandomDirection();
+
+    var dist = Math.random() * radius;
+
+    this.x *= dist;
+    this.y *= dist;
+
+    // Return just in case we want to chain
+    return this;
 }

@@ -44,19 +44,7 @@ class World {
     this.drawZones = false
   }
 
-  // remove a nematode from the world
-  destroyNematode(obj) {
-    if (!this.#nematodeZones.remove(obj))
-      throw `Object ${obj} cannot be destroyed because it does not exist in the world`
-    obj.sprite.destroy()
-  }
-
-  // remove a food object from the world
-  destroyFood(obj) {
-    if (!this.#foodZones.remove(obj))
-      throw `Object ${obj} cannot be destroyed because it does not exist in the world`
-    obj.sprite.destroy()
-  }
+  // ----------------- Nematodes -----------------
 
   // add a nematode to the world
   // an object should implement GetX(), GetY(), GetPosition(), SetPos()
@@ -75,16 +63,11 @@ class World {
     this.canvas.add(obj.sprite)
   }
 
-  // add a food object to the world
-  // Food objects are not clickable
-  // an object should implement GetX(), GetY(), GetPosition(), SetPos()
-  addFood(obj) {
-
-    // TODO clamp object's position to be within world borders
-    this.#foodZones.insert(obj)
-
-    // add the game object so it can be drawn
-    this.canvas.add(obj.sprite)
+  // remove a nematode from the world
+  destroyNematode(obj) {
+    if (!this.#nematodeZones.remove(obj))
+      throw `Object ${obj} cannot be destroyed because it does not exist in the world`
+    obj.sprite.destroy()
   }
 
   // update the position of the object
@@ -104,6 +87,32 @@ class World {
     obj.SetPos(newX, newY)
     if (zoneChange) this.#nematodeZones.insert(obj)
 
+  }
+  
+  // perform an action on each object of the world
+  forEachNematode(f) {
+    this.#nematodeZones.forEachBucket(zone => zone.forEach(f))
+  }
+
+  // ----------------- Food -----------------
+
+  // add a food object to the world
+  // Food objects are not clickable
+  // an object should implement GetX(), GetY(), GetPosition(), SetPos()
+  addFood(obj) {
+
+    // TODO clamp object's position to be within world borders
+    this.#foodZones.insert(obj)
+
+    // add the game object so it can be drawn
+    this.canvas.add(obj.sprite)
+  }
+
+  // remove a food object from the world
+  destroyFood(obj) {
+    if (!this.#foodZones.remove(obj))
+      throw `Object ${obj} cannot be destroyed because it does not exist in the world`
+    obj.sprite.destroy()
   }
 
   // return a list of objects from the given area
@@ -140,6 +149,8 @@ class World {
     })
   }
 
+  // ----------------- Hash functions -----------------
+
   // get zone coordinates from world coordinates
   #pos2zone(worldPosX,worldPosY) {
     return [Math.floor(worldPosX/this.#zoneWidth), Math.floor(worldPosY/this.#zoneHeight)]
@@ -150,10 +161,7 @@ class World {
     return `${zoneX},${zoneY}`
   }
 
-  // perform an action on each object of the world
-  forEachNematode(f) {
-    this.#nematodeZones.forEachBucket(zone => zone.forEach(f))
-  }
+  // ----------------- Getters -----------------
 
   zoneHeight() {
     return this.#zoneHeight
