@@ -17,13 +17,9 @@ var NematodeVars = {
 }
 
 
-// DEBUG: Should the eye rays be drawn?
-var drawEyeRays = false;
-
 class Nematode {
-    
-    // If createNew is false, the bibite is being created from a parent
-    constructor(createNew = true) {
+    // provide the World object for this nematode to live in
+    constructor(pos = null, createNew = true) {
 
         this.alive = true;              // Nematodes are (hopefully) alive by default
         this.paralyzed = false;          // set flag to true to prevent nematode from moving
@@ -55,12 +51,14 @@ class Nematode {
 
         // Set position and direction to random values
         this.direction = new PIXI.Point().RandomDirection();
-        this.sprite.position = new PIXI.Point().RandomPosition(500);
+        if (pos == null)
+            this.sprite.position = new PIXI.Point().RandomPosition(4000);
+        else
+            this.sprite.position = pos;
 
         this.SetInitialStats();         // Set the initial stats of the bibite
         
         world.addNematode(this)         // Tell the world that this bibite exists
-
     }
 
     /*
@@ -192,7 +190,7 @@ class Nematode {
         var dirY = Math.sin(theta);
 
         // Send the raycast
-        if (Raycast(raycastResult, this.sprite.x, this.sprite.y, dirX, dirY, NematodeVars.maxSeeDistance, drawEyeRays)){
+        if (Raycast(raycastResult, this.sprite.x, this.sprite.y, dirX, dirY, NematodeVars.maxSeeDistance, world.drawEyeRays)){
 
             if (raycastResult.GetHitObject() == undefined)
                 console.log(raycastResult.GetHitObject())
@@ -211,7 +209,6 @@ class Nematode {
             // Return the ratio of the distance to the closest food to the max distance
             return (1 - raycastResult.GetDistance() / NematodeVars.maxSeeDistance);
         }
-
         // Return -1 if no food is found
         return -1;
     }
@@ -225,10 +222,10 @@ class Nematode {
     */
     DrawStats(graphics) {
 
-        var xPos = 10;          // Left padding
-        var yPos = 30 + 200;    // Top padding + the height of the nn drawing
         var width = 300;
         var height = 350;
+        var xPos = 1600;          // Left padding
+        var yPos = 30 + 200;    // Top padding + the height of the nn drawing
 
         // Draw the background
         graphics.beginFill(0x000000, 0.5);
@@ -286,7 +283,7 @@ class Nematode {
         this.energy *= .5;
 
         // Create a new nematode (false means it is not a random nematode)
-        var child = new Nematode(false);
+        var child = new Nematode(this.sprite.position, false);
 
         // Clone the parent's neural network and mutate it
         child.nn = this.nn.Clone();
@@ -298,9 +295,6 @@ class Nematode {
             child.sprite = PIXI.Sprite.from('Bibite.png');
             // Set the pivot point to the center of the bibite
             child.sprite.anchor.set(0.5);
-
-            // the position of this nematode in the world is maintained by its sprite position
-            child.sprite.position = this.sprite.position;
 
             // random color tint for sprite (TODO: replace with something better)
             child.baseColor = this.baseColor;

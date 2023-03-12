@@ -28,6 +28,9 @@ function main(){
     // Create the fps counter
     CreateFpsCounter();
 
+    // Create the UI
+    CreateUI();
+
     // Add some nematodes
     SpawnNematodes(1000);
 
@@ -42,6 +45,31 @@ function main(){
         GameLoop(delta );
     });
 }
+
+// create a UI card
+function CreateUI(){
+    
+    let ui = new UICard(300)
+        .addText("User tools")
+        .startToggleGroup()
+        .addToggle(enabled => world.draggableObjects = enabled, "drag tool", false)
+        .addToggle(enabled => world.foodBrushOn = enabled, "food brush", false)
+        .addSlider(x => world.foodBrushRadius = x, 0, 100, world.foodBrushRadius, 1, "brush radius")
+        .addToggle(enabled => world.nematodeBrushOn = enabled, "nematode brush", false)
+        .addSlider(x => world.nematodeBrushRadius = x, 0, 100, world.nematodeBrushRadius, 1, "brush radius")
+        .endToggleGroup()
+        .addText("Environment")
+        .addSlider(x => world.maxNumFood = x, 0, world.maxNumFood*2, world.maxNumFood, 5, "max food number")
+        .addSlider(x => world.foodReplenishRate = x, 0, world.maxReplenishRate, world.foodReplenishRate, 1, "food replenish rate")
+        .addText("Debug")
+        .addToggle(enabled => world.drawZones = enabled, "draw world zones", world.drawZones)
+        .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)
+        .make()
+
+    app.stage.addChild(ui)
+    ui.position.y = 300
+}
+
 
 /** Spawn a number of nematodes
  * 
@@ -59,7 +87,7 @@ function SpawnNematodes(number){
  */
 function SpawnFood(number){
     for (let i = 0; i < number; i++) {
-        food_init_pos = new PIXI.Point().RandomPosition(800);
+        food_init_pos = new PIXI.Point().RandomPosition(4000);
         new Food(food_init_pos)
     }
 }

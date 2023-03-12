@@ -37,11 +37,23 @@ class World {
 
     this.maxNumFood = 1000
     this.foodReplenishRate = 1 // food added per second
+    this.maxReplenishRate = 100
     
     // the canvas holds a container that we draw the objects on
     this.canvas = new Canvas(worldWidth, worldHeight)
 
     this.drawZones = false
+    this.drawEyeRays = false
+    this.draggableObjects = false // flag for enabled ability to drag world objects
+
+    // create food brush action for dragging
+    this.foodBrushOn = false
+    this.foodBrushRadius = 10
+
+    this.nematodeBrushOn = false
+    this.nematodeBrushRadius = 10
+
+    this.#setUpBrushes()
   }
 
   // ----------------- Nematodes -----------------
@@ -162,6 +174,42 @@ class World {
   }
 
   // ----------------- Getters -----------------
+
+  /**
+   * Register a brush action for the world
+   * @param {function} flagGetter returns true if this brush should be active 
+   * @param {function} action (x,y) => ... procedure applied to world coordinates of mouse on mouse move
+   * @param {number} strength strength of brush value (0 to 1)
+   */
+  createBrush(flagGetter, action, strength) {
+    createDragAction(this.canvas.backGround, this.canvas.container,
+      null,
+      (dx,dy,x,y) => {
+        // perform brush action if the supplied flag is enabled and the user isn't holding shift (for world panning)
+        if (flagGetter() && !Keys.keyPressed('Shift') && Math.random() < strength) {
+          let pos = this.canvas.screen2WorldPos({x: x, y: y})
+          action(pos.x,pos.y)
+        }
+      },
+      null
+    )
+  }
+
+  #setUpBrushes() {
+    // food brush
+    this.createBrush(() => this.foodBrushOn, (x,y) => {
+      let pos = new PIXI.Point(x,y)
+      pos.perturb(this.foodBrushRadius)
+      new Food(pos)
+    }, 0.25)
+
+    // nematode brush
+    this.createBrush(() => this.nematodeBrushOn, (x,y) => {
+      let pos = new PIXI.Point(x,y)
+      pos.perturb(this.nematodeBrushRadius)
+      new Nematode(pos)
+    }, 0.25)
+  }
 
   zoneHeight() {
     return this.#zoneHeight
