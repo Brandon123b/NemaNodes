@@ -23,7 +23,6 @@ document.body.appendChild(app.view);
 
 // Create list of nematodes
 let world = new World(1000,1000,100,100)
-world.drawZones = true
 
 // Want to separete this nematode to draw the neural network
 var firstNeatode;
@@ -35,12 +34,6 @@ for (let i = 0; i < 5000; i++) {
     if (firstNeatode == undefined) {
         firstNeatode = n;
     }
-}
-
-//Add some food for testing
-for (let i = 0; i < 15; i++) {
-    food_init_pos = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250)
-    let n = new Food(world, food_init_pos)
 }
 
 // Create the fps counter
@@ -55,6 +48,9 @@ let ui = new UICard(300)
     .startToggleGroup()
     .addToggle(enabled => world.draggableObjects = enabled, "drag tool", false)
     .addToggle(enabled => world.foodBrushOn = enabled, "food brush", false)
+    .addSlider(x => world.foodBrushRadius = x, 0, 100, world.foodBrushRadius, 1, "brush radius")
+    .addToggle(enabled => world.nematodeBrushOn = enabled, "nematode brush", false)
+    .addSlider(x => world.nematodeBrushRadius = x, 0, 100, world.nematodeBrushRadius, 1, "brush radius")
     .endToggleGroup()
     .addText("Environment")
     .addSlider(x => world.maxNumFood = x, 0, world.maxNumFood*2, world.maxNumFood, 5, "max food number")
@@ -65,6 +61,7 @@ let ui = new UICard(300)
     .make()
 
 app.stage.addChild(ui)
+ui.position.y = 300
 
 
 // Start the game loop
