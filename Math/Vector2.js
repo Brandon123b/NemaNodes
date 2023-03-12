@@ -56,5 +56,6 @@ PIXI.Point.prototype.perturb = function(radius) {
     let delta = new PIXI.Point(0,radius).rotate(Math.random()*360)
     delta.multiplyScalar(Math.random(), delta)
     this.addXY(delta.x, delta.y)
+    return this
 }
 PIXI.ObservablePoint.prototype.perturb = PIXI.Point.prototype.perturb
