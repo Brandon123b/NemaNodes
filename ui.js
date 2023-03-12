@@ -57,6 +57,8 @@ function mkCircle(radius, fillColor, borderColor, borderPct, fillAlpha, borderAl
  * length: physical length,
  * fill: color source for the slider fill,
  * bg: background color source for the slider,
+ * fillAlpha: alpha of fill color,
+ * bgAlpha: alpha of background,
  * onChange: function applied to current slider value
  * }
  * 
@@ -79,7 +81,7 @@ function mkSlider(opts) {
 
   // draw the background of slider
   let sliderbg = new PIXI.Graphics()
-  sliderbg.lineStyle(2,opts.bg)
+  sliderbg.lineStyle(2,opts.bg,opts.bgAlpha)
   sliderbg.drawRoundedRect(0,-3,opts.length,6,10)
   container.addChild(sliderbg)
 
@@ -87,14 +89,14 @@ function mkSlider(opts) {
   let sliderfill = new PIXI.Graphics()
   let drawFill = function() {
     sliderfill.clear()
-    sliderfill.beginFill(opts.fill)
+    sliderfill.beginFill(opts.fill, opts.fillAlpha)
     sliderfill.drawRoundedRect(0,-2,knob.x,4,10)
     sliderfill.endFill()
   }
   container.addChild(sliderfill)
 
   // create knob sprite
-  let knob = mkCircle(9,opts.fill,opts.bg,0.2)
+  let knob = mkCircle(8,opts.fill,opts.bg,0.2,opts.fillAlpha, opts.bgAlpha)
   knob.interactive = true
   container.addChild(knob)
 
@@ -238,6 +240,11 @@ class UICard {
     // track the next y-position for the next UI element in this card to be added
     this.nextPos = this.margin
 
+    this.opacity = 0.15
+    this.color = 0x4444ff
+    this.trim = 0x000000
+    this.trimOpacity = 0.8
+
     this.card = new PIXI.Graphics()
 
     this.container.addChild(this.card)
@@ -245,7 +252,12 @@ class UICard {
     this.textStyle = new PIXI.TextStyle({
       wordWrap: true,
       wordWrapWidth: this.width - this.margin*2,
-      fontSize: 16
+      fontSize: 18,
+      fontFamily: "Courier New",
+      fontVariant: "small-caps",
+      fontWeight: "bold",
+      letterSpacing: 2,
+      fill: this.trim
     })
   }
 
@@ -253,11 +265,11 @@ class UICard {
   make() {
     let height = this.nextPos + this.margin
     // transparent bluish background to mimic glass
-    this.card.beginFill(0x8888ff,0.25)
+    this.card.beginFill(this.color,this.opacity)
     this.card.drawRoundedRect(0,0,this.width,height,10)
     this.card.endFill()
     // black border
-    this.card.lineStyle(2,0)
+    this.card.lineStyle(2,this.trim,this.trimOpacity)
     this.card.drawRoundedRect(0,0,this.width,height,10)
     this.card.drawRoundedRect(0,0,this.width-4,height-5,10)
     
@@ -285,6 +297,7 @@ class UICard {
     element.y = this.nextPos
     element.x = this.margin
 
+    // update starting y position for next element
     this.nextPos = element.y + element.height + this.padding
   }
 
@@ -315,13 +328,13 @@ class UICard {
 
     let btn = mkButton({
       radius: 8,
-      fill: 0x8888ff,
-      activeFill: isToggle ? 0 : 0x8888ff,
-      bg: 0,
+      fill: this.color,
+      activeFill: isToggle ? this.trim : this.color,
+      bg: this.trim,
       onToggle: onClick,
       toggled: isToggle ? toggled : false,
-      fillAlpha: 0.35,
-      activeFillAlpha: isToggle ? 1 : 0.35
+      fillAlpha: this.opacity,
+      activeFillAlpha: isToggle ? this.trimOpacity : this.opacity
     })
     btnContainer.addChild(btn)
     btn.position.set(btn.width/2)
@@ -398,8 +411,10 @@ class UICard {
       default: initial,
       increment: increment,
       length: this.width - this.margin*2,
-      fill: 0,
-      bg: 0
+      fill: this.trim,
+      fillAlpha: this.trimOpacity,
+      bg: 0,
+      bgAlpha: 0
     })
 
     s.y += labelText.height + this.padding
