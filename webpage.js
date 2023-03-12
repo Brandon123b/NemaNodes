@@ -29,8 +29,8 @@ world.drawZones = true
 var firstNeatode;
 
 // Add some nematodes to the world
-for (let i = 0; i < 100; i++) {
-    let n = new Nematode(world)
+for (let i = 0; i < 5000; i++) {
+    let n = new Nematode(world, new PIXI.Point(0,0).perturb(5000))
 
     if (firstNeatode == undefined) {
         firstNeatode = n;
@@ -48,6 +48,23 @@ fpsCounter = new PIXI.Text("FPS: 0", {fontFamily : 'Arial', fontSize: 20, fill :
 fpsCounter.x = 10;
 fpsCounter.y = 8;
 app.stage.addChild(fpsCounter);
+
+// create a UI card
+let ui = new UICard(300)
+    .addText("User tools")
+    .startToggleGroup()
+    .addToggle(enabled => world.draggableObjects = enabled, "drag tool", false)
+    .addToggle(enabled => world.foodBrushOn = enabled, "food brush", false)
+    .endToggleGroup()
+    .addText("Environment")
+    .addSlider(x => world.maxNumFood = x, 0, world.maxNumFood*2, world.maxNumFood, 5, "max food number")
+    .addSlider(x => world.foodReplenishRate = x, 0, world.maxReplenishRate, world.foodReplenishRate, 1, "food replenish rate")
+    .addText("Debug")
+    .addToggle(enabled => world.drawZones = enabled, "draw world zones", world.drawZones)
+    .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)
+    .make()
+
+app.stage.addChild(ui)
 
 
 // Start the game loop

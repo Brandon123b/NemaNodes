@@ -13,7 +13,7 @@ var maxSeeDistance = 50;
 
 class Nematode {
     // provide the World object for this nematode to live in
-    constructor(world) {
+    constructor(world, pos) {
 
         // The brain
         this.nn = new NeatNN(5, 2)              // The neural network of the Nematode
@@ -39,7 +39,7 @@ class Nematode {
         this.sprite.anchor.set(0.5);
 
         // the position of this nematode in the world is maintained by its sprite position
-        this.sprite.position = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250)
+        this.sprite.position = pos
 
         // random color tint for sprite
         this.baseColor = Math.random() * 0xFFFFFF
