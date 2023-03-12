@@ -93,7 +93,11 @@ class Canvas {
       this.worldGraphics.drawRect(world.zoneWidth()*x, world.zoneHeight()*y, world.zoneWidth(), world.zoneHeight())
     }
 
-    firstNeatode.nn.DrawNN(this.screenGraphics);
+    // draw the selected nematode's neural network and stats
+    if (world.selectedNematode != null){
+      world.selectedNematode.nn.DrawNN(this.screenGraphics);
+      world.selectedNematode.DrawStats(this.screenGraphics);
+    }
   }
 
 
