@@ -10,8 +10,7 @@
 class Food {
     
 
-    constructor(world, position) {
-        this.world = world
+    constructor(position) {
 
         this.width = 6
         this.height = 6
@@ -80,7 +79,7 @@ class Food {
     *  Returns the nutrition value of the food (TODO: add nutrition value to food)
     */
     Eat(){
-        this.world.destroyFood(this)
+        world.destroyFood(this)
 
         return 30;
     }
