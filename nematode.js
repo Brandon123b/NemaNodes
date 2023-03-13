@@ -134,8 +134,29 @@ class Nematode {
         var sample_y = [0, 0, 0, 0];
         var sample_x = [-2, -1, 0, 1];
 
-        //trying to combine images into a single sprite but idk
+
+        var spriteCont = new PIXI.Container();
+        for(var i=0; i<sample_x.length;i++) {
+            var chunk = PIXI.Sprite.from('Bibite.png');
+            chunk.x = sample_x[i];
+            chunk.y = sample_y[i];
+            chunk.anchor.set(0.5);
+            spriteCont.addChild(chunk);
+        }
+
+        const image = app.renderer.extract.image(spriteCont, "image/png", 1);
+        image.then(res => {
+            console.log(res)
+            document.body.appendChild(res)
+            }, console.log)
+
+        this.sprite = PIXI.Sprite.from(image, format="image/png");
+        this.sprite.anchor.set(0.5);
         
+        // the position of this nematode in the world is maintained by its sprite position
+        this.sprite.position = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250)
+        //trying to combine images into a single sprite but idk
+        /*
         var reel = new PIXI.Container();
         
         //Add nematode chunk sprites to the container 
@@ -154,6 +175,8 @@ class Nematode {
         for(var i=0;i<sample_y.length;i++) {
             var s = new PIXI.Sprite(tx);
             s.x = sample_x[i];
+            s.y = sample_y[i];
+            s.anchor.set(0.5)
             stage.addChild(s);
         }
         app.renderer.render(stage, {tx});
@@ -165,17 +188,14 @@ class Nematode {
         var combinedSprite = new PIXI.Sprite(tex);
         this.sprite = combinedSprite;
 
-        this.sprite.anchor.set(0.5);
         
-        // the position of this nematode in the world is maintained by its sprite position
-        this.sprite.position = new PIXI.Point(Math.random() * 500 - 250, Math.random() * 500 - 250)
         //return combinedSprite;
 
         //var tex = app.renderer.extract.image(reel)
         //console.log(tex)
         //var combinedSprite = new PIXI.Sprite(tex)
         //return combinedSprite
-
+          */
     }
 
 
