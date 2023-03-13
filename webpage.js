@@ -15,6 +15,9 @@ var app;
 // The world class
 var world;
 
+var lastTime = 0;
+var movingFps = 60;
+
 // Starts everything
 function main(){
 
@@ -32,10 +35,11 @@ function main(){
     CreateUI();
 
     // Add some nematodes
-    SpawnNematodes(1000);
+    SpawnNematodes(6000);
 
     // Add some food
-    SpawnFood(5000);
+    /*
+    //SpawnFood(3000);
 
     // Start the game loop
     app.ticker.add(() => {
@@ -44,6 +48,17 @@ function main(){
         var delta = app.ticker.deltaMS / 1000;
         GameLoop(delta );
     });
+*/
+
+    setInterval(function() {
+
+        // Find the time in seconds since the last frame
+        var delta = (performance.now() - lastTime) / 1000;
+        lastTime = performance.now();
+
+        GameLoop(delta );
+
+    }, 1000 / 60);
 }
 
 // create a UI card
@@ -125,8 +140,11 @@ function GameLoop(delta) {
     // update the canvas
     world.canvas.drawWorld(world)
 
+    // Update the moving fps
+    movingFps = movingFps * 0.95 + 1 / delta * 0.05;
+
     // Update the fps counter
-    fpsCounter.text = "FPS: " + Math.round(app.ticker.FPS);
+    fpsCounter.text = "FPS: " + (movingFps).toFixed(1);
 }
 
 // Very easy to miss this line
