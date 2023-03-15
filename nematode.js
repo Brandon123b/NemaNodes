@@ -12,7 +12,7 @@ class Nematode {
 
     // Static variables
     static MAX_EYE_DISTANCE = 50;                           // The maximum distance that the eyes can see (in pixels)
-    static MATURITY_AGE = 50;                               // The age at which the nematode can reproduce
+    static MATURITY_AGE = 40;                               // The age at which the nematode can reproduce
     static PERCENTAGE_ENERGY_TO_REPRODUCE = 0.8;            // The percentage of energy that the nematode must have to reproduce
     static PERCENT_ENERGY_LOST_WHEN_REPRODUCING = 0.5;      // The percentage of energy that the nematode loses when reproducing
 
@@ -287,7 +287,6 @@ class Nematode {
         statsText.text += "  Age: " + (1 + this.age / 300).toFixed(3) + " times the normal rate\n";
         statsText.text += "\n";
         statsText.text += "Tint: " + this.sprite.tint.toString(16) + "\n";
-      
     }
 
     // ------------------- Events ------------------- //
@@ -352,6 +351,10 @@ class Nematode {
         if (this.timeSinceDeath > 10) {
             // Remove the nematode from the world
             world.destroyNematode(this);
+
+            // Clean un the neural network
+            this.nn.Destroy();
+            this.nn = null;
         }
     }
 

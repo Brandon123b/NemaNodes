@@ -639,6 +639,27 @@ class NeatNN {
 
         return newNN;
     }
+
+    Destroy() {
+
+        // Destroy the nodes
+        for (let i = 0; i < this.nodes.length; i++) {
+            this.nodes[i].Destroy();
+        }
+
+        // Destroy the connections
+        for (let i = 0; i < this.connections.length; i++) {
+            this.connections[i].Destroy();
+        }
+
+        // Set the nodes and connections to null
+        this.nodes = null;
+        this.connections = null;
+
+        // Set the inputs and outputs to null (for good measure)
+        this.inputs = null;
+        this.outputs = null;
+    }
 }
 
 /** Represents a connection between two nodes in the neural network
@@ -663,5 +684,10 @@ class Connection {
 
     toString() {
         return "{ Connection: " + this.from + " -> " + this.to + " " + this.weight + " }";
+    }
+
+    Destroy() {
+        this.from = null;
+        this.to = null;
     }
 }

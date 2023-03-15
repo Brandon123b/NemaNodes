@@ -134,6 +134,18 @@ function GameLoop(delta) {
 
         // Spawn food
         SpawnFood(world.foodReplenishRate);
+
+        // Temp count of nematodes
+        let nematodeCount = 0;
+
+        world.forEachNematode(n => {nematodeCount++})
+
+        console.log("Count: " + nematodeCount);
+
+        if (nematodeCount == 0){
+            console.log("No nematodes");
+            throw "No nematodes";
+        }
     }
 
     // Clear the graphics
@@ -144,6 +156,7 @@ function GameLoop(delta) {
     // Update the nematodes
     world.forEachNematode(n => n.Update(delta))
     
+
     // update the canvas
     world.canvas.drawWorld(world)
 
