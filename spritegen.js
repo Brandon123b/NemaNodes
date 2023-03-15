@@ -20,14 +20,22 @@ class SpriteGenerator {
     //Might make this a range too idk
     static bodyPartSpacing = 20;
 
+    //internal
+    //return a random decimal between min and max
+    static rand_dec(min, max) {
+
+        return Math.random() * (max-min) + min;
+    }
+
+
     //Generate a new sprite with no parent info
     static NewSpriteRandom() {
         
         //create random parameters
-        amplitude = _rand_dec(this.minAmplitude, this.maxAmplitude);
-        frequency = _rand_dec(this.minFrequency, this.maxFrequency);
-        n_parts = _rand_dec(this.minBodyParts, this.maxBodyParts);
-        x_head = 0; //x point to start generating at; might need to tweak
+        var amplitude = this.rand_dec(this.minAmplitude, this.maxAmplitude);
+        var frequency = this.rand_dec(this.minFrequency, this.maxFrequency);
+        var n_parts = Math.floor(this.rand_dec(this.minBodyParts, this.maxBodyParts));
+        var x_head = 0; //x point to start generating at; might need to tweak
 
         //generate body part postions
         var sample_x = Array(n_parts);
@@ -64,8 +72,8 @@ class SpriteGenerator {
             }, console.log)
         
 
-        return PIXI.Sprite.from(image, format="image/png");
-        
+        //return PIXI.Sprite.from(image);
+        return 0;
 
     }
 
@@ -78,11 +86,6 @@ class SpriteGenerator {
         return 0
     }
 
-    //internal
-    //return a random decimal between min and max
-    static _rand_dec(min, max) {
-
-        return Math.random() * (max-min) + min;
-    }
+    
 
 }
