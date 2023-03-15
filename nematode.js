@@ -77,7 +77,7 @@ class Nematode {
 
         // Set position and direction to random values
         this.direction = new PIXI.Point().RandomDirection();
-        this.sprite.position = new PIXI.Point().RandomPosition(4000);
+        this.sprite.position = new PIXI.Point().RandomPosition(worldRadius);
 
         this.baseSize = Nematode.BASE_SIZE_RANGE.min + Math.random() * Nematode.BASE_SIZE_RANGE.max;  // The base size of the Nematode (in pixels)
         this.growRate = Nematode.GROW_RATE_RANGE.min + Math.random() * Nematode.GROW_RATE_RANGE.max;  // The rate at which the Nematode grows (in pixels per second)
@@ -157,8 +157,8 @@ class Nematode {
         this.nn.RunNN();
 
         // Get the rotation and speed from the neural network
-        var rotate = this.nn.GetOutput(0) * this.maxTurnSpeed * delta;
-        var speed  = this.nn.GetOutput(1) * this.maxSpeed     * delta;
+        const rotate = this.nn.GetOutput(0) * this.maxTurnSpeed * delta;
+        let   speed  = this.nn.GetOutput(1) * this.maxSpeed     * delta;
 
         // If speed is negative, halve it (Make backwards movement slower to encourage forward movement)
         speed = (speed < 0) ? speed *= 0.5 : speed;
@@ -200,7 +200,7 @@ class Nematode {
         this.maxEnergy = 80 + this.size * 2;
 
         // Decrease the energy of the bibite
-        var energyLoss = 1;                                     // Initial energy loss is 1 per second
+        let energyLoss = 1;                                     // Initial energy loss is 1 per second
         energyLoss += Math.abs(speed ) / this.maxSpeed;         // Multiply energy loss by the ratio of the speed to the max speed
         energyLoss += this.nn.GetPenalty();                     // Multiply energy loss by the penalty of the neural network
         energyLoss *= 1 + this.age / 300;                       // Multiply energy loss by the ratio of the age to a constant
@@ -231,9 +231,6 @@ class Nematode {
         // Send the raycast
         if (Raycast(raycastResult, this.sprite.x, this.sprite.y, dirX, dirY, Nematode.MAX_EYE_DISTANCE, world.drawEyeRays)){
 
-            if (raycastResult.GetHitObject() == undefined)
-                console.log(raycastResult.GetHitObject())
-
             // If the raycast is close enough to the food, eat it
             if (raycastResult.GetDistance() < this.size / 2) 
                 this.OnEat(raycastResult.GetHitObject());
@@ -246,53 +243,47 @@ class Nematode {
     }
 
     // ------------------- Drawing ------------------- //
-
-    /* Draws the nematodes stats to the given graphics object
-    *  @param {PIXI.Graphics} graphics - The graphics object to draw to
-    *  @param {number} xPos - The x position to draw the stats at (top left)
-    *  @param {number} yPos - The y position to draw the stats at (top left)
-    */
+    
     DrawStats(graphics) {
 
         var width = 300;
-        var height = 350;
+        var height = 380;
         var xPos = app.screen.width - width - 10;       // Left padding
         var yPos = 30 + 200;                            // Top padding + the height of the nn drawing
-
+      
         // Draw the background
         graphics.beginFill(0x000000, 0.5);
         graphics.drawRoundedRect(xPos, yPos, width, height);
-
+      
         // Create a text object to draw the stats
-        var text = new PIXI.Text("PIE", {fontFamily : 'Arial', fontSize: 15, fill : 0xffffff, align : 'left'});
-        
-        // Add the text to the graphics object
+        var text = new PIXI.Text("Nematode Stats", {fontFamily : 'Arial', fontSize: 20, fontWeight: 'bold', fill : 0xffffff, align : 'left'});
+        text.position.set(xPos + 25, yPos + 10);
         graphics.addChild(text);
-
-        // Set the position of the text
-        text.position.set(xPos + 10, yPos + 10);
-
+      
         // Draw the stats
-        text.text = "Nematode Stats:";
-        text.text += "\n";
-        text.text += "\nAge: " + this.age.toFixed(2) + "s";
-        text.text += "\nEnergy: " + this.energy.toFixed(2) + " / " + this.maxEnergy.toFixed(2);
-        text.text += "\n";
-        text.text += "\nMax Speed: " + this.maxSpeed.toFixed(2) + " pixels/s";
-        text.text += "\nTurn Speed: " + this.maxTurnSpeed.toFixed(2);
-        text.text += "\n";
-        text.text += "\nSize: " + this.size.toFixed(2) + " pixels";
-        text.text += "\nGrow Rate: " + this.growRate.toFixed(2) + " pixels/s";
-        text.text += "\n";
-        text.text += "\nEnergy Consumption: ";
-        text.text += "\n  Existance: " + 1 + " energy/s";
-        text.text += "\n  Movement: " + (Math.abs(this.nn.GetOutput(1) * this.maxSpeed ) / this.maxSpeed).toFixed(3) + " energy/s";
-        text.text += "\n  NN Penalty: " + this.nn.GetPenalty().toFixed(3) + " energy/s";
-        text.text += "\n  Age: " + (1 + this.age / 300).toFixed(3) + " times the normal rate";
-        text.text += "\n";
-        text.text += "\nTint: " + this.sprite.tint.toString(16);
+        var statsText = new PIXI.Text("", {fontFamily : 'Arial', fontSize: 16, fill : 0xffffff, align : 'left', lineHeight: 20});
+        statsText.position.set(xPos + 30, yPos + 50);
+        graphics.addChild(statsText);
+        statsText.text += "Age: " + this.age.toFixed(2) + "s\n";
+        statsText.text += "Energy: " + this.energy.toFixed(2) + " / " + this.maxEnergy.toFixed(2) + "\n";
+        statsText.text += "\n";
+        statsText.text += "Max Speed: " + this.maxSpeed.toFixed(2) + " pixels/s\n";
+        statsText.text += "Turn Speed: " + this.maxTurnSpeed.toFixed(2) + "\n";
+        statsText.text += "\n";
+        statsText.text += "Size: " + this.size.toFixed(2) + " pixels\n";
+        statsText.text += "Grow Rate: " + this.growRate.toFixed(2) + " pixels/s\n";
+        statsText.text += "\n";
+        statsText.text += "Energy Consumption: \n";
+        statsText.text += "  Existence: " + 1 + " energy/s\n";
+        statsText.text += "  Movement: " + (Math.abs(this.nn.GetOutput(1) * this.maxSpeed ) / this.maxSpeed).toFixed(3) + " energy/s\n";
+        statsText.text += "  NN Penalty: " + this.nn.GetPenalty().toFixed(3) + " energy/s\n";
+        statsText.text += "  Age: " + (1 + this.age / 300).toFixed(3) + " times the normal rate\n";
+        statsText.text += "\n";
+        statsText.text += "Tint: " + this.sprite.tint.toString(16) + "\n";
+      
+      }
+      
 
-    }
 
     // ------------------- Events ------------------- //
 
