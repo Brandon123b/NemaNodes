@@ -10,11 +10,10 @@
 class Food {
     
 
-    constructor(world, position) {
-        this.world = world
+    constructor(position) {
 
-        this.width = 10
-        this.height = 10
+        this.width = 6
+        this.height = 6
 
         this.age = 0
         this.spriteScaleX = 0.25 //scale sprite as needed
@@ -27,14 +26,8 @@ class Food {
         this.sprite.position = position
         this.sprite.width = this.width
         this.sprite.height = this.height
+        
         world.addFood(this)
-
-        // make food draggable
-        createDragAction(this.sprite, this.sprite,
-            (x,y) => this.paralyzed = true,
-            (dx,dy) => this.world.updatePos(this, this.GetX()+dx, this.GetY()+dy),
-            (x,y) => this.paralyzed = false
-        )
 
     }
 
@@ -62,6 +55,7 @@ class Food {
     GetAge() {
         return this.age
     }
+
     GetPosition() {
         return this.sprite.position
     }
@@ -74,5 +68,18 @@ class Food {
         return this.width / 2;
     }
     
+    /* Called when a nematode eats this food
+    *  Removes the food from the world
+    *  Returns the nutrition value of the food (TODO: add nutrition value to food)
+    */
+    Eat(){
+        world.destroyFood(this)
+
+        return 30;
+    }
+
+    toString() {
+        return `{Food at (${this.GetX()}, ${this.GetY()})}`
+    }
 
 }

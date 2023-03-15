@@ -138,9 +138,11 @@ class NeatNN {
         connection.to.RemoveIncomingConnection(connection);
     }
 
-    // Calculate the penalty of the network
+    /* Calculate the penalty of the network
+    *  Penalty is calculated by the number of connections and nodes
+    */ 
     CalculatePenalty() {
-        this.penalty = this.connections.length * 0.3 + this.nodes.length;
+        this.penalty = this.connections.length * 0.01 + this.nodes.length * 0.05;
     }
 
     // ---------------------------- Mutate Functions ------------------------------------
@@ -387,7 +389,7 @@ class NeatNN {
 
         // Draw a black rounded rectangle as the background
         graphics.beginFill(0x000000);
-        graphics.drawRoundedRect(0, 0, xSize, ySize, 20);
+        graphics.drawRoundedRect(10, 10, xSize, ySize, 20);
         graphics.endFill();
 
         // Set the depths of the output nodes to the max depth

@@ -32,28 +32,31 @@ class World {
     this.#zoneWidth = zoneWidth
     this.#zoneHeight = zoneHeight
 
+    // The currently selected nematode
+    this.selectedNematode = null
+
     this.maxNumFood = 1000
     this.foodReplenishRate = 1 // food added per second
+    this.maxReplenishRate = 100
     
     // the canvas holds a container that we draw the objects on
     this.canvas = new Canvas(worldWidth, worldHeight)
 
     this.drawZones = false
+    this.drawEyeRays = false
+    this.draggableObjects = false // flag for enabled ability to drag world objects
+
+    // create food brush action for dragging
+    this.foodBrushOn = false
+    this.foodBrushRadius = 10
+
+    this.nematodeBrushOn = false
+    this.nematodeBrushRadius = 10
+
+    this.#setUpBrushes()
   }
 
-  // remove a nematode from the world
-  destroyNematode(obj) {
-    if (!this.#nematodeZones.remove(obj))
-      throw `Object ${obj} cannot be destroyed because it does not exist in the world`
-    obj.sprite.destroy()
-  }
-
-  // remove a food object from the world
-  destroyFood(obj) {
-    if (!this.#foodZones.remove(obj))
-      throw `Object ${obj} cannot be destroyed because it does not exist in the world`
-    obj.sprite.destroy()
-  }
+  // ----------------- Nematodes -----------------
 
   // add a nematode to the world
   // an object should implement GetX(), GetY(), GetPosition(), SetPos()
@@ -61,10 +64,9 @@ class World {
 
     // make the nematode clickable
     obj.sprite.interactive = true
-    obj.sprite.onclick = () => {
-      console.log("Nematode's world position: (" + obj.GetX() + ", " + obj.GetY() + ")");
-      console.log("Nematode's screen position: (", this.canvas.world2ScreenPos(obj.GetPosition()) , ")");
-    }
+
+    // when the nematode is clicked, select it
+    obj.sprite.onclick = () => { this.selectedNematode = obj }
     
     // TODO clamp object's position to be within world borders
     this.#nematodeZones.insert(obj)
@@ -73,16 +75,11 @@ class World {
     this.canvas.add(obj.sprite)
   }
 
-  // add a food object to the world
-  // Food objects are not clickable
-  // an object should implement GetX(), GetY(), GetPosition(), SetPos()
-  addFood(obj) {
-
-    // TODO clamp object's position to be within world borders
-    this.#foodZones.insert(obj)
-
-    // add the game object so it can be drawn
-    this.canvas.add(obj.sprite)
+  // remove a nematode from the world
+  destroyNematode(obj) {
+    if (!this.#nematodeZones.remove(obj))
+      throw `Object ${obj} cannot be destroyed because it does not exist in the world`
+    obj.sprite.destroy()
   }
 
   // update the position of the object
@@ -102,6 +99,32 @@ class World {
     obj.SetPos(newX, newY)
     if (zoneChange) this.#nematodeZones.insert(obj)
 
+  }
+  
+  // perform an action on each object of the world
+  forEachNematode(f) {
+    this.#nematodeZones.forEachBucket(zone => zone.forEach(f))
+  }
+
+  // ----------------- Food -----------------
+
+  // add a food object to the world
+  // Food objects are not clickable
+  // an object should implement GetX(), GetY(), GetPosition(), SetPos()
+  addFood(obj) {
+
+    // TODO clamp object's position to be within world borders
+    this.#foodZones.insert(obj)
+
+    // add the game object so it can be drawn
+    this.canvas.add(obj.sprite)
+  }
+
+  // remove a food object from the world
+  destroyFood(obj) {
+    if (!this.#foodZones.remove(obj))
+      throw `Object ${obj} cannot be destroyed because it does not exist in the world`
+    obj.sprite.destroy()
   }
 
   // return a list of objects from the given area
@@ -138,6 +161,8 @@ class World {
     })
   }
 
+  // ----------------- Hash functions -----------------
+
   // get zone coordinates from world coordinates
   #pos2zone(worldPosX,worldPosY) {
     return [Math.floor(worldPosX/this.#zoneWidth), Math.floor(worldPosY/this.#zoneHeight)]
@@ -148,9 +173,42 @@ class World {
     return `${zoneX},${zoneY}`
   }
 
-  // perform an action on each object of the world
-  forEachNematode(f) {
-    this.#nematodeZones.forEachBucket(zone => zone.forEach(f))
+  // ----------------- Getters -----------------
+
+  /**
+   * Register a brush action for the world
+   * @param {function} flagGetter returns true if this brush should be active 
+   * @param {function} action (x,y) => ... procedure applied to world coordinates of mouse on mouse move
+   * @param {number} strength strength of brush value (0 to 1)
+   */
+  createBrush(flagGetter, action, strength) {
+    createDragAction(this.canvas.backGround, this.canvas.container,
+      null,
+      (dx,dy,x,y) => {
+        // perform brush action if the supplied flag is enabled and the user isn't holding shift (for world panning)
+        if (flagGetter() && !Keys.keyPressed('Shift') && Math.random() < strength) {
+          let pos = this.canvas.screen2WorldPos({x: x, y: y})
+          action(pos.x,pos.y)
+        }
+      },
+      null
+    )
+  }
+
+  #setUpBrushes() {
+    // food brush
+    this.createBrush(() => this.foodBrushOn, (x,y) => {
+      let pos = new PIXI.Point(x,y)
+      pos.perturb(this.foodBrushRadius)
+      new Food(pos)
+    }, 0.25)
+
+    // nematode brush
+    this.createBrush(() => this.nematodeBrushOn, (x,y) => {
+      let pos = new PIXI.Point(x,y)
+      pos.perturb(this.nematodeBrushRadius)
+      new Nematode(pos)
+    }, 0.25)
   }
 
   zoneHeight() {
