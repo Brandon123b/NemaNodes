@@ -197,6 +197,9 @@ class NeatNN {
 
         // Calculate the new penalty of the network
         this.CalculatePenalty();
+
+        // Return the mutated network to allow for chaining
+        return this;
     }
 
     // Modify the weight of a random connection

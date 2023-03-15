@@ -15,7 +15,10 @@ var app;
 // The world class
 var world;
 
+// The last time the game loop was called
 var lastTime = 0;
+
+// Keeps a moving average of the fps (This smooths out the fps counter)
 var movingFps = 60;
 
 // Starts everything
@@ -37,19 +40,7 @@ function main(){
     // Add some nematodes
     SpawnNematodes(6000);
 
-    // Add some food
-    /*
-    //SpawnFood(3000);
-
-    // Start the game loop
-    app.ticker.add(() => {
-
-        // Find the time in seconds since the last frame
-        var delta = app.ticker.deltaMS / 1000;
-        GameLoop(delta );
-    });
-*/
-
+    // This starts the main loop (with a 60 target fps cap)
     setInterval(function() {
 
         // Find the time in seconds since the last frame
