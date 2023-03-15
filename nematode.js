@@ -69,6 +69,7 @@ class Nematode {
         // The age in seconds
         this.age = 0;
 
+        this.exists = true;             // Nematodes exist by default
         this.alive = true;              // Nematodes are (hopefully) alive by default
         this.paralyzed = false;         // set flag to true to prevent nematode from moving
 
@@ -97,6 +98,7 @@ class Nematode {
         // The age in seconds (always 0 for children)
         this.age = 0;  
 
+        this.exists = true;             // Nematodes exist by default
         this.alive = true;              // Nematodes are (hopefully) alive by default
         this.paralyzed = false;         // set flag to true to prevent nematode from moving
 
@@ -252,7 +254,7 @@ class Nematode {
     *  @param {PIXI.Graphics} graphics - The graphics object to draw to
     */
     DrawStats(graphics) {
-
+        
         var width = 300;
         var height = 380;
         var xPos = app.screen.width - width - 10;       // Left padding
@@ -351,6 +353,9 @@ class Nematode {
         if (this.timeSinceDeath > 10) {
             // Remove the nematode from the world
             world.destroyNematode(this);
+
+            // Set the nematode to not exist
+            this.exists = false;
 
             // Clean un the neural network
             this.nn.Destroy();
