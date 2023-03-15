@@ -40,7 +40,7 @@ class Nematode {
         else if (arg1 instanceof PIXI.Point) {
 
           this.CreateRandomNematode(arg1);
-          this.position = arg1;  
+          this.SetPos(arg1.x, arg1.y);  
 
         } 
         // Nematode argument provided to create a child of the parent nematode
