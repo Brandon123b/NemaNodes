@@ -22,7 +22,10 @@ var lastTime = 0;
 var movingFps = 60;
 
 // The radius of the world (TODO: move this somewhere else)
-const worldRadius = 5000;
+const worldRadius = 2000;
+
+// Count the time since the last food spawn
+let timeSinceFoodSpawn = 0;
 
 // Starts everything
 function main(){
@@ -42,6 +45,9 @@ function main(){
 
     // Add some nematodes
     SpawnNematodes(4000);
+
+    // Add some food
+    SpawnFood(2000);
 
     // This starts the main loop (with a 60 target fps cap)
     setInterval(function() {
@@ -91,11 +97,16 @@ function SpawnNematodes(number){
 }
 
 /** Spawn a number of food
+ *  Will not spawn more than world.maxNumFood
  * 
  * @param {*} number The number of food to spawn
  */
 function SpawnFood(number){
     for (let i = 0; i < number; i++) {
+
+        //if (world.food.length >= world.maxNumFood) TODO: Implement this somehow
+        //    return;
+
         new Food()
     }
 }
@@ -110,16 +121,19 @@ function CreateFpsCounter(){
     app.stage.addChild(fpsCounter);
 }
 
-/**
- * GameLoop Called every frame from the ticker 
- * @param {number} delta - Time since last frame in seconds
+/** GameLoop Called every frame from the ticker 
+ *  @param {number} delta - Time since last frame in seconds
 */
 function GameLoop(delta) {
 
-    // Add food to the world
-    if (Math.random() < 1) {
-        food_init_pos = new PIXI.Point().RandomPosition(800);
-        new Food(food_init_pos)
+    timeSinceFoodSpawn += delta;
+
+    // Spawn food every second
+    if (timeSinceFoodSpawn > 1){
+        timeSinceFoodSpawn -= 1;
+
+        // Spawn food
+        SpawnFood(world.foodReplenishRate);
     }
 
     // Clear the graphics

@@ -35,8 +35,8 @@ class World {
     // The currently selected nematode
     this.selectedNematode = null
 
-    this.maxNumFood = 1000
-    this.foodReplenishRate = 1 // food added per second
+    this.maxNumFood = 2000
+    this.foodReplenishRate = 25 // food added per second
     this.maxReplenishRate = 100
     
     // the canvas holds a container that we draw the objects on
