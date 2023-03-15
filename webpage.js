@@ -21,6 +21,9 @@ var lastTime = 0;
 // Keeps a moving average of the fps (This smooths out the fps counter)
 var movingFps = 60;
 
+// The radius of the world (TODO: move this somewhere else)
+const worldRadius = 5000;
+
 // Starts everything
 function main(){
 
@@ -38,7 +41,7 @@ function main(){
     CreateUI();
 
     // Add some nematodes
-    SpawnNematodes(6000);
+    SpawnNematodes(4000);
 
     // This starts the main loop (with a 60 target fps cap)
     setInterval(function() {
@@ -93,8 +96,7 @@ function SpawnNematodes(number){
  */
 function SpawnFood(number){
     for (let i = 0; i < number; i++) {
-        food_init_pos = new PIXI.Point().RandomPosition(4000);
-        new Food(food_init_pos)
+        new Food()
     }
 }
 
