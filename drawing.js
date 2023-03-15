@@ -95,8 +95,11 @@ class Canvas {
 
     // draw the selected nematode's neural network and stats
     if (world.selectedNematode != null){
-      world.selectedNematode.nn.DrawNN(this.screenGraphics);
       world.selectedNematode.DrawStats(this.screenGraphics);
+
+      // only draw the neural network if it is not null
+      if (world.selectedNematode.nn != null)
+        world.selectedNematode.nn.DrawNN(this.screenGraphics);
     }
   }
 

@@ -390,6 +390,10 @@ class NeatNN {
         var nodeDepthsCount = [];                   // The number of nodes at each depth
         var yPositionsUsed = [];                     // The y positions that are already used
 
+        // If the network has been destroyed, return
+        if (this.nodes === null)
+            return;
+
         // Draw a black rounded rectangle as the background
         graphics.beginFill(0x000000);
         graphics.drawRoundedRect(10, 10, xSize, ySize, 20);
