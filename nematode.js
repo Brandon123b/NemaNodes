@@ -11,14 +11,13 @@
 class Nematode {
 
     // Static variables
-    static MAX_EYE_DISTANCE = 50;                   // The maximum distance that the eyes can see (in pixels)
-    static MATURITY_AGE = 50;                        // The age at which the nematode can reproduce
-    static PERCENTAGE_ENERGY_TO_REPRODUCE = 0.8;    // The percentage of energy that the nematode must have to reproduce
+    static MAX_EYE_DISTANCE = 50;                           // The maximum distance that the eyes can see (in pixels)
+    static MATURITY_AGE = 50;                               // The age at which the nematode can reproduce
+    static PERCENTAGE_ENERGY_TO_REPRODUCE = 0.8;            // The percentage of energy that the nematode must have to reproduce
     static PERCENT_ENERGY_LOST_WHEN_REPRODUCING = 0.5;      // The percentage of energy that the nematode loses when reproducing
 
     // Constraints
-    static MAX_SIZE = 60;
-    static MIN_SIZE = 10;
+    static SIZE_CONSTRAINT = { min: 5, max: 50 }            // The minimum and maximum size of the nematode (in pixels)
 
     // Initial value ranges
     static BASE_SIZE_RANGE = { min: 5, max: 15 }
@@ -44,7 +43,7 @@ class Nematode {
           this.position = arg1;  
 
         } 
-        // Nematode argument provided to create a child nematode
+        // Nematode argument provided to create a child of the parent nematode
         else if (arg1 instanceof Nematode) {
 
           this.CreateChildNematode(arg1);
@@ -62,7 +61,9 @@ class Nematode {
         world.addNematode(this)         
     }
 
-    // Create a random nematode
+    /** Creates a random nematode (with random stats and position)
+     *  Called in the constructor when no arguments are provided or when a position is provided
+     */
     CreateRandomNematode() {
 
         // The age in seconds
@@ -87,7 +88,10 @@ class Nematode {
         this.energy = -1;              // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
     }
 
-    // Create a child nematode
+    /** Creates a child nematode from a parent
+     *  Called in the constructor when a parent is provided
+     *  @param {Nematode} parent The parent of the child
+     */
     CreateChildNematode(parent) {
 
         // The age in seconds (always 0 for children)
@@ -207,7 +211,7 @@ class Nematode {
         this.energy -= energyLoss * delta;                      // Decrease the energy by the energy loss
 
         // Clamp the size
-        this.size = Math.min(Math.max(this.size, Nematode.MIN_SIZE), Nematode.MAX_SIZE);
+        this.size = Math.min(Math.max(this.size, Nematode.SIZE_CONSTRAINT.min), Nematode.SIZE_CONSTRAINT.max);
 
         // update sprite (TODO: Will be updated when the nematodes sprites are finished)
         this.sprite.width = this.size
@@ -243,7 +247,10 @@ class Nematode {
     }
 
     // ------------------- Drawing ------------------- //
-    
+
+    /* Draws the nematodes stats to the given graphics object
+    *  @param {PIXI.Graphics} graphics - The graphics object to draw to
+    */
     DrawStats(graphics) {
 
         var width = 300;
@@ -281,9 +288,7 @@ class Nematode {
         statsText.text += "\n";
         statsText.text += "Tint: " + this.sprite.tint.toString(16) + "\n";
       
-      }
-      
-
+    }
 
     // ------------------- Events ------------------- //
 
