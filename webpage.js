@@ -102,11 +102,7 @@ function SpawnNematodes(number){
  * @param {*} number The number of food to spawn
  */
 function SpawnFood(number){
-    for (let i = 0; i < number; i++) {
-
-        //if (world.food.length >= world.maxNumFood) TODO: Implement this somehow
-        //    return;
-
+    for (let i = 0; i < number && world.numFood() < world.maxNumFood; i++) {
         new Food()
     }
 }
@@ -136,14 +132,9 @@ function GameLoop(delta) {
         SpawnFood(world.foodReplenishRate);
     }
 
-    // Clear the graphics
-    world.canvas.worldGraphics.clear();
-    world.canvas.screenGraphics.clear();
-    world.canvas.screenGraphics.removeChildren();
-
     // Update the nematodes
     world.forEachNematode(n => n.Update(delta))
-    
+
     // update the canvas
     world.canvas.drawWorld(world)
 
