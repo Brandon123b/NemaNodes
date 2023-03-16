@@ -29,8 +29,10 @@ class SpriteGenerator {
 
 
     //Generate a new sprite with no parent info
-    static NewSpriteRandom() {
+    static async NewSpriteRandom() {
         
+        await PIXI.Assets.load('Bibite.png');
+
         //create random parameters
         var amplitude = this.rand_dec(this.minAmplitude, this.maxAmplitude);
         var frequency = this.rand_dec(this.minFrequency, this.maxFrequency);
@@ -47,7 +49,8 @@ class SpriteGenerator {
             xpos += this.bodyPartSpacing;
         }
 
-        var spriteCont = new PIXI.Container();
+        var spriteCont = new PIXI.Container;
+
         for(var i=0; i<sample_x.length;i++) {
             var chunk = PIXI.Sprite.from('Bibite.png');
             //place body part
@@ -63,7 +66,7 @@ class SpriteGenerator {
             spriteCont.addChild(chunk);
         }
 
-        const image = app.renderer.extract.image(spriteCont, "image/png", 1);
+        const image = app.renderer.extract.image(spriteCont, "image/png", height=256, width=256);
         
         //view the image in console (testing only)
         image.then(res => {
