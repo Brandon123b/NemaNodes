@@ -21,7 +21,6 @@ class World {
     let [zoneX,zoneY] = this.#pos2zone(obj.GetX(), obj.GetY())
     return this.#zone2hashkey(zoneX,zoneY)
   })
-  
 
   // set the size of the world in the x-direction (width)
   // set the size of the world in the y-direction (height)
@@ -79,6 +78,7 @@ class World {
   destroyNematode(obj) {
     if (!this.#nematodeZones.remove(obj))
       throw `Object ${obj} cannot be destroyed because it does not exist in the world`
+    this.#nematodeZones.remove(obj)
     obj.sprite.destroy()
   }
 
@@ -102,8 +102,11 @@ class World {
   }
   
   // perform an action on each object of the world
-  forEachNematode(f) {
-    this.#nematodeZones.forEachBucket(zone => zone.forEach(f))
+  forEachNematode(f) { //TODO
+    for (const nematode of this.#nematodeZones.items())
+    f(nematode)
+    
+    //this.#nematodeZones.forEachBucket(zone => zone.forEach(f))
   }
 
   // ----------------- Food -----------------
@@ -124,7 +127,13 @@ class World {
   destroyFood(obj) {
     if (!this.#foodZones.remove(obj))
       throw `Object ${obj} cannot be destroyed because it does not exist in the world`
+    this.#foodZones.remove(obj)
     obj.sprite.destroy()
+  }
+
+  // return the number of food items in the world
+  numFood() {
+    return this.#foodZones.size()
   }
 
   // return a list of objects from the given area
