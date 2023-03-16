@@ -44,10 +44,10 @@ function main(){
     CreateUI();
 
     // Add some nematodes
-    SpawnNematodes(4000);
+    SpawnNematodes(5000);
 
     // Add some food
-    SpawnFood(2000);
+    SpawnFood(3000);
 
     // This starts the main loop (with a 60 target fps cap)
     setInterval(function() {
@@ -130,7 +130,19 @@ function GameLoop(delta) {
 
         // Spawn food
         SpawnFood(world.foodReplenishRate);
+
+        // Temp count of nematodes
+        let nematodeCount = 0;
+
+        world.forEachNematode(n => {nematodeCount++})
+
+        console.log("Count: " + nematodeCount);
+
+        if (nematodeCount == 0){
+            console.log("No nematodes");
+        }
     }
+
 
     // Update the nematodes
     world.forEachNematode(n => n.Update(delta))

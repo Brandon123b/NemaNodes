@@ -12,7 +12,7 @@ class Nematode {
 
     // Static variables
     static MAX_EYE_DISTANCE = 50;                           // The maximum distance that the eyes can see (in pixels)
-    static MATURITY_AGE = 50;                               // The age at which the nematode can reproduce
+    static MATURITY_AGE = 40;                               // The age at which the nematode can reproduce
     static PERCENTAGE_ENERGY_TO_REPRODUCE = 0.8;            // The percentage of energy that the nematode must have to reproduce
     static PERCENT_ENERGY_LOST_WHEN_REPRODUCING = 0.5;      // The percentage of energy that the nematode loses when reproducing
 
@@ -69,6 +69,7 @@ class Nematode {
         // The age in seconds
         this.age = 0;
 
+        this.exists = true;             // Nematodes exist by default
         this.alive = true;              // Nematodes are (hopefully) alive by default
         this.paralyzed = false;         // set flag to true to prevent nematode from moving
 
@@ -97,6 +98,7 @@ class Nematode {
         // The age in seconds (always 0 for children)
         this.age = 0;  
 
+        this.exists = true;             // Nematodes exist by default
         this.alive = true;              // Nematodes are (hopefully) alive by default
         this.paralyzed = false;         // set flag to true to prevent nematode from moving
 
@@ -252,7 +254,7 @@ class Nematode {
     *  @param {PIXI.Graphics} graphics - The graphics object to draw to
     */
     DrawStats(graphics) {
-
+        
         var width = 300;
         var height = 380;
         var xPos = app.screen.width - width - 10;       // Left padding
@@ -287,7 +289,6 @@ class Nematode {
         statsText.text += "  Age: " + (1 + this.age / 300).toFixed(3) + " times the normal rate\n";
         statsText.text += "\n";
         statsText.text += "Tint: " + this.sprite.tint.toString(16) + "\n";
-      
     }
 
     // ------------------- Events ------------------- //
@@ -346,12 +347,25 @@ class Nematode {
 
             // Set the new tint
             this.sprite.tint = (r << 16) + (g << 8) + b;
+            
+        }
+        
+        // Make nematodes fade out
+        if (this.timeSinceDeath > 10){
+            this.sprite.alpha = Math.max(0, this.sprite.alpha - delta * 0.5);
         }
 
         // Remove the nematode from the world after 10 seconds
-        if (this.timeSinceDeath > 10) {
+        if (this.timeSinceDeath > 20) {
             // Remove the nematode from the world
             world.destroyNematode(this);
+
+            // Set the nematode to not exist
+            this.exists = false;
+
+            // Clean un the neural network
+            this.nn.Destroy();
+            this.nn = null;
         }
     }
 

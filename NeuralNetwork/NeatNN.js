@@ -390,6 +390,10 @@ class NeatNN {
         var nodeDepthsCount = [];                   // The number of nodes at each depth
         var yPositionsUsed = [];                     // The y positions that are already used
 
+        // If the network has been destroyed, return
+        if (this.nodes === null)
+            return;
+
         // Draw a black rounded rectangle as the background
         graphics.beginFill(0x000000);
         graphics.drawRoundedRect(10, 10, xSize, ySize, 20);
@@ -639,6 +643,27 @@ class NeatNN {
 
         return newNN;
     }
+
+    Destroy() {
+
+        // Destroy the nodes
+        for (let i = 0; i < this.nodes.length; i++) {
+            this.nodes[i].Destroy();
+        }
+
+        // Destroy the connections
+        for (let i = 0; i < this.connections.length; i++) {
+            this.connections[i].Destroy();
+        }
+
+        // Set the nodes and connections to null
+        this.nodes = null;
+        this.connections = null;
+
+        // Set the inputs and outputs to null (for good measure)
+        this.inputs = null;
+        this.outputs = null;
+    }
 }
 
 /** Represents a connection between two nodes in the neural network
@@ -663,5 +688,10 @@ class Connection {
 
     toString() {
         return "{ Connection: " + this.from + " -> " + this.to + " " + this.weight + " }";
+    }
+
+    Destroy() {
+        this.from = null;
+        this.to = null;
     }
 }
