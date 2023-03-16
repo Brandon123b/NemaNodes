@@ -87,6 +87,11 @@ class Canvas {
 
   
   drawWorld(world) {
+    // Clear the graphics
+    world.canvas.worldGraphics.clear();
+    world.canvas.screenGraphics.clear();
+    world.canvas.screenGraphics.removeChildren();
+
     if (world.drawZones) {
       this.worldGraphics.lineStyle(2, 0x00ffff)
       for (const [x,y] of world.getOccupiedZones())
