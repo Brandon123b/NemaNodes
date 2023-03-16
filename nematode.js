@@ -347,10 +347,16 @@ class Nematode {
 
             // Set the new tint
             this.sprite.tint = (r << 16) + (g << 8) + b;
+            
+        }
+        
+        // Make nematodes fade out
+        if (this.timeSinceDeath > 10){
+            this.sprite.alpha = Math.max(0, this.sprite.alpha - delta * 0.5);
         }
 
         // Remove the nematode from the world after 10 seconds
-        if (this.timeSinceDeath > 10) {
+        if (this.timeSinceDeath > 20) {
             // Remove the nematode from the world
             world.destroyNematode(this);
 
