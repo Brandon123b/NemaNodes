@@ -11,21 +11,22 @@
 class Nematode {
 
     // Static variables
-    static MAX_EYE_DISTANCE = 50;                           // The maximum distance that the eyes can see (in pixels)
-    static MATURITY_AGE = 40;                               // The age at which the nematode can reproduce
-    static PERCENTAGE_ENERGY_TO_REPRODUCE = 0.8;            // The percentage of energy that the nematode must have to reproduce
-    static PERCENT_ENERGY_LOST_WHEN_REPRODUCING = 0.5;      // The percentage of energy that the nematode loses when reproducing
+    static MAX_EYE_DISTANCE = 80;                           // The maximum distance that the eyes can see (in pixels)
+    static PERCENTAGE_ENERGY_TO_REPRODUCE = 0.75;           // The percentage of energy that the nematode must have to reproduce
+    static PERCENT_ENERGY_LOST_WHEN_REPRODUCING = 0.25;     // The percentage of energy that the nematode loses when reproducing
+    static TIME_BETEWEEN_CHILDREN = 10;                     // The time between reproductions (in seconds)
 
     // Constraints
     static SIZE_CONSTRAINT = { min: 5, max: 50 }            // The minimum and maximum size of the nematode (in pixels)
 
     // Initial value ranges
     static BASE_SIZE_RANGE = { min: 5, max: 15 }
-    static GROW_RATE_RANGE = { min: 0.05, max: 0.08 }
+    static GROW_RATE_RANGE = { min: 0.03, max: 0.05 }
+    static MATURITY_RANGE = { min: 30, max: 50 }           // The age at which the nematode can reproduce
 
-    // Mutation rates
-    static BASE_SIZE_THRESHOLD = 0.1;
-    static GROW_RATE_THRESHOLD = 0.1;
+    // Mutation rates (as +/- up to this constant)
+    static BASE_SIZE_THRESHOLD = 0.02;
+    static GROW_RATE_THRESHOLD = 0.02;
     
     // Instead of multiple constructors, use a single constructor that can take a position, a parent nematode, or nothing
     constructor(arg1) {
@@ -81,11 +82,11 @@ class Nematode {
         this.direction = new PIXI.Point().RandomDirection();
         this.sprite.position = new PIXI.Point().RandomPosition(worldRadius);
 
-        this.baseSize = Nematode.BASE_SIZE_RANGE.min + Math.random() * Nematode.BASE_SIZE_RANGE.max;  // The base size of the Nematode (in pixels)
-        this.growRate = Nematode.GROW_RATE_RANGE.min + Math.random() * Nematode.GROW_RATE_RANGE.max;  // The rate at which the Nematode grows (in pixels per second)
+        this.size = // Sets to base size on next line
+        this.baseSize = Nematode.BASE_SIZE_RANGE.min + Math.random() * (Nematode.BASE_SIZE_RANGE.max - Nematode.BASE_SIZE_RANGE.min);  // The base size of the Nematode (in pixels)
+        this.growRate = Nematode.GROW_RATE_RANGE.min + Math.random() * (Nematode.GROW_RATE_RANGE.max - Nematode.GROW_RATE_RANGE.min);  // The rate at which the Nematode grows (in pixels per second)
+        this.childTime = Nematode.MATURITY_RANGE.min + Math.random() * (Nematode.MATURITY_RANGE.max - Nematode.MATURITY_RANGE.min);    // The age at which the Nematode can reproduce (in seconds)
 
-        // Set the initial stats of the Nematode
-        this.size = this.baseSize; 
         this.energy = -1;              // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
     }
 
@@ -113,11 +114,11 @@ class Nematode {
         this.sprite.position = parent.sprite.position.clone();
 
         // Slighly randomize the stats to prevent clones from being identical
-        this.baseSize = parent.baseSize + (Math.random() * Nematode.BASE_SIZE_THRESHOLD * 2 - Nematode.BASE_SIZE_THRESHOLD);
-        this.growRate = parent.growRate + (Math.random() * Nematode.GROW_RATE_THRESHOLD * 2 - Nematode.GROW_RATE_THRESHOLD);
+        this.size = // Sets to base size on next line
+        this.baseSize = parent.baseSize + (Math.random() - .5) * Nematode.BASE_SIZE_THRESHOLD;
+        this.growRate = parent.growRate + (Math.random() - .5) * Nematode.GROW_RATE_THRESHOLD;
+        this.childTime = Nematode.MATURITY_RANGE.min + Math.random() * (Nematode.MATURITY_RANGE.max - Nematode.MATURITY_RANGE.min);  // The age at which the Nematode can reproduce (in seconds)
 
-        // Set the initial stats of the Nematode
-        this.size = this.baseSize; 
         this.energy = -1;              // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
     }
 
@@ -156,8 +157,8 @@ class Nematode {
         this.nn.SetInput(0, this.EyeRaycast(-25));
         this.nn.SetInput(1, this.EyeRaycast(0));
         this.nn.SetInput(2, this.EyeRaycast(25));
-        this.nn.SetInput(3, this.age / 60 - 1);
-        this.nn.SetInput(4, this.energy / 100 - 1);
+        this.nn.SetInput(3, this.age / 200 - 1);            // Start at -1 and at 400 seconds, be at 1
+        this.nn.SetInput(4, this.energy / this.maxEnergy);  // Range from 0 to 1
 
         // Run the neural network
         this.nn.RunNN();
@@ -198,6 +199,7 @@ class Nematode {
 
         // Increase the age of the bibite (in seconds)
         this.age += delta;
+        this.childTime -= delta;
 
         // Increase the size of the bibite and set the max speed to adjust for the new size
         this.size += this.growRate * delta;
@@ -262,6 +264,7 @@ class Nematode {
         NematodeStatsMenu.statsText.text += "Turn Speed: " + this.maxTurnSpeed.toFixed(2) + "\n";
         NematodeStatsMenu.statsText.text += "\n";
         NematodeStatsMenu.statsText.text += "Size: " + this.size.toFixed(2) + " pixels\n";
+        NematodeStatsMenu.statsText.text += "Base Size: " + this.baseSize.toFixed(2) + " pixels\n";
         NematodeStatsMenu.statsText.text += "Grow Rate: " + this.growRate.toFixed(2) + " pixels/s\n";
         NematodeStatsMenu.statsText.text += "\n";
         NematodeStatsMenu.statsText.text += "Energy Consumption: \n";
@@ -271,6 +274,7 @@ class Nematode {
         NematodeStatsMenu.statsText.text += "  Age: " + (1 + this.age / 300).toFixed(3) + " times the normal rate\n";
         NematodeStatsMenu.statsText.text += "\n";
         NematodeStatsMenu.statsText.text += "Tint: " + this.sprite.tint.toString(16) + "\n";
+        NematodeStatsMenu.statsText.text += "Time for next child: " + (this.childTime).toFixed(2) + "s\n";
     }
 
     // ------------------- Events ------------------- //
@@ -297,9 +301,10 @@ class Nematode {
         this.energy = Math.min(this.energy, this.maxEnergy);
 
         // If the bibite is old enough and has enough energy, have a child (give it the parent to copy the stats from)
-        if (this.age >= Nematode.MATURITY_AGE && this.energy > this.maxEnergy * Nematode.PERCENTAGE_ENERGY_TO_REPRODUCE){
-            this.energy -= this.maxEnergy * Nematode.PERCENT_ENERGY_LOST_WHEN_REPRODUCING;
-            new Nematode(this);
+        if (this.childTime <= 0 && this.energy > this.maxEnergy * Nematode.PERCENTAGE_ENERGY_TO_REPRODUCE){
+            this.childTime = Nematode.TIME_BETEWEEN_CHILDREN;                                // Reset the child time
+            this.energy -= this.maxEnergy * Nematode.PERCENT_ENERGY_LOST_WHEN_REPRODUCING;  // Lose energy when reproducing
+            new Nematode(this);                                                             // Create a new Nematode child
         }
     }
 

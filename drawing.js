@@ -88,9 +88,6 @@ class Canvas {
 
   
   drawWorld(world) {
-    // Clear the graphics
-    world.canvas.worldGraphics.clear();
-    world.canvas.screenGraphics.clear();
 
     if (world.drawZones) {
       this.worldGraphics.lineStyle(2, 0x00ffff)
@@ -119,7 +116,7 @@ class Canvas {
 class NematodeStatsMenu {
 
   static width = 300;
-  static height = 380;
+  static height = 420;
   static xPos = -1;                                  // Left padding
   static yPos = 250;                                 // Top padding
 

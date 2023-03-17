@@ -22,10 +22,11 @@ var lastTime = 0;
 var movingFps = 60;
 
 // The radius of the world (TODO: move this somewhere else)
-const worldRadius = 2000;
+const worldRadius = 1500;
 
 // Count the time since the last food spawn
 let timeSinceFoodSpawn = 0;
+let timeSinceStart = 0;
 
 // Starts everything
 function main(){
@@ -44,7 +45,7 @@ function main(){
     CreateUI();
 
     // Add some nematodes
-    SpawnNematodes(5000);
+    SpawnNematodes(4000);
 
     // Add some food
     SpawnFood(3000);
@@ -115,6 +116,12 @@ function CreateFpsCounter(){
     fpsCounter.x = 10;
     fpsCounter.y = 8;
     app.stage.addChild(fpsCounter);
+
+    // Make the border thicker
+    fpsCounter.style.strokeThickness = 2;
+
+    // Set the border to black
+    fpsCounter.style.stroke = 0x000000;
 }
 
 /** GameLoop Called every frame from the ticker 
@@ -122,7 +129,13 @@ function CreateFpsCounter(){
 */
 function GameLoop(delta) {
 
+    // Clear the graphics
+    world.canvas.worldGraphics.clear();
+    world.canvas.screenGraphics.clear();
+
+    // Update the time
     timeSinceFoodSpawn += delta;
+    timeSinceStart += delta;
 
     // Spawn food every second
     if (timeSinceFoodSpawn > 1){
@@ -130,8 +143,6 @@ function GameLoop(delta) {
 
         // Spawn food
         SpawnFood(world.foodReplenishRate);
-
-        console.log("Count: " + world.numNematodes());
     }
 
     // Update the nematodes
@@ -140,11 +151,20 @@ function GameLoop(delta) {
     // update the canvas
     world.canvas.drawWorld(world)
 
+    // If there is an extinction event
+    if (world.numNematodes() == 0){
+        console.log("Extinction event at " + timeSinceStart.toFixed(1) + " seconds. Spawned 2000 nematodes.");
+        SpawnNematodes(2000);
+    }
+
     // Update the moving fps
     movingFps = movingFps * 0.95 + 1 / delta * 0.05;
 
     // Update the fps counter
-    fpsCounter.text = "FPS: " + (movingFps).toFixed(1);
+    fpsCounter.text =   "FPS: " + (movingFps).toFixed(1) +
+                        " | Time: " + timeSinceStart.toFixed(1) +
+                        " | Nematodes: " + world.numNematodes() +
+                        " | Food: " + world.numFood();
 }
 
 // Very easy to miss this line
