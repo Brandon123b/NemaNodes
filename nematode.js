@@ -21,6 +21,8 @@ class Nematode {
     // provide the World object for this nematode to live in
     constructor(pos = null, createNew = true) {
 
+        
+
         this.alive = true;              // Nematodes are (hopefully) alive by default
         this.paralyzed = false;          // set flag to true to prevent nematode from moving
 

@@ -54,6 +54,9 @@ class World {
     this.nematodeBrushRadius = 10
 
     this.#setUpBrushes()
+
+    //test
+    SpriteGenerator.NewSpriteRandom();
   }
 
   // ----------------- Nematodes -----------------

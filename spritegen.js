@@ -45,7 +45,8 @@ class SpriteGenerator {
         var xpos = x_head; 
         for(var i=0;i<sample_y.length;i++) {
             sample_x[i] = xpos;
-            sample_y[i] = amplitude * Math.cos( frequency * sample_x );
+            sample_y[i] = i;
+            //sample_y[i] = amplitude * Math.cos( frequency * sample_x );
             xpos += this.bodyPartSpacing;
         }
 
