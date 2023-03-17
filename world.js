@@ -113,6 +113,14 @@ class World {
   numNematodes() {
     return this.#nematodeZones.size()
   }
+  
+  // return the currently occupied zones: [[0,1], [-2,2], [5,0]]
+  getOccupiedZones() {
+    return this.#nematodeZones.keys().map(function(k) {
+      const [x,y] = k.split(',')
+      return [parseInt(x), parseInt(y)]
+    })
+  }
 
   // ----------------- Food -----------------
 
@@ -167,14 +175,6 @@ class World {
     else return []
   }
 
-  // return the currently occupied zones: [[0,1], [-2,2], [5,0]]
-  getOccupiedZones() {
-    return this.#nematodeZones.keys().map(function(k) {
-      const [x,y] = k.split(',')
-      return [parseInt(x), parseInt(y)]
-    })
-  }
-
   // ----------------- Hash functions -----------------
 
   // get zone coordinates from world coordinates
@@ -187,14 +187,15 @@ class World {
     return `${zoneX},${zoneY}`
   }
 
-  // ----------------- Getters -----------------
-
+  // ----------------- Brushes -----------------
+  
   /**
    * Register a brush action for the world
    * @param {function} flagGetter returns true if this brush should be active 
    * @param {function} action (x,y) => ... procedure applied to world coordinates of mouse on mouse move
    * @param {number} strength strength of brush value (0 to 1)
    */
+
   createBrush(flagGetter, action, strength) {
     createDragAction(this.canvas.backGround, this.canvas.container,
       null,
@@ -224,6 +225,8 @@ class World {
       new Nematode(pos)
     }, 0.1)
   }
+
+  // ----------------- Getters -----------------
 
   zoneHeight() {
     return this.#zoneHeight

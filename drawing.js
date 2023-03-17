@@ -89,10 +89,6 @@ class Canvas {
 
   
   drawWorld(world) {
-    
-    // Clear the graphics
-    world.canvas.worldGraphics.clear();
-    world.canvas.screenGraphics.clear();
 
     if (world.drawZones) {
       this.worldGraphics.lineStyle(2, 0x00ffff)
