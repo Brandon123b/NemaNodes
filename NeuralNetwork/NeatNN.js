@@ -142,7 +142,7 @@ class NeatNN {
     *  Penalty is calculated by the number of connections and nodes
     */ 
     CalculatePenalty() {
-        this.penalty = this.connections.length * 0.01 + this.nodes.length * 0.05;
+        this.penalty = this.connections.length * 0.005 + this.nodes.length * 0.02;
     }
 
     // ---------------------------- Mutate Functions ------------------------------------
@@ -197,6 +197,9 @@ class NeatNN {
 
         // Calculate the new penalty of the network
         this.CalculatePenalty();
+
+        // Return the mutated network to allow for chaining
+        return this;
     }
 
     // Modify the weight of a random connection
@@ -386,6 +389,10 @@ class NeatNN {
         var maxDepth = Math.max(...nodeDepths) + 1; // The max depth of the network
         var nodeDepthsCount = [];                   // The number of nodes at each depth
         var yPositionsUsed = [];                     // The y positions that are already used
+
+        // If the network has been destroyed, return
+        if (this.nodes === null)
+            return;
 
         // Draw a black rounded rectangle as the background
         graphics.beginFill(0x000000);
@@ -636,6 +643,27 @@ class NeatNN {
 
         return newNN;
     }
+
+    Destroy() {
+
+        // Destroy the nodes
+        for (let i = 0; i < this.nodes.length; i++) {
+            this.nodes[i].Destroy();
+        }
+
+        // Destroy the connections
+        for (let i = 0; i < this.connections.length; i++) {
+            this.connections[i].Destroy();
+        }
+
+        // Set the nodes and connections to null
+        this.nodes = null;
+        this.connections = null;
+
+        // Set the inputs and outputs to null (for good measure)
+        this.inputs = null;
+        this.outputs = null;
+    }
 }
 
 /** Represents a connection between two nodes in the neural network
@@ -660,5 +688,10 @@ class Connection {
 
     toString() {
         return "{ Connection: " + this.from + " -> " + this.to + " " + this.weight + " }";
+    }
+
+    Destroy() {
+        this.from = null;
+        this.to = null;
     }
 }

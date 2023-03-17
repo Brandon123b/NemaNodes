@@ -89,6 +89,13 @@ class Node {
         return "{ Node: Type(" + this.nodeType + "), Activation(" + this.activation + "), Bias(" + this.bias + ") }";
     }
 
+    Destroy() {
+
+        // Clear the incoming connections
+        this.incomingConnections = null;
+        this.outgoingConnections = null;
+    }
+
 }
 
 

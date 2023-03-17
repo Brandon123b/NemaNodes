@@ -15,6 +15,19 @@ var app;
 // The world class
 var world;
 
+// The last time the game loop was called
+var lastTime = 0;
+
+// Keeps a moving average of the fps (This smooths out the fps counter)
+var movingFps = 60;
+
+// The radius of the world (TODO: move this somewhere else)
+const worldRadius = 1500;
+
+// Count the time since the last food spawn
+let timeSinceFoodSpawn = 0;
+let timeSinceStart = 0;
+
 // Starts everything
 function main(){
 
@@ -32,18 +45,21 @@ function main(){
     CreateUI();
 
     // Add some nematodes
-    SpawnNematodes(1000);
+    SpawnNematodes(4000);
 
     // Add some food
-    SpawnFood(5000);
+    SpawnFood(3000);
 
-    // Start the game loop
-    app.ticker.add(() => {
+    // This starts the main loop (with a 60 target fps cap)
+    setInterval(function() {
 
         // Find the time in seconds since the last frame
-        var delta = app.ticker.deltaMS / 1000;
+        var delta = (performance.now() - lastTime) / 1000;
+        lastTime = performance.now();
+
         GameLoop(delta );
-    });
+
+    }, 1000 / 60);
 }
 
 // create a UI card
@@ -82,13 +98,13 @@ function SpawnNematodes(number){
 }
 
 /** Spawn a number of food
+ *  Will not spawn more than world.maxNumFood
  * 
  * @param {*} number The number of food to spawn
  */
 function SpawnFood(number){
-    for (let i = 0; i < number; i++) {
-        food_init_pos = new PIXI.Point().RandomPosition(4000);
-        new Food(food_init_pos)
+    for (let i = 0; i < number && world.numFood() < world.maxNumFood; i++) {
+        new Food()
     }
 }
 
@@ -100,33 +116,59 @@ function CreateFpsCounter(){
     fpsCounter.x = 10;
     fpsCounter.y = 8;
     app.stage.addChild(fpsCounter);
+
+    // Make the border thicker
+    fpsCounter.style.strokeThickness = 2;
+
+    // Set the border to black
+    fpsCounter.style.stroke = 0x000000;
 }
 
-/**
- * GameLoop Called every frame from the ticker 
- * @param {number} delta - Time since last frame in seconds
+/** GameLoop Called every frame from the ticker 
+ *  @param {number} delta - Time since last frame in seconds
 */
 function GameLoop(delta) {
-
-    // Add food to the world
-    if (Math.random() < 1) {
-        food_init_pos = new PIXI.Point().RandomPosition(800);
-        new Food(food_init_pos)
-    }
 
     // Clear the graphics
     world.canvas.worldGraphics.clear();
     world.canvas.screenGraphics.clear();
-    world.canvas.screenGraphics.removeChildren();
+
+    // Update the time
+    timeSinceFoodSpawn += delta;
+    timeSinceStart += delta;
+
+    // Spawn food every second
+    if (timeSinceFoodSpawn > 1){
+        timeSinceFoodSpawn -= 1;
+
+        // Spawn food
+        SpawnFood(world.foodReplenishRate);
+    }
+
+    // Clear the graphics (eye raycasts, NN display, zone outlines)
+    world.canvas.worldGraphics.clear();
+    world.canvas.screenGraphics.clear();
 
     // Update the nematodes
     world.forEachNematode(n => n.Update(delta))
-    
+
     // update the canvas
     world.canvas.drawWorld(world)
 
+    // If there is an extinction event
+    if (world.numNematodes() == 0){
+        console.log("Extinction event at " + timeSinceStart.toFixed(1) + " seconds. Spawned 2000 nematodes.");
+        SpawnNematodes(2000);
+    }
+
+    // Update the moving fps
+    movingFps = movingFps * 0.95 + 1 / delta * 0.05;
+
     // Update the fps counter
-    fpsCounter.text = "FPS: " + Math.round(app.ticker.FPS);
+    fpsCounter.text =   "FPS: " + (movingFps).toFixed(1) +
+                        " | Time: " + timeSinceStart.toFixed(1) +
+                        " | Nematodes: " + world.numNematodes() +
+                        " | Food: " + world.numFood();
 }
 
 // Very easy to miss this line

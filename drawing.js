@@ -40,12 +40,14 @@ class Canvas {
   this.screenGraphics = new PIXI.Graphics();
   app.stage.addChild(this.screenGraphics);
 
+  this.nematodeStatsMenuObj = new NematodeStatsMenu(this.screenGraphics);
 
   // set up callbacks for mouse drag behavior (for panning)
   createDragAction(this.backGround, this.container,
     null,
-    (dx,dy) => { if (Keys.keyPressed('Shift')) this.container.position.addXY(dx,dy) },
-    null  
+    (dx,dy) => { this.container.position.addXY(dx,dy) },
+    null,
+    true  // make world drag occur with right mouse button drag
   )
 
   // on mouse wheel, change the zoom level
@@ -87,6 +89,7 @@ class Canvas {
 
   
   drawWorld(world) {
+
     if (world.drawZones) {
       this.worldGraphics.lineStyle(2, 0x00ffff)
       for (const [x,y] of world.getOccupiedZones())
@@ -95,10 +98,63 @@ class Canvas {
 
     // draw the selected nematode's neural network and stats
     if (world.selectedNematode != null){
-      world.selectedNematode.nn.DrawNN(this.screenGraphics);
-      world.selectedNematode.DrawStats(this.screenGraphics);
+
+      // If the selected nematode still exists, draw its stats and neural network
+      if (world.selectedNematode.exists) {
+        this.nematodeStatsMenuObj.DrawBackground(this.screenGraphics);
+        world.selectedNematode.DrawStats(this.nematodeStatsMenuObj);
+        world.selectedNematode.nn.DrawNN(this.screenGraphics);
+      }
+      // If the selected nematode no longer exists, deselect it
+      else {
+        this.nematodeStatsMenuObj.MakeInvisible();
+        world.selectedNematode = null;
+      }
     }
   }
+}
 
+class NematodeStatsMenu {
 
+  static width = 300;
+  static height = 420;
+  static xPos = -1;                                  // Left padding
+  static yPos = 250;                                 // Top padding
+
+  constructor(graphics){
+
+    // Set based on the screen size
+    NematodeStatsMenu.xPos = app.screen.width - NematodeStatsMenu.width - 10;
+
+    // Create a text object for the header
+    this.headerText = new PIXI.Text("Nematode Stats", {fontFamily : 'Arial', fontSize: 20, fontWeight: 'bold', fill : 0xffffff, align : 'left'});
+    this.headerText.position.set(NematodeStatsMenu.xPos + 25, NematodeStatsMenu.yPos + 10);
+    graphics.addChild(this.headerText);
+
+    // Create a text object for the stats
+    this.statsText = new PIXI.Text("", {fontFamily : 'Arial', fontSize: 16, fill : 0xffffff, align : 'left', lineHeight: 20});
+    this.statsText.position.set(NematodeStatsMenu.xPos + 30, NematodeStatsMenu.yPos + 50);
+    graphics.addChild(this.statsText);
+  }
+
+  /* Draws the background of the stats menu 
+  * @param {PIXI.Graphics} graphics - The graphics object to draw to
+  */
+  DrawBackground(graphics) {
+
+    // Draw the background
+    graphics.beginFill(0x000000, 0.5);
+    graphics.drawRoundedRect(NematodeStatsMenu.xPos, NematodeStatsMenu.yPos, NematodeStatsMenu.width, NematodeStatsMenu.height);
+    graphics.endFill();
+
+    // Make the text visible
+    this.headerText.visible = true;
+    this.statsText.visible = true;
+  }
+
+  /* Makes the stats menu invisible */
+  MakeInvisible() {
+    this.headerText.visible = false;
+    this.statsText.visible = false;
+  }
 }

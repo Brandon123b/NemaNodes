@@ -7,7 +7,7 @@
  * @param {function} dragMoveAction function (dx, dy, x, y) => ... action to perform given mouse displacement (by default, simply translate dragTarget's position)
  * @param {function} dragEndAction function (x, y) => ... action to perform when dragging ends
  */
-function createDragAction(registerDisplayObject, dragTarget, dragStartAction, dragMoveAction, dragEndAction) {
+function createDragAction(registerDisplayObject, dragTarget, dragStartAction, dragMoveAction, dragEndAction, rightMouse = false) {
   let dragging = false
   let previousMousePoint = null
 
@@ -32,10 +32,13 @@ function createDragAction(registerDisplayObject, dragTarget, dragStartAction, dr
 
   // begin tracking mouse position
   let onDragStart = function(mouseEvent) {
-    dragging = true
-    app.stage.on('pointermove', onDragMove)
-    previousMousePoint = dragTarget.parent.toLocal(mouseEvent.global)
-    dragStartAction(previousMousePoint.x, previousMousePoint.y)
+    // only activate the drag action if the correct mouse button is being held
+    if ((!rightMouse && mouseEvent.buttons == 1) || (rightMouse && mouseEvent.buttons == 2)) {
+      dragging = true
+      app.stage.on('pointermove', onDragMove)
+      previousMousePoint = dragTarget.parent.toLocal(mouseEvent.global)
+      dragStartAction(previousMousePoint.x, previousMousePoint.y)
+    }
   }
 
   // deregister the callback placed on the stage to stop dragging
@@ -117,6 +120,12 @@ class Keys {
     addEventListener("keyup", e => {
       this.#pressedKeys.delete(e.key)
       if (this.debug) console.log(e.key, "lifted")
+    })
+
+    // prevent right clicks from bringing up the context menu
+    addEventListener("contextmenu", e => {
+      e.preventDefault()
+      if (this.debug) console.log("right click")
     })
   }
 

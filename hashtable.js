@@ -1,19 +1,28 @@
 
 class HashTable {
+  #size
+  
   // construct a hash table that will use the given hash function
   constructor(hashFunction) {
     this.hash = hashFunction
     this.underlying = {}
+    this.#size = 0
   }
 
   // insert an item into the hash table
   insert(obj) {
     const code = this.hash(obj)
     let bucket = this.underlying[code]
-    if (bucket)
+    if (bucket) {
+      if (bucket.has(obj)) return
       bucket.add(obj)
-    else
+      this.#size++
+    }
+    else {
       this.underlying[code] = new Set().add(obj)
+      this.#size++
+    }
+      
   }
 
   // remove an object from the hash table
@@ -26,8 +35,16 @@ class HashTable {
       if (bucket.size == 0)
         delete this.underlying[code]
     }
-    
+    if (hasObj) this.#size--
     return hasObj
+  }
+
+  /**
+   * 
+   * @returns number of items in this hash table
+   */
+  size() {
+    return this.#size
   }
   
   // do some procedure for each bucket of items in the hash table
@@ -37,20 +54,37 @@ class HashTable {
   //          will print out the number of items stashed in each bucket
   //
   // WARNING: modifying the item list will modify the hash table
-  forEachBucket(operation) {
-    Object.values(this.underlying).forEach(operation)
-  }
+  // WARNING: Do not modify hash table in the given operation
+//  forEachBucket(operation) {
+//    Object.values(this.underlying).forEach(operation)
+//  }
 
-  // return the items associated with a hash key
-  // 
-  // WARNING: modifying the returned collection will modify the hash table
+  /**
+   * 
+   * @param {*} key 
+   * @returns array of the items associated with the given key
+   */
   getItemsWithKey(key) {
-    return this.underlying[key];
+    return Array.from(this.underlying[key] || []);
   }
 
-  // return the keys of the hash table
+  /**
+   * 
+   * @returns list of all the keys of the hash table
+   */
   keys() {
     return Object.keys(this.underlying)
+  }
+
+  /**
+   * 
+   * @returns an array containing the items of this hashtable
+   */
+  items() {
+    let items = []
+    for (const key of this.keys())
+    this.underlying[key].forEach(n => items.push(n))
+    return items
   }
 
 }

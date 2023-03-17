@@ -21,7 +21,6 @@ class World {
     let [zoneX,zoneY] = this.#pos2zone(obj.GetX(), obj.GetY())
     return this.#zone2hashkey(zoneX,zoneY)
   })
-  
 
   // set the size of the world in the x-direction (width)
   // set the size of the world in the y-direction (height)
@@ -35,8 +34,8 @@ class World {
     // The currently selected nematode
     this.selectedNematode = null
 
-    this.maxNumFood = 1000
-    this.foodReplenishRate = 1 // food added per second
+    this.maxNumFood = 2000
+    this.foodReplenishRate = 25 // food added per second
     this.maxReplenishRate = 100
     
     // the canvas holds a container that we draw the objects on
@@ -79,6 +78,7 @@ class World {
   destroyNematode(obj) {
     if (!this.#nematodeZones.remove(obj))
       throw `Object ${obj} cannot be destroyed because it does not exist in the world`
+    this.#nematodeZones.remove(obj)
     obj.sprite.destroy()
   }
 
@@ -102,8 +102,24 @@ class World {
   }
   
   // perform an action on each object of the world
-  forEachNematode(f) {
-    this.#nematodeZones.forEachBucket(zone => zone.forEach(f))
+  forEachNematode(f) { //TODO
+    for (const nematode of this.#nematodeZones.items())
+    f(nematode)
+    
+    //this.#nematodeZones.forEachBucket(zone => zone.forEach(f))
+  }
+
+  // return the number of nematodes in the world
+  numNematodes() {
+    return this.#nematodeZones.size()
+  }
+  
+  // return the currently occupied zones: [[0,1], [-2,2], [5,0]]
+  getOccupiedZones() {
+    return this.#nematodeZones.keys().map(function(k) {
+      const [x,y] = k.split(',')
+      return [parseInt(x), parseInt(y)]
+    })
   }
 
   // ----------------- Food -----------------
@@ -124,7 +140,13 @@ class World {
   destroyFood(obj) {
     if (!this.#foodZones.remove(obj))
       throw `Object ${obj} cannot be destroyed because it does not exist in the world`
+    this.#foodZones.remove(obj)
     obj.sprite.destroy()
+  }
+
+  // return the number of food items in the world
+  numFood() {
+    return this.#foodZones.size()
   }
 
   // return a list of objects from the given area
@@ -153,14 +175,6 @@ class World {
     else return []
   }
 
-  // return the currently occupied zones: [[0,1], [-2,2], [5,0]]
-  getOccupiedZones() {
-    return this.#nematodeZones.keys().map(function(k) {
-      const [x,y] = k.split(',')
-      return [parseInt(x), parseInt(y)]
-    })
-  }
-
   // ----------------- Hash functions -----------------
 
   // get zone coordinates from world coordinates
@@ -173,20 +187,21 @@ class World {
     return `${zoneX},${zoneY}`
   }
 
-  // ----------------- Getters -----------------
-
+  // ----------------- Brushes -----------------
+  
   /**
    * Register a brush action for the world
    * @param {function} flagGetter returns true if this brush should be active 
    * @param {function} action (x,y) => ... procedure applied to world coordinates of mouse on mouse move
    * @param {number} strength strength of brush value (0 to 1)
    */
+
   createBrush(flagGetter, action, strength) {
     createDragAction(this.canvas.backGround, this.canvas.container,
       null,
       (dx,dy,x,y) => {
         // perform brush action if the supplied flag is enabled and the user isn't holding shift (for world panning)
-        if (flagGetter() && !Keys.keyPressed('Shift') && Math.random() < strength) {
+        if (flagGetter() && Math.random() < strength) {
           let pos = this.canvas.screen2WorldPos({x: x, y: y})
           action(pos.x,pos.y)
         }
@@ -208,8 +223,10 @@ class World {
       let pos = new PIXI.Point(x,y)
       pos.perturb(this.nematodeBrushRadius)
       new Nematode(pos)
-    }, 0.25)
+    }, 0.1)
   }
+
+  // ----------------- Getters -----------------
 
   zoneHeight() {
     return this.#zoneHeight
