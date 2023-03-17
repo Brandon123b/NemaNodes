@@ -109,6 +109,11 @@ class World {
     //this.#nematodeZones.forEachBucket(zone => zone.forEach(f))
   }
 
+  // return the number of nematodes in the world
+  numNematodes() {
+    return this.#nematodeZones.size()
+  }
+
   // ----------------- Food -----------------
 
   // add a food object to the world
