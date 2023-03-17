@@ -200,7 +200,7 @@ class World {
       null,
       (dx,dy,x,y) => {
         // perform brush action if the supplied flag is enabled and the user isn't holding shift (for world panning)
-        if (flagGetter() && !Keys.keyPressed('Shift') && Math.random() < strength) {
+        if (flagGetter() && Math.random() < strength) {
           let pos = this.canvas.screen2WorldPos({x: x, y: y})
           action(pos.x,pos.y)
         }
@@ -222,7 +222,7 @@ class World {
       let pos = new PIXI.Point(x,y)
       pos.perturb(this.nematodeBrushRadius)
       new Nematode(pos)
-    }, 0.25)
+    }, 0.1)
   }
 
   zoneHeight() {

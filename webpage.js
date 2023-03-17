@@ -145,6 +145,10 @@ function GameLoop(delta) {
         SpawnFood(world.foodReplenishRate);
     }
 
+    // Clear the graphics (eye raycasts, NN display, zone outlines)
+    world.canvas.worldGraphics.clear();
+    world.canvas.screenGraphics.clear();
+
     // Update the nematodes
     world.forEachNematode(n => n.Update(delta))
 

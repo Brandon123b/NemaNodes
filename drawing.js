@@ -45,8 +45,9 @@ class Canvas {
   // set up callbacks for mouse drag behavior (for panning)
   createDragAction(this.backGround, this.container,
     null,
-    (dx,dy) => { if (Keys.keyPressed('Shift')) this.container.position.addXY(dx,dy) },
-    null  
+    (dx,dy) => { this.container.position.addXY(dx,dy) },
+    null,
+    true  // make world drag occur with right mouse button drag
   )
 
   // on mouse wheel, change the zoom level
@@ -88,6 +89,10 @@ class Canvas {
 
   
   drawWorld(world) {
+    
+    // Clear the graphics
+    world.canvas.worldGraphics.clear();
+    world.canvas.screenGraphics.clear();
 
     if (world.drawZones) {
       this.worldGraphics.lineStyle(2, 0x00ffff)
