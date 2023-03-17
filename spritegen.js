@@ -23,8 +23,8 @@ class SpriteGenerator {
     //(shannon-nyquist theorem)
     static bodyPartSpacing = 20;
 
-    static baseBodyPartHeight = 128;
-    static baseBodyPartWidth = 128;
+    static baseBodyPartHeight =  64;
+    static baseBodyPartWidth = 64;
 
     //internal
     //return a random decimal between min and max
@@ -47,7 +47,7 @@ class SpriteGenerator {
 
         //TESTING PARAMS
         var amplitude = 50;
-        var frequency = 0.05;
+        var frequency = 0.1;
         var n_parts = 10;
 
         console.log(amplitude, frequency, n_parts, x_head);
