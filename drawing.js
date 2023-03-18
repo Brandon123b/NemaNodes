@@ -94,9 +94,9 @@ class Canvas {
     this.worldGraphics.drawCircle(0,0,World.radius)
 
     if (world.drawZones) {
-      this.worldGraphics.lineStyle(2, 0x00ffff)
+      this.worldGraphics.lineStyle(10, 0x00ffff)
       for (const [x,y] of world.getOccupiedZones())
-      this.worldGraphics.drawRect(world.zoneWidth()*x, world.zoneHeight()*y, world.zoneWidth(), world.zoneHeight())
+      this.worldGraphics.drawRect(world.zoneSize()*x, world.zoneSize()*y, world.zoneSize(), world.zoneSize())
     }
 
     // draw the selected nematode's neural network and stats
