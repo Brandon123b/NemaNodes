@@ -56,6 +56,21 @@ class World {
   }
 
   // ----------------- Nematodes -----------------
+  /**
+   * 
+   * @param {number} x x world coordinate
+   * @param {number} y y world coordinate
+   * @returns [x,y] new x,y coordinates that fall within the world radius
+   */
+  clampWorldPos(x,y) {
+    let l2 = x**2 + y**2
+    if (l2 > worldRadius**2) {
+      let factor = worldRadius/Math.sqrt(l2)
+      x *= factor
+      y *= factor
+    }
+    return [x,y]
+  }
 
   // add a nematode to the world
   // an object should implement GetX(), GetY(), GetPosition(), SetPos()
@@ -84,10 +99,12 @@ class World {
 
   // update the position of the object
   // NOTE: this will modify the object's position
-  updateNematodePosition(obj, newX, newY) {
+  updateNematodePosition(obj, x, y) {
     // TODO clamp newWorldPos to be within world borders
-    let {x,y} = obj.GetPosition()
-    let [oldzx, oldzy] = this.#pos2zone(x,y)
+    let [newX, newY] = this.clampWorldPos(x, y)
+
+    let {oldX,oldY} = obj.GetPosition()
+    let [oldzx, oldzy] = this.#pos2zone(oldX,oldY)
     let [newzx,newzy] = this.#pos2zone(newX, newY)
 
     let zoneChange = (oldzx != newzx) || (oldzy != newzy)
@@ -102,11 +119,8 @@ class World {
   }
   
   // perform an action on each object of the world
-  forEachNematode(f) { //TODO
-    for (const nematode of this.#nematodeZones.items())
-    f(nematode)
-    
-    //this.#nematodeZones.forEachBucket(zone => zone.forEach(f))
+  forEachNematode(f) {
+    for (const nematode of this.#nematodeZones.items()) f(nematode)
   }
 
   // return the number of nematodes in the world
