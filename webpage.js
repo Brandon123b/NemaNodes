@@ -1,14 +1,3 @@
-
-// Copy/Pasted this (Don't know what it does)
-var width = window.innerWidth
-|| document.documentElement.clientWidth
-|| document.body.clientWidth;
-
-// Copy/Pasted this (Don't know what it does)
-var height = window.innerHeight
-|| document.documentElement.clientHeight
-|| document.body.clientHeight;
-
 // The PIXI application
 var app;
 
@@ -29,7 +18,7 @@ let timeSinceStart = 0;
 function main(){
 
     // Create the application helper and add its render target to the page
-    app = new PIXI.Application({width, height});
+    app = new PIXI.Application({resizeTo: window});
     document.body.appendChild(app.view);
 
     // Create the world, TODO make world static class

@@ -18,10 +18,6 @@ class Canvas {
   this.backGround.interactive = true
   app.stage.addChild(this.backGround)
 
-  // TODO resize background on screen change
-  // something like this probably
-  //window.addEventListener("resize", () => this.backGround.resize(window.innerWidth, window.innerHeight));
-
   // container to hold world object sprites
   // the local position of a sprite within the canvas container is 1:1 with its world object position
   this.container = new PIXI.Container()
@@ -89,6 +85,10 @@ class Canvas {
 
   
   drawWorld(world) {
+    // resize the background if window changes
+    this.backGround.width = app.screen.width
+    this.backGround.height = app.screen.height
+
     // draw borders of petri dish
     this.worldGraphics.lineStyle(10, 0, 1, 1)
     this.worldGraphics.drawCircle(0,0,World.radius)
