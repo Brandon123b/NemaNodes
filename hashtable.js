@@ -50,10 +50,12 @@ class HashTable {
   /**
    * 
    * @param {*} key 
-   * @returns array of the items associated with the given key
+   * @returns the bucket associated with the key or an empty array
+   * 
+   * WARNING: MODIFYING THE BUCKET WILL CORRUPT THE HASH TABLE
    */
   getItemsWithKey(key) {
-    return Array.from(this.underlying[key] || []);
+    return this.underlying[key] || []
   }
 
   /**
@@ -66,7 +68,7 @@ class HashTable {
 
   /**
    * 
-   * @returns an array containing the items of this hashtable
+   * @returns new array constructed from the items of this hashtable
    */
   items() {
     let items = []
