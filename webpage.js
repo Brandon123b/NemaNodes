@@ -33,7 +33,7 @@ function main(){
     document.body.appendChild(app.view);
 
     // Create the world, TODO make world static class
-    world = new World(100,100);
+    world = new World();
 
     // Create the fps counter
     CreateFpsCounter();
@@ -74,7 +74,7 @@ function CreateUI(){
         .addText("Environment")
         .addSlider(x => world.maxNumFood = x, 0, world.maxNumFood*2, world.maxNumFood, 5, "max food number")
         .addSlider(x => world.foodReplenishRate = x, 0, world.maxReplenishRate, world.foodReplenishRate, 1, "food replenish rate")
-        .addSlider(x => World.radius = x, 500, 5000, World.radius, 10, "petri dish radius")
+        .addSlider(x => World.radius = x, 500, World.radius*3, World.radius, 10, "petri dish radius")
         .addText("Debug")
         .addToggle(enabled => world.drawZones = enabled, "draw world zones", world.drawZones)
         .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)

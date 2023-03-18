@@ -5,10 +5,8 @@
  */
 
 class World {
-  static radius = 1500
-
-  #zoneWidth
-  #zoneHeight
+  static radius = 5000
+  static #zoneSize = 500
 
   // hash table that maps nematodes to a zone
   #nematodeZones = new HashTable(obj => {
@@ -25,10 +23,7 @@ class World {
   // set the size of the world in the x-direction (width)
   // set the size of the world in the y-direction (height)
   // give the size of a world zone
-  constructor(zoneWidth, zoneHeight) {
-    this.#zoneWidth = zoneWidth
-    this.#zoneHeight = zoneHeight
-
+  constructor() {
     // The currently selected nematode
     this.selectedNematode = null
 
@@ -167,7 +162,7 @@ class World {
     let [maxZoneX,maxZoneY] = this.#pos2zone(worldPosX+radius,worldPosY+radius)
     
     let results = []
-
+    
     for (let x = minZoneX; x <= maxZoneX; x++)
     for (let y = minZoneY; y <= maxZoneY; y++)
     for (let obj of this.getFoodAtZone(x,y))
@@ -179,19 +174,23 @@ class World {
     return results
   }
 
-  // return array of items currently in the given zone
+  /**
+   * 
+   * @param {*} zoneX column of zone
+   * @param {*} zoneY row of zone
+   * @returns the hash bucket of food at that zone
+   * 
+   * WARNING: DO NOT MODIFY RETURNED COLLECTION
+   */
   getFoodAtZone(zoneX, zoneY) {
-    let results = this.#foodZones.getItemsWithKey(this.#zone2hashkey(zoneX,zoneY))
-    if (results)
-      return [...results]
-    else return []
+    return this.#foodZones.getItemsWithKey(this.#zone2hashkey(zoneX,zoneY))
   }
 
   // ----------------- Hash functions -----------------
 
   // get zone coordinates from world coordinates
   #pos2zone(worldPosX,worldPosY) {
-    return [Math.floor(worldPosX/this.#zoneWidth), Math.floor(worldPosY/this.#zoneHeight)]
+    return [Math.floor(worldPosX/World.#zoneSize), Math.floor(worldPosY/World.#zoneSize)]
   }
 
   // create hash key of zone coordinates from position
@@ -240,12 +239,8 @@ class World {
 
   // ----------------- Getters -----------------
 
-  zoneHeight() {
-    return this.#zoneHeight
-  }
-
-  zoneWidth() {
-    return this.#zoneWidth
+  zoneSize() {
+    return World.#zoneSize
   }
 
 }
