@@ -5,10 +5,8 @@
  */
 
 class World {
-  #width
-  #height
-  #zoneWidth
-  #zoneHeight
+  static radius = 5000
+  static #zoneSize = 500
 
   // hash table that maps nematodes to a zone
   #nematodeZones = new HashTable(obj => {
@@ -25,12 +23,7 @@ class World {
   // set the size of the world in the x-direction (width)
   // set the size of the world in the y-direction (height)
   // give the size of a world zone
-  constructor(worldWidth, worldHeight, zoneWidth, zoneHeight) {
-    this.#width = worldWidth
-    this.#height = worldHeight
-    this.#zoneWidth = zoneWidth
-    this.#zoneHeight = zoneHeight
-
+  constructor() {
     // The currently selected nematode
     this.selectedNematode = null
 
@@ -39,7 +32,7 @@ class World {
     this.maxReplenishRate = 100
     
     // the canvas holds a container that we draw the objects on
-    this.canvas = new Canvas(worldWidth, worldHeight)
+    this.canvas = new Canvas()
 
     this.drawZones = false
     this.drawEyeRays = false
@@ -56,6 +49,21 @@ class World {
   }
 
   // ----------------- Nematodes -----------------
+  /**
+   * 
+   * @param {number} x x world coordinate
+   * @param {number} y y world coordinate
+   * @returns [x,y] new x,y coordinates that fall within the world radius
+   */
+  clampWorldPos(x,y) {
+    let l2 = x**2 + y**2
+    if (l2 > World.radius**2) {
+      let factor = World.radius/Math.sqrt(l2)
+      x *= factor
+      y *= factor
+    }
+    return [x,y]
+  }
 
   // add a nematode to the world
   // an object should implement GetX(), GetY(), GetPosition(), SetPos()
@@ -84,10 +92,12 @@ class World {
 
   // update the position of the object
   // NOTE: this will modify the object's position
-  updateNematodePosition(obj, newX, newY) {
+  updateNematodePosition(obj, x, y) {
     // TODO clamp newWorldPos to be within world borders
-    let {x,y} = obj.GetPosition()
-    let [oldzx, oldzy] = this.#pos2zone(x,y)
+    let [newX, newY] = this.clampWorldPos(x, y)
+
+    let {oldX,oldY} = obj.GetPosition()
+    let [oldzx, oldzy] = this.#pos2zone(oldX,oldY)
     let [newzx,newzy] = this.#pos2zone(newX, newY)
 
     let zoneChange = (oldzx != newzx) || (oldzy != newzy)
@@ -102,11 +112,8 @@ class World {
   }
   
   // perform an action on each object of the world
-  forEachNematode(f) { //TODO
-    for (const nematode of this.#nematodeZones.items())
-    f(nematode)
-    
-    //this.#nematodeZones.forEachBucket(zone => zone.forEach(f))
+  forEachNematode(f) {
+    for (const nematode of this.#nematodeZones.items()) f(nematode)
   }
 
   // return the number of nematodes in the world
@@ -155,7 +162,7 @@ class World {
     let [maxZoneX,maxZoneY] = this.#pos2zone(worldPosX+radius,worldPosY+radius)
     
     let results = []
-
+    
     for (let x = minZoneX; x <= maxZoneX; x++)
     for (let y = minZoneY; y <= maxZoneY; y++)
     for (let obj of this.getFoodAtZone(x,y))
@@ -167,19 +174,23 @@ class World {
     return results
   }
 
-  // return array of items currently in the given zone
+  /**
+   * 
+   * @param {*} zoneX column of zone
+   * @param {*} zoneY row of zone
+   * @returns the hash bucket of food at that zone
+   * 
+   * WARNING: DO NOT MODIFY RETURNED COLLECTION
+   */
   getFoodAtZone(zoneX, zoneY) {
-    let results = this.#foodZones.getItemsWithKey(this.#zone2hashkey(zoneX,zoneY))
-    if (results)
-      return [...results]
-    else return []
+    return this.#foodZones.getItemsWithKey(this.#zone2hashkey(zoneX,zoneY))
   }
 
   // ----------------- Hash functions -----------------
 
   // get zone coordinates from world coordinates
   #pos2zone(worldPosX,worldPosY) {
-    return [Math.floor(worldPosX/this.#zoneWidth), Math.floor(worldPosY/this.#zoneHeight)]
+    return [Math.floor(worldPosX/World.#zoneSize), Math.floor(worldPosY/World.#zoneSize)]
   }
 
   // create hash key of zone coordinates from position
@@ -228,12 +239,8 @@ class World {
 
   // ----------------- Getters -----------------
 
-  zoneHeight() {
-    return this.#zoneHeight
-  }
-
-  zoneWidth() {
-    return this.#zoneWidth
+  zoneSize() {
+    return World.#zoneSize
   }
 
 }

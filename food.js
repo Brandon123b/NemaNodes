@@ -14,7 +14,7 @@ class Food {
 
         // Allow default position to be undefined causing a random position to be generated
         if (position == undefined) {
-            position = new PIXI.Point().RandomPosition(worldRadius)
+            position = new PIXI.Point().RandomPosition(World.radius)
         }
 
         this.width = 6

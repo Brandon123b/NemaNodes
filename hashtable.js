@@ -46,26 +46,16 @@ class HashTable {
   size() {
     return this.#size
   }
-  
-  // do some procedure for each bucket of items in the hash table
-  // operation: function that operates on a list of items
-  //
-  // Example: hashtable.forEachBucket(items => console.log(items.length))
-  //          will print out the number of items stashed in each bucket
-  //
-  // WARNING: modifying the item list will modify the hash table
-  // WARNING: Do not modify hash table in the given operation
-//  forEachBucket(operation) {
-//    Object.values(this.underlying).forEach(operation)
-//  }
 
   /**
    * 
    * @param {*} key 
-   * @returns array of the items associated with the given key
+   * @returns the bucket associated with the key or an empty array
+   * 
+   * WARNING: MODIFYING THE BUCKET WILL CORRUPT THE HASH TABLE
    */
   getItemsWithKey(key) {
-    return Array.from(this.underlying[key] || []);
+    return this.underlying[key] || []
   }
 
   /**
@@ -78,7 +68,7 @@ class HashTable {
 
   /**
    * 
-   * @returns an array containing the items of this hashtable
+   * @returns new array constructed from the items of this hashtable
    */
   items() {
     let items = []

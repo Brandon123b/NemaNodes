@@ -1,11 +1,11 @@
 
 class Canvas {
-  constructor(width, height) {
+  constructor() {
 
   this.camera = {
     zoomLevel : 1,
     maxZoomLevel : 10,
-    minZoomLevel : 0.3,
+    minZoomLevel : 0.1,
     // TODO add bounds for panning
   }
 
@@ -17,10 +17,6 @@ class Canvas {
   this.backGround.tint = 0x999955;
   this.backGround.interactive = true
   app.stage.addChild(this.backGround)
-
-  // TODO resize background on screen change
-  // something like this probably
-  //window.addEventListener("resize", () => this.backGround.resize(window.innerWidth, window.innerHeight));
 
   // container to hold world object sprites
   // the local position of a sprite within the canvas container is 1:1 with its world object position
@@ -89,11 +85,18 @@ class Canvas {
 
   
   drawWorld(world) {
+    // resize the background if window changes
+    this.backGround.width = app.screen.width
+    this.backGround.height = app.screen.height
+
+    // draw borders of petri dish
+    this.worldGraphics.lineStyle(10, 0, 1, 1)
+    this.worldGraphics.drawCircle(0,0,World.radius)
 
     if (world.drawZones) {
-      this.worldGraphics.lineStyle(2, 0x00ffff)
+      this.worldGraphics.lineStyle(10, 0x00ffff)
       for (const [x,y] of world.getOccupiedZones())
-      this.worldGraphics.drawRect(world.zoneWidth()*x, world.zoneHeight()*y, world.zoneWidth(), world.zoneHeight())
+      this.worldGraphics.drawRect(world.zoneSize()*x, world.zoneSize()*y, world.zoneSize(), world.zoneSize())
     }
 
     // draw the selected nematode's neural network and stats
