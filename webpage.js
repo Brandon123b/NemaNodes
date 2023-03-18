@@ -21,9 +21,6 @@ var lastTime = 0;
 // Keeps a moving average of the fps (This smooths out the fps counter)
 var movingFps = 60;
 
-// The radius of the world (TODO: move this somewhere else)
-const worldRadius = 1500;
-
 // Count the time since the last food spawn
 let timeSinceFoodSpawn = 0;
 let timeSinceStart = 0;
@@ -35,8 +32,8 @@ function main(){
     app = new PIXI.Application({width, height});
     document.body.appendChild(app.view);
 
-    // Create the world
-    world = new World(1000,1000,100,100);
+    // Create the world, TODO make world static class
+    world = new World(100,100);
 
     // Create the fps counter
     CreateFpsCounter();
@@ -77,6 +74,7 @@ function CreateUI(){
         .addText("Environment")
         .addSlider(x => world.maxNumFood = x, 0, world.maxNumFood*2, world.maxNumFood, 5, "max food number")
         .addSlider(x => world.foodReplenishRate = x, 0, world.maxReplenishRate, world.foodReplenishRate, 1, "food replenish rate")
+        .addSlider(x => World.radius = x, 500, 5000, World.radius, 10, "petri dish radius")
         .addText("Debug")
         .addToggle(enabled => world.drawZones = enabled, "draw world zones", world.drawZones)
         .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)

@@ -5,8 +5,8 @@
  */
 
 class World {
-  #width
-  #height
+  static radius = 1500
+
   #zoneWidth
   #zoneHeight
 
@@ -25,9 +25,7 @@ class World {
   // set the size of the world in the x-direction (width)
   // set the size of the world in the y-direction (height)
   // give the size of a world zone
-  constructor(worldWidth, worldHeight, zoneWidth, zoneHeight) {
-    this.#width = worldWidth
-    this.#height = worldHeight
+  constructor(zoneWidth, zoneHeight) {
     this.#zoneWidth = zoneWidth
     this.#zoneHeight = zoneHeight
 
@@ -39,7 +37,7 @@ class World {
     this.maxReplenishRate = 100
     
     // the canvas holds a container that we draw the objects on
-    this.canvas = new Canvas(worldWidth, worldHeight)
+    this.canvas = new Canvas()
 
     this.drawZones = false
     this.drawEyeRays = false
@@ -64,8 +62,8 @@ class World {
    */
   clampWorldPos(x,y) {
     let l2 = x**2 + y**2
-    if (l2 > worldRadius**2) {
-      let factor = worldRadius/Math.sqrt(l2)
+    if (l2 > World.radius**2) {
+      let factor = World.radius/Math.sqrt(l2)
       x *= factor
       y *= factor
     }

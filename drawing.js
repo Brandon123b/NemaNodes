@@ -1,11 +1,11 @@
 
 class Canvas {
-  constructor(width, height) {
+  constructor() {
 
   this.camera = {
     zoomLevel : 1,
     maxZoomLevel : 10,
-    minZoomLevel : 0.3,
+    minZoomLevel : 0.1,
     // TODO add bounds for panning
   }
 
@@ -89,6 +89,9 @@ class Canvas {
 
   
   drawWorld(world) {
+    // draw borders of petri dish
+    this.worldGraphics.lineStyle(10, 0, 1, 1)
+    this.worldGraphics.drawCircle(0,0,World.radius)
 
     if (world.drawZones) {
       this.worldGraphics.lineStyle(2, 0x00ffff)

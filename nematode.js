@@ -80,7 +80,7 @@ class Nematode {
 
         // Set position and direction to random values
         this.direction = new PIXI.Point().RandomDirection();
-        this.sprite.position = new PIXI.Point().RandomPosition(worldRadius);
+        this.sprite.position = new PIXI.Point().RandomPosition(World.radius);
 
         this.size = // Sets to base size on next line
         this.baseSize = Nematode.BASE_SIZE_RANGE.min + Math.random() * (Nematode.BASE_SIZE_RANGE.max - Nematode.BASE_SIZE_RANGE.min);  // The base size of the Nematode (in pixels)
