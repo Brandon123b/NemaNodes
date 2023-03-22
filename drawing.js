@@ -8,6 +8,7 @@ class Canvas {
     minZoomLevel : 0.1,
     // TODO add bounds for panning
   }
+  
 
   // background sprite to interact with (mouse wheel zoom and clicks)
   // a background sprite is needed to register mouse events
@@ -36,7 +37,11 @@ class Canvas {
   this.screenGraphics = new PIXI.Graphics();
   app.stage.addChild(this.screenGraphics);
 
+  // Create the nematode stats menu
   this.nematodeStatsMenuObj = new NematodeStatsMenu(this.screenGraphics);
+
+  // Create the fps counter
+  this.CreateFpsCounter();
 
   // set up callbacks for mouse drag behavior (for panning)
   createDragAction(this.backGround, this.container,
@@ -83,8 +88,40 @@ class Canvas {
     this.container.addChild(sprite)
   }
 
+  // Create the fps counter
+  CreateFpsCounter(){
+    
+    // Keeps a moving average of the fps (This smooths out the fps counter)
+    this.movingFps = 60;
+          
+    // Create the fps counter
+    this.fpsCounter = new PIXI.Text("FPS: 0", {fontFamily : 'Arial', fontSize: 20, fill : 0x00FF00, align : 'center'});
+    this.fpsCounter.x = 10;
+    this.fpsCounter.y = 8;
+
+    // Make the border thicker
+    this.fpsCounter.style.strokeThickness = 2;
+
+    // Set the border to black
+    this.fpsCounter.style.stroke = 0x000000;
+
+    // Add the fps counter to the stage
+    app.stage.addChild(this.fpsCounter);
+  }
+
+  // Update the fps counter
+  UpdateFpsCounter(delta){
+    
+    // Update the moving fps (Uses the last 20 frames)
+    this.movingFps = this.movingFps * 0.95 + 1 / delta * 0.05;
+
+    this.fpsCounter.text =  "FPS: " + (this.movingFps).toFixed(1) +
+                            " | Time: " + timeSinceStart.toFixed(1) +
+                            " | Nematodes: " + world.numNematodes() +
+                            " | Food: " + world.numFood();
+  }
   
-  drawWorld(world) {
+  drawWorld(delta) {
     // resize the background if window changes
     this.backGround.width = app.screen.width
     this.backGround.height = app.screen.height
@@ -93,6 +130,7 @@ class Canvas {
     this.worldGraphics.lineStyle(10, 0, 1, 1)
     this.worldGraphics.drawCircle(0,0,World.radius)
 
+    // draw the zones (if enabled)
     if (world.drawZones) {
       this.worldGraphics.lineStyle(10, 0x00ffff)
       for (const [x,y] of world.getOccupiedZones())
@@ -114,6 +152,9 @@ class Canvas {
         world.selectedNematode = null;
       }
     }
+
+    // Update the fps counter
+    this.UpdateFpsCounter(delta);
   }
 }
 
