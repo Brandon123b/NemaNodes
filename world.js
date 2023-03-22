@@ -52,6 +52,7 @@ class World {
   }
 
   // ----------------- Nematodes -----------------
+  
   /**
    * 
    * @param {number} x x world coordinate
@@ -134,6 +135,7 @@ class World {
 
   // ----------------- Food -----------------
 
+
   // add a food object to the world
   // Food objects are not clickable
   // an object should implement GetX(), GetY(), GetPosition(), SetPos()
@@ -189,9 +191,34 @@ class World {
     return this.#foodZones.getItemsWithKey(this.#zone2hashkey(zoneX,zoneY))
   }
 
+  // ----------------- Spawn Functions -----------------
+  
+
+  /** Spawn a number of nematodes
+   * 
+   * @param {*} number The number of nematodes to spawn
+   */
+  SpawnNematodes(number){
+    for (let i = 0; i < number; i++) {
+        world.selectedNematode = new Nematode()
+    }
+  }
+
+  /** Spawn a number of food
+  *  Will not spawn more than world.maxNumFood
+  * 
+  * @param {*} number The number of food to spawn
+  */
+  SpawnFood(number){
+    for (let i = 0; i < number && world.numFood() < world.maxNumFood; i++) {
+        new Food()
+    }
+  }
+
   // ----------------- Hash functions -----------------
 
   // get zone coordinates from world coordinates
+  
   #pos2zone(worldPosX,worldPosY) {
     return [Math.floor(worldPosX/World.#zoneSize), Math.floor(worldPosY/World.#zoneSize)]
   }
