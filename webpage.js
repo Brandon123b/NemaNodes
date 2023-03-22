@@ -11,7 +11,7 @@ var lastTime = 0;
 let timeSinceFoodSpawn = 0;
 let timeSinceStart = 0;
 
-// Slow Update counter
+// Slow Update counter (The currently updated frame)
 let slowUpdateCounter = 0;
 
 // Starts everything
@@ -28,10 +28,10 @@ function main(){
     CreateUI();
 
     // Add some nematodes
-    SpawnNematodes(1);
+    world.SpawnNematodes(20000);
 
     // Add some food
-    SpawnFood(10000);
+    world.SpawnFood(10000);
 
     // This starts the main loop (with a 60 target fps cap)
     setInterval(function() {
@@ -73,27 +73,6 @@ function CreateUI(){
 }
 
 
-/** Spawn a number of nematodes
- * 
- * @param {*} number The number of nematodes to spawn
- */
-function SpawnNematodes(number){
-    for (let i = 0; i < number; i++) {
-        world.selectedNematode = new Nematode()
-    }
-}
-
-/** Spawn a number of food
- *  Will not spawn more than world.maxNumFood
- * 
- * @param {*} number The number of food to spawn
- */
-function SpawnFood(number){
-    for (let i = 0; i < number && world.numFood() < world.maxNumFood; i++) {
-        new Food()
-    }
-}
-
 /** GameLoop Called every frame from the ticker 
  *  @param {number} delta - Time since last frame in seconds
 */
@@ -112,7 +91,7 @@ function GameLoop(delta) {
         timeSinceFoodSpawn -= 1;
 
         // Spawn food
-        SpawnFood(world.foodReplenishRate);
+        world.SpawnFood(world.foodReplenishRate);
     }
 
     // Slow update (Runs each nematode's SlowUpdate() function every SlowUpdateInterval frames)
@@ -125,6 +104,7 @@ function GameLoop(delta) {
     let i = 0;
     world.forEachNematode(
     n => {
+        // Only update when the slow update counter is the correct frame
         if (i++ % world.SlowUpdateInterval == slowUpdateCounter){
             n.SlowUpdate(delta)
         }
@@ -139,7 +119,7 @@ function GameLoop(delta) {
     // If there is an extinction event
     if (world.numNematodes() == 0){
         console.log("Extinction event at " + timeSinceStart.toFixed(1) + " seconds. Spawned 2000 nematodes.");
-        SpawnNematodes(2000);
+        world.SpawnNematodes(2000);
     }
 }
 
