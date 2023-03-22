@@ -18,15 +18,16 @@ class Nematode {
 
     // Constraints
     static SIZE_CONSTRAINT = { min: 5, max: 50 }            // The minimum and maximum size of the nematode (in pixels)
+    static GROW_RATE_CONSTRAINT = { min: 0.01, max: 0.1 }   // The minimum and maximum grow rate of the nematode (in pixels per second)
 
     // Initial value ranges
-    static BASE_SIZE_RANGE = { min: 5, max: 15 }
-    static GROW_RATE_RANGE = { min: 0.03, max: 0.05 }
-    static MATURITY_RANGE = { min: 30, max: 50 }           // The age at which the nematode can reproduce
+    static BASE_SIZE_RANGE = { min: 5,      max: 15 }
+    static GROW_RATE_RANGE = { min: 0.03,   max: 0.05 }
+    static MATURITY_RANGE  = { min: 30,     max: 50 }       // The age at which the nematode can reproduce
 
     // Mutation rates (as +/- up to this constant)
     static BASE_SIZE_THRESHOLD = 0.02;
-    static GROW_RATE_THRESHOLD = 0.02;
+    static GROW_RATE_THRESHOLD = 0.01;
     
     // Instead of multiple constructors, use a single constructor that can take a position, a parent nematode, or nothing
     constructor(arg1) {
@@ -226,8 +227,9 @@ class Nematode {
         energyLoss *= 1 + this.age / 300;                       // Multiply energy loss by the ratio of the age to a constant
         this.energy -= energyLoss * delta;                      // Decrease the energy by the energy loss
 
-        // Clamp the size
+        // Clamp the values
         this.size = Math.min(Math.max(this.size, Nematode.SIZE_CONSTRAINT.min), Nematode.SIZE_CONSTRAINT.max);
+        this.growRate = Math.min(Math.max(this.growRate, Nematode.GROW_RATE_CONSTRAINT.min), Nematode.GROW_RATE_CONSTRAINT.max);
 
         // update sprite (TODO: Will be updated when the nematodes sprites are finished)
         this.sprite.width = this.size
