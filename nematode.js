@@ -150,10 +150,6 @@ class Nematode {
         // Get all the food in the world (for the eye raycasts)
         var foodList = world.getFoodAt(this.sprite.x, this.sprite.y, Nematode.MAX_EYE_DISTANCE * 1.1);
 
-        console.log(this.GetX() + ", " + this.GetY() + ", " + Nematode.MAX_EYE_DISTANCE * 1.1)
-
-        console.log(foodList);
-
         // Set the neural network inputs from the eye raycasts
         this.nn.SetInput(0, this.EyeRaycast(foodList, -25));
         this.nn.SetInput(1, this.EyeRaycast(foodList, 0));
