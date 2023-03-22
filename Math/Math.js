@@ -1,3 +1,4 @@
+
 // Raycasts a ray against all circles in the scene
 // Returns true if the ray hit a circle or false if it did not
 // raycastResult is the result of the raycast
@@ -10,10 +11,13 @@ function Raycast(raycastResult, pos, dir, maxLength, circleList) {
 
     circles = world.getFoodAt(pos.x, pos.y, maxLength * 1.1);
 
-    console.log("C: " + circles);
-
     // Loop through all circles in the scene
     for (var i = 0; i < circleList.length; i++) {
+
+        // If the circle refuses to be raycasted, continue
+        if (circleList[i].ignoreRaycast == true){
+            continue;
+        }
 
         // If the ray did not hit a circle, continue
         if (!RaycastCircle(tempResult, pos, dir, maxLength, circleList[i]))
