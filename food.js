@@ -49,12 +49,21 @@ class Food {
         return this.sprite.position
     }
 
+    // Returns the x position of the food (or infinity if the food has been eaten)
     GetX() {
-        return this.sprite.position.x;
+
+        if (this.sprite.destroyed) 
+            return Math.infinity
+        else
+            return this.sprite.position.x;
     }
 
+    // Returns the y position of the food (or infinity if the food has been eaten)
     GetY() {
-        return this.sprite.position.y;
+        if (this.sprite.destroyed) 
+            return Math.infinity
+        else
+            return this.sprite.position.x;
     }
 
     GetAge() {

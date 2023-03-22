@@ -5,7 +5,7 @@
  */
 
 class World {
-  static radius = 5000
+  static radius = 1500
   static #zoneSize = 500
 
   // hash table that maps nematodes to a zone
@@ -44,6 +44,9 @@ class World {
 
     this.nematodeBrushOn = false
     this.nematodeBrushRadius = 10
+
+    // Debug slider vars
+    this.SlowUpdateInterval = 5;
 
     this.#setUpBrushes()
   }

@@ -70,6 +70,15 @@ PIXI.Point.prototype.RandomPosition = function(radius) {
     return this;
 }
 
+/** Gets the distance from this vector to the origin
+ * 
+ * @param {*} radius The radius of the circle
+ * @returns This vector
+ */
+function DistFromOrigin(pos) {
+    return Math.sqrt(pos.x * pos.x + pos.y * pos.y);
+}
+
 PIXI.ObservablePoint.prototype.addXY = PIXI.Point.prototype.addXY
 
 // clamp the values of this point to be within the given bounds

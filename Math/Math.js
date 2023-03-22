@@ -1,25 +1,22 @@
-// not currently used because we have no circles objects
-// We should consider a function that returns all circles objects in a given area (instead of including the nematodes)
-// circles objects should have a worldPos field and a radius field
-
-
 // Raycasts a ray against all circles in the scene
 // Returns true if the ray hit a circle or false if it did not
 // raycastResult is the result of the raycast
 // drawRay is whether or not to draw the ray
-function Raycast(raycastResult, x, y, dirX, dirY, maxLength) {
+function Raycast(raycastResult, pos, dir, maxLength, circleList) {
 
     var hasHit = false;
 
     tempResult = new RaycastResult2D();
 
-    circles = world.getFoodAt(x, y, maxLength * 1.1);
+    circles = world.getFoodAt(pos.x, pos.y, maxLength * 1.1);
+
+    console.log("C: " + circles);
 
     // Loop through all circles in the scene
-    for (var i = 0; i < circles.length; i++) {
+    for (var i = 0; i < circleList.length; i++) {
 
         // If the ray did not hit a circle, continue
-        if (!RaycastCircle(tempResult, x, y, dirX, dirY, circles[i], maxLength))
+        if (!RaycastCircle(tempResult, pos, dir, maxLength, circleList[i]))
             continue;
         
         // If the hit distance is less than the current hit distance, set the current hit distance to the new hit distance
@@ -29,13 +26,13 @@ function Raycast(raycastResult, x, y, dirX, dirY, maxLength) {
         }
     }
 
-    
+    // Only draw the ray if the drawEyeRays flag is set to true
     if (world.drawEyeRays) {
 
         var gGraphics = world.canvas.worldGraphics;
 
         // Draw the ray
-        gGraphics.moveTo(x, y);
+        gGraphics.moveTo(pos.x, pos.y);
 
         if (hasHit){
             gGraphics.lineStyle(1, "0x00FF00", 1);
@@ -43,7 +40,7 @@ function Raycast(raycastResult, x, y, dirX, dirY, maxLength) {
         }
         else{
             gGraphics.lineStyle(1, "0x0000FF", 1);
-            gGraphics.lineTo(x + dirX * maxLength, y + dirY * maxLength);
+            gGraphics.lineTo(pos.x + dir.x * maxLength, pos.y + dir.y * maxLength);
         }
     }
 
@@ -54,7 +51,7 @@ function Raycast(raycastResult, x, y, dirX, dirY, maxLength) {
 // Raycasts a ray against a single circle
 // Returns true if the ray hit a circle or false if it did not
 // raycastResult is the result of the raycast
-function RaycastCircle(raycastResult, x, y, dirX, dirY, circle, maxLength) {
+function RaycastCircle(raycastResult, pos, dir, maxLength, circle) {
 
     // Store the radius of the circle
     var r = circle.GetRadius();
@@ -63,10 +60,10 @@ function RaycastCircle(raycastResult, x, y, dirX, dirY, circle, maxLength) {
     var rSq = r * r;
 
     // Store the vector from the circle to the ray origin
-    var e = [circle.GetX() - x, circle.GetY() - y];
+    var e = [circle.GetX() - pos.x, circle.GetY() - pos.y];
 
     // Calculate the dot product of the direction vector and the vector from the circle to the ray origin
-    var a = e[0] * dirX + e[1] * dirY;
+    var a = e[0] * dir.x + e[1] * dir.y;
 
     // If the dot product is negative, the ray is pointing away from the circle
     if (a < 0) 
@@ -79,10 +76,10 @@ function RaycastCircle(raycastResult, x, y, dirX, dirY, circle, maxLength) {
     if (eMagSqar < rSq){
 
         // If the origin of the ray is the same as the center of the circle, there is no intersection
-        if (x == circle.GetX() && y == circle.GetY())
+        if (pos.x == circle.GetX() && pos.y == circle.GetY())
             return false;
 
-        raycastResult.Set(x, y, 0, circle);
+        raycastResult.Set(pos.x, pos.y, 0, circle);
         return true;
     }
 
@@ -104,7 +101,7 @@ function RaycastCircle(raycastResult, x, y, dirX, dirY, circle, maxLength) {
         return false;
 
     // Set the raycast result
-    raycastResult.Set(x + t * dirX, y + t * dirY, t, circle);
+    raycastResult.Set(pos.x + t * dir.x, pos.y + t * dir.y, t, circle);
 
     // Raycast was successful
     return true;

@@ -88,6 +88,8 @@ class Nematode {
         this.childTime = Nematode.MATURITY_RANGE.min + Math.random() * (Nematode.MATURITY_RANGE.max - Nematode.MATURITY_RANGE.min);    // The age at which the Nematode can reproduce (in seconds)
 
         this.energy = -1;              // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
+        this.speed = 0;                // The speed of the Nematode (Set in SlowUpdate)
+        this.rotate = 0;               // The rotation of the Nematode (Set in SlowUpdate)
     }
 
     /** Creates a child nematode from a parent
@@ -141,53 +143,63 @@ class Nematode {
         )
     }
 
-    /** Update the bibite
+    /* Update the nematode, but only called every x frames (x = Nematode.SLOW_UPDATE_RATE)
+    */
+    SlowUpdate(){
+
+        // Get all the food in the world (for the eye raycasts)
+        var foodList = world.getFoodAt(this.sprite.x, this.sprite.y, Nematode.MAX_EYE_DISTANCE * 1.1);
+
+        console.log(this.GetX() + ", " + this.GetY() + ", " + Nematode.MAX_EYE_DISTANCE * 1.1)
+
+        console.log(foodList);
+
+        // Set the neural network inputs from the eye raycasts
+        this.nn.SetInput(0, this.EyeRaycast(foodList, -25));
+        this.nn.SetInput(1, this.EyeRaycast(foodList, 0));
+        this.nn.SetInput(2, this.EyeRaycast(foodList, 25));
+        this.nn.SetInput(3, this.age / 200 - 1);                                    // Start at -1 and at 400 seconds, be at 1
+        this.nn.SetInput(4, this.energy / this.maxEnergy);                          // Range from 0 to 1
+        this.nn.SetInput(5, DistFromOrigin(this.sprite.position) / World.radius);   // Range from 0 to 1
+
+        // Run the neural network
+        this.nn.RunNN();
+        
+        // Set the rotate and speed variables from the neural network outputs
+        this.rotate = this.nn.GetOutput(0) * this.maxTurnSpeed;
+        this.speed  = this.nn.GetOutput(1) * this.maxSpeed;
+
+        // If speed is negative, halve it (Make backwards movement slower to encourage forward movement)
+        this.speed = (this.speed < 0) ? this.speed * 0.5 : this.speed;
+    }
+
+    /** Update the Nematodes
     * 
     * @param {number} delta - The time since the last update in seconds
     */
     Update(delta) {
 
-        // If the bibite is dead, run the death animation and return
+        // If the Nematodes is dead, run the death animation and return
         if (!this.alive) {
             this.DeathAnimation(delta);
             return;
         }
 
-        var distFromCenter = this.sprite.position.x ** 2 + this.sprite.position.y ** 2;
-        distFromCenter = Math.sqrt(distFromCenter);
+        // Update the stats of the Nematodes
+        this.UpdateStats(delta);    
 
-        // Set the neural network inputs from the eye raycasts
-        this.nn.SetInput(0, this.EyeRaycast(-25));
-        this.nn.SetInput(1, this.EyeRaycast(0));
-        this.nn.SetInput(2, this.EyeRaycast(25));
-        this.nn.SetInput(3, this.age / 200 - 1);            // Start at -1 and at 400 seconds, be at 1
-        this.nn.SetInput(4, this.energy / this.maxEnergy);  // Range from 0 to 1
-        this.nn.SetInput(5, distFromCenter / World.radius); // Range from 0 to 1
-
-        // Run the neural network
-        this.nn.RunNN();
-
-        // Get the rotation and speed from the neural network
-        const rotate = this.nn.GetOutput(0) * this.maxTurnSpeed * delta;
-        let   speed  = this.nn.GetOutput(1) * this.maxSpeed     * delta;
-
-        // If speed is negative, halve it (Make backwards movement slower to encourage forward movement)
-        speed = (speed < 0) ? speed *= 0.5 : speed;
-
-        // Update the stats of the bibite
-        this.UpdateStats(delta, speed);    
-
-        // Prevent the bibite from moving if it is paralyzed
+        // Prevent the Nematodes from moving if it is paralyzed
         if (!this.paralyzed) {
 
-            // Update the bibite's rotation
-            this.direction.rotate(rotate);
+            // Update the Nematodes's rotation
+            this.direction.rotate(this.rotate * delta);
 
-            // Update the bibite's position
-            world.updateNematodePosition(this, this.GetX() + this.direction.x * speed, this.GetY() + this.direction.y * speed);
+            // Update the Nematodes's position
+            world.updateNematodePosition(this,  this.GetX() + this.direction.x * this.speed * delta, 
+                                                this.GetY() + this.direction.y * this.speed * delta);
         }
 
-        // If the bibite has no energy, kill it
+        // If the Nematodes has no energy, kill it
         if (this.energy <= 0) {
             this.OnDeath();
         }
@@ -213,7 +225,7 @@ class Nematode {
 
         // Decrease the energy of the bibite
         let energyLoss = 1;                                     // Initial energy loss is 1 per second
-        energyLoss += Math.abs(speed ) / this.maxSpeed;         // Multiply energy loss by the ratio of the speed to the max speed
+        energyLoss += Math.abs(this.speed) / this.maxSpeed;     // Multiply energy loss by the ratio of the speed to the max speed
         energyLoss += this.nn.GetPenalty();                     // Multiply energy loss by the penalty of the neural network
         energyLoss *= 1 + this.age / 300;                       // Multiply energy loss by the ratio of the age to a constant
         this.energy -= energyLoss * delta;                      // Decrease the energy by the energy loss
@@ -229,7 +241,7 @@ class Nematode {
 
     // Returns the ratio of the distance to the closest food to the max distance
     // Returns -1 if no food is found
-    EyeRaycast(angleFromMiddle) {
+    EyeRaycast(foodList, angleFromMiddle) {
         // Create a raycast result object
         var raycastResult = new RaycastResult2D();
 
@@ -237,11 +249,10 @@ class Nematode {
         var theta = (this.direction.getAngle() + angleFromMiddle) * Math.PI / 180;
 
         // Get the direction of the sight line
-        var dirX = Math.cos(theta);
-        var dirY = Math.sin(theta);
+        var dir = new PIXI.Point(Math.cos(theta), Math.sin(theta));
 
         // Send the raycast
-        if (Raycast(raycastResult, this.sprite.x, this.sprite.y, dirX, dirY, Nematode.MAX_EYE_DISTANCE)){
+        if (Raycast(raycastResult, this.sprite.position, dir, Nematode.MAX_EYE_DISTANCE, foodList)){
 
             // If the raycast is close enough to the food, eat it
             if (raycastResult.GetDistance() < this.size / 2) 
@@ -273,7 +284,7 @@ class Nematode {
         NematodeStatsMenu.statsText.text += "\n";
         NematodeStatsMenu.statsText.text += "Energy Consumption: \n";
         NematodeStatsMenu.statsText.text += "  Existence: " + 1 + " energy/s\n";
-        NematodeStatsMenu.statsText.text += "  Movement: " + (Math.abs(this.nn.GetOutput(1) * this.maxSpeed ) / this.maxSpeed).toFixed(3) + " energy/s\n";
+        NematodeStatsMenu.statsText.text += "  Movement: " + (Math.abs(this.speed ) / this.maxSpeed).toFixed(3) + " energy/s\n";
         NematodeStatsMenu.statsText.text += "  NN Penalty: " + this.nn.GetPenalty().toFixed(3) + " energy/s\n";
         NematodeStatsMenu.statsText.text += "  Age: " + (1 + this.age / 300).toFixed(3) + " times the normal rate\n";
         NematodeStatsMenu.statsText.text += "\n";
