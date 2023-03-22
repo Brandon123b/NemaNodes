@@ -49,21 +49,12 @@ class Food {
         return this.sprite.position
     }
 
-    // Returns the x position of the food (or infinity if the food has been eaten)
     GetX() {
-
-        if (this.sprite.destroyed) 
-            return Math.infinity
-        else
-            return this.sprite.position.x;
+        return this.sprite.position.x;
     }
 
-    // Returns the y position of the food (or infinity if the food has been eaten)
     GetY() {
-        if (this.sprite.destroyed) 
-            return Math.infinity
-        else
-            return this.sprite.position.x;
+        return this.sprite.position.y;
     }
 
     GetAge() {
@@ -87,8 +78,14 @@ class Food {
     *  Returns the nutrition value of the food (TODO: add nutrition value to food)
     */
     Eat(){
+
+        // Set the food to ignore raycasts (so it can't be eaten again)
+        this.ignoreRaycast = true;
+
+        // Remove the food from the world
         world.destroyFood(this)
 
+        // Return the nutrition value of the food
         return 30;
     }
 
