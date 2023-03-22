@@ -74,7 +74,7 @@ class Nematode {
         this.alive = true;              // Nematodes are (hopefully) alive by default
         this.paralyzed = false;         // set flag to true to prevent nematode from moving
 
-        this.nn = new NeatNN(5, 2)      // The brain of the Nematode
+        this.nn = new NeatNN(6, 2)      // The brain of the Nematode
 
         this.CreateSpriteTemp();        // Create the sprite for the bibite
 
@@ -153,12 +153,16 @@ class Nematode {
             return;
         }
 
+        var distFromCenter = this.sprite.position.x ** 2 + this.sprite.position.y ** 2;
+        distFromCenter = Math.sqrt(distFromCenter);
+
         // Set the neural network inputs from the eye raycasts
         this.nn.SetInput(0, this.EyeRaycast(-25));
         this.nn.SetInput(1, this.EyeRaycast(0));
         this.nn.SetInput(2, this.EyeRaycast(25));
         this.nn.SetInput(3, this.age / 200 - 1);            // Start at -1 and at 400 seconds, be at 1
         this.nn.SetInput(4, this.energy / this.maxEnergy);  // Range from 0 to 1
+        this.nn.SetInput(5, distFromCenter / World.radius); // Range from 0 to 1
 
         // Run the neural network
         this.nn.RunNN();
@@ -237,7 +241,7 @@ class Nematode {
         var dirY = Math.sin(theta);
 
         // Send the raycast
-        if (Raycast(raycastResult, this.sprite.x, this.sprite.y, dirX, dirY, Nematode.MAX_EYE_DISTANCE, world.drawEyeRays)){
+        if (Raycast(raycastResult, this.sprite.x, this.sprite.y, dirX, dirY, Nematode.MAX_EYE_DISTANCE)){
 
             // If the raycast is close enough to the food, eat it
             if (raycastResult.GetDistance() < this.size / 2) 

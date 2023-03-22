@@ -7,7 +7,7 @@
 // Returns true if the ray hit a circle or false if it did not
 // raycastResult is the result of the raycast
 // drawRay is whether or not to draw the ray
-function Raycast(raycastResult, x, y, dirX, dirY, maxLength, drawRay = false) {
+function Raycast(raycastResult, x, y, dirX, dirY, maxLength) {
 
     var hasHit = false;
 
@@ -30,7 +30,7 @@ function Raycast(raycastResult, x, y, dirX, dirY, maxLength, drawRay = false) {
     }
 
     
-    if (drawRay) {
+    if (world.drawEyeRays) {
 
         var gGraphics = world.canvas.worldGraphics;
 
