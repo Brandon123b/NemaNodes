@@ -28,10 +28,10 @@ function main(){
     CreateUI();
 
     // Add some nematodes
-    world.SpawnNematodes(20000);
+    world.SpawnNematodes(5000);
 
     // Add some food
-    world.SpawnFood(10000);
+    world.SpawnFood(5000);
 
     // This starts the main loop (with a 60 target fps cap)
     setInterval(function() {
