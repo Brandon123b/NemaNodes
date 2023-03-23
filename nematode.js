@@ -35,20 +35,28 @@ class Nematode {
         // No arguments provided, create a random nematode
         if (arg1 === undefined) {
 
-          this.CreateRandomNematode();
-
+            this.CreateRandomNematode();
         } 
         // PIXI.Point argument provided for position (Create a random nematode at the position)
         else if (arg1 instanceof PIXI.Point) {
 
-          this.CreateRandomNematode(arg1);
-          this.SetPos(arg1.x, arg1.y);  
-
+            this.CreateRandomNematode(arg1);
+            this.SetPos(arg1.x, arg1.y);  
         } 
         // Nematode argument provided to create a child of the parent nematode
         else if (arg1 instanceof Nematode) {
 
-          this.CreateChildNematode(arg1);
+            this.CreateChildNematode(arg1);
+        }
+        // Object argument provided to create a nematode from a saved state
+        else if (arg1 instanceof Object) {
+                
+            this.CreateJsonNematode(arg1);
+
+            // These are to avoid the nematode from gaining max energy when the game is loaded
+            this.UpdateStats(0, 0);
+            world.addNematode(this);
+            return;
         }
 
         // TODO: Add a constructor that takes a json object as an argument to create a nematode from a saved state
@@ -123,6 +131,37 @@ class Nematode {
         this.childTime = Nematode.MATURITY_RANGE.min + Math.random() * (Nematode.MATURITY_RANGE.max - Nematode.MATURITY_RANGE.min);  // The age at which the Nematode can reproduce (in seconds)
 
         this.energy = -1;              // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
+    }
+
+    /* Creates a nematode from a json object
+     * Called in the constructor when a json object is provided
+     * @param {Object} json The json object to create the nematode from
+     */
+    CreateJsonNematode(json) {
+            
+        // The age in seconds
+        this.age = json.age;
+
+        this.exists = true;             // Nematodes exist by default
+        this.alive = json.alive;        // Nematodes are (hopefully) alive by default
+        this.paralyzed = false;         // set flag to true to prevent nematode from moving
+
+        this.nn = NeatNN.fromJson(json.nn) // The brain of the Nematode
+
+        this.CreateSpriteTemp();        // Create the sprite for the bibite
+
+        // Set position and direction to random values
+        this.direction = new PIXI.Point(json.dir.x, json.dir.y);
+        this.sprite.position = new PIXI.Point(json.pos.x, json.pos.y);
+
+        this.size = json.size;          // The size of the Nematode (in pixels)
+        this.baseSize = json.baseSize;  // The base size of the Nematode (in pixels)
+        this.growRate = json.growRate;  // The rate at which the Nematode grows (in pixels per second)
+        this.childTime = json.childTime;// The age at which the Nematode can reproduce (in seconds)
+
+        this.energy = json.energy;      // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
+        this.speed = json.speed;        // The speed of the Nematode (Set in SlowUpdate)
+        this.rotate = json.rotate;      // The rotation of the Nematode (Set in SlowUpdate)
     }
 
     // Will be replaced with a call to a function that creates a sprite (hopefully in a separate file)
@@ -208,7 +247,7 @@ class Nematode {
      * @param {number} delta The time since the last update in seconds
      * @param {number} speed The speed of the Nematode
      */
-    UpdateStats(delta, speed){
+    UpdateStats(delta){
 
         // Increase the age of the bibite (in seconds)
         this.age += delta;
@@ -223,10 +262,9 @@ class Nematode {
         // Decrease the energy of the bibite
         let energyLoss = 1;                                     // Initial energy loss is 1 per second
         energyLoss += Math.abs(this.speed) / this.maxSpeed;     // Multiply energy loss by the ratio of the speed to the max speed
-        energyLoss += this.nn.GetPenalty();                     // Multiply energy loss by the penalty of the neural network
         energyLoss *= 1 + this.age / 300;                       // Multiply energy loss by the ratio of the age to a constant
         this.energy -= energyLoss * delta;                      // Decrease the energy by the energy loss
-
+        
         // Clamp the values
         this.size = Math.min(Math.max(this.size, Nematode.SIZE_CONSTRAINT.min), Nematode.SIZE_CONSTRAINT.max);
         this.growRate = Math.min(Math.max(this.growRate, Nematode.GROW_RATE_CONSTRAINT.min), Nematode.GROW_RATE_CONSTRAINT.max);
@@ -366,6 +404,27 @@ class Nematode {
             // Clean un the neural network
             this.nn.Destroy();
             this.nn = null;
+        }
+    }
+
+    // ------------------- OTHER ------------------- //
+
+    toJson() {
+        return {
+            age: this.age,
+            alive: this.alive,
+            nn: this.nn.toJson(),
+            pos: {x: this.GetX(), y: this.GetY()},
+            dir: {x: this.direction.x, y: this.direction.y},
+            size: this.size,
+            baseSize: this.baseSize,
+            growRate: this.growRate,
+            childTime: this.childTime,
+            maxEnergy: this.maxEnergy,
+            energy: this.energy,
+            speed: this.speed,
+            rotate: this.rotate,
+            maxEnergy: this.maxEnergy
         }
     }
 

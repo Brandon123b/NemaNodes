@@ -2,8 +2,8 @@
 class Node {
 
     constructor(_nodeType) {
-        this.bias = Math.random() - .5;     // Random number between -0.5 and 0.5
         this.nodeType = _nodeType;
+        this.bias = Math.random() - .5;     // Random number between -0.5 and 0.5
         
         this.activation;                    // The activation of the node (Will be calculated in the CalculateActivation function)
         
@@ -96,6 +96,24 @@ class Node {
         this.outgoingConnections = null;
     }
 
+    /* Return a JSON representation of the node
+    * The connections are not included in the JSON because they are not needed to recreate the node
+    */
+    toJson() {
+
+        return {
+            bias: this.bias,
+            nodeType: this.nodeType
+        }
+    }
+
+    // Load a node from a JSON object
+    static fromJson(json) {
+        var node = new Node(json.nodeType);
+        node.bias = json.bias;
+
+        return node;
+    }
 }
 
 

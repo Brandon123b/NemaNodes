@@ -28,7 +28,7 @@ function main(){
     CreateUI();
 
     // Add some nematodes
-    world.SpawnNematodes(5000);
+    //world.SpawnNematodes(5000);
 
     // Add some food
     world.SpawnFood(5000);
