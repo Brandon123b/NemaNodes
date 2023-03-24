@@ -14,9 +14,9 @@ let timeSinceStart = 0;
 // flag for game pause
 let paused = false
 
-let gameSpeedMult = 2
-const minGameSpeedMult = 0.5
-const maxGameSpeedMult = 2
+let gameSpeedMult = 1
+const minGameSpeedMult = 1
+const maxGameSpeedMult = 10
 // Slow Update counter (The currently updated frame)
 let slowUpdateCounter = 0;
 
@@ -46,12 +46,11 @@ function main(){
         var delta = (performance.now() - lastTime) / 1000;
         lastTime = performance.now();
     
-        GameLoop(delta);
-        // set timeout for next execution according to gamespeed
-        setTimeout(mainLoop, 1000 / (60*gameSpeedMult))
+        DrawLoop(delta)
+        for (let i = 0; i < gameSpeedMult; i++) GameLoop(delta)
     }
     
-    mainLoop()
+    setInterval(mainLoop, 1000/60)
 }
 
 // create a UI card
@@ -75,7 +74,7 @@ function CreateUI(){
         .addText("Debug")
         .addToggle(enabled => world.drawZones = enabled, "draw world zones", world.drawZones)
         .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)
-        .addSlider(x => gameSpeedMult = x, minGameSpeedMult, maxGameSpeedMult, gameSpeedMult, 0.1, "game speed")
+        .addSlider(x => gameSpeedMult = x, minGameSpeedMult, maxGameSpeedMult, gameSpeedMult, 1, "game speed")
         .make()
 
     app.stage.addChild(ui)
@@ -106,17 +105,23 @@ function CreateUI(){
     })
 }
 
+/**
+ * Perform any graphics drawing or things that should be updated even while paused
+ */
+function DrawLoop(delta) {
+    // Clear the graphics (eye raycasts, NN display, zone outlines)
+    world.canvas.worldGraphics.clear();
+    world.canvas.screenGraphics.clear();
+
+    // update the canvas
+    world.canvas.drawWorld(delta)
+}
 
 /** GameLoop Called every frame from the ticker 
  *  @param {number} delta - Time since last frame in seconds
 */
 function GameLoop(delta) {
-    // updates that shouldn't execute while game is paused go below this line
     if (paused) return
-
-    // Clear the graphics (eye raycasts, NN display, zone outlines)
-    world.canvas.worldGraphics.clear();
-    world.canvas.screenGraphics.clear();
 
     // Update the time
     timeSinceFoodSpawn += delta;
@@ -148,9 +153,6 @@ function GameLoop(delta) {
 
     // Update the nematodes
     world.forEachNematode(n => n.Update(delta))
-
-    // update the canvas
-    world.canvas.drawWorld(delta)
 
     // If there is an extinction event
     if (world.numNematodes() == 0){
