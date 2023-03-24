@@ -314,7 +314,6 @@ class UICard {
     this.card.drawRoundedRect(0,0,this.width-4,height-5,10)
     
     this.card.interactive = true
-    createDragAction(this.card, this.container)
 
     addBlur(this.card, 0.5)
 
