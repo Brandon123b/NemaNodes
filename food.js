@@ -93,4 +93,17 @@ class Food {
         return `{Food at (${this.GetX()}, ${this.GetY()})}`
     }
 
+    // TODO: consider energy preservation?
+    /* Static function to spawn food when a nematode dies */
+    static SpawnNematodeDeathFood(deathPos, size) {
+
+        // Find the amount of food to spawn based on size
+        var num = Math.floor(size / 5);
+
+        // Spawn the food
+        for (var i = 0; i < num; i++) {
+            var pos = new PIXI.Point(deathPos.x, deathPos.y).perturb(size / 2);
+            new Food(pos);
+        }
+    }
 }

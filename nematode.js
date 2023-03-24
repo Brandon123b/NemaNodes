@@ -30,6 +30,8 @@ class Nematode {
     static BASE_SIZE_THRESHOLD = 0.02;
     static GROW_RATE_THRESHOLD = 0.01;
     
+    // ------------------------- Constructors ------------------------- //
+
     // Instead of multiple constructors, use a single constructor that can take a position, a parent nematode, or nothing
     constructor(arg1) {
 
@@ -165,28 +167,14 @@ class Nematode {
         this.rotate = json.rotate;      // The rotation of the Nematode (Set in SlowUpdate)
     }
 
-    // Will be replaced with a call to a function that creates a sprite (hopefully in a separate file)
-    CreateSpriteTemp() {
-        // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
-        this.sprite = PIXI.Sprite.from('Bibite.png');
-        // Set the pivot point to the center of the bibite
-        this.sprite.anchor.set(0.5);
-
-        // random color tint for sprite
-        this.baseColor = Math.round(Math.random() * 0xFFFFFF)
-        this.sprite.tint = this.baseColor
-
-        // make nematodes draggable
-        createDragAction(this.sprite, this.sprite,
-            (x,y) => this.paralyzed = world.draggableObjects,
-            (dx,dy) => { if (world.draggableObjects) world.updateNematodePosition(this, this.GetX()+dx, this.GetY()+dy) },
-            (x,y) => this.paralyzed = false
-        )
-    }
+    // ------------------------------------ Update Functions ------------------------------------ //
 
     /* Update the nematode, but only called every x frames (x = Nematode.SLOW_UPDATE_RATE)
     */
     SlowUpdate(){
+
+        // Return if the nematode is dead
+        if (!this.alive) return;
 
         // Get all the food in the world (for the eye raycasts)
         var foodList = world.getFoodAt(this.sprite.x, this.sprite.y, Nematode.MAX_EYE_DISTANCE * 1.1);
@@ -277,7 +265,7 @@ class Nematode {
         this.sprite.angle = this.direction.getAngle()
     }
 
-    // ---------------------- Sensor Functions ----------------------
+    // ---------------------- Sensor Functions ---------------------- //
 
     // Returns the ratio of the distance to the closest food to the max distance
     // Returns -1 if no food is found
@@ -380,6 +368,9 @@ class Nematode {
 
         // Set the nematode to be dead
         this.alive = false
+
+        // Spawn food at the nematode's position
+        Food.SpawnNematodeDeathFood(this.sprite.position, this.size);
     }
 
     /* Called when the Nematode touches a food object
@@ -449,6 +440,25 @@ class Nematode {
     }
 
     // ------------------- OTHER ------------------- //
+
+    // Will be replaced with a call to a function that creates a sprite (hopefully in a separate file)
+    CreateSpriteTemp() {
+        // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
+        this.sprite = PIXI.Sprite.from('Bibite.png');
+        // Set the pivot point to the center of the bibite
+        this.sprite.anchor.set(0.5);
+
+        // random color tint for sprite
+        this.baseColor = Math.round(Math.random() * 0xFFFFFF)
+        this.sprite.tint = this.baseColor
+
+        // make nematodes draggable
+        createDragAction(this.sprite, this.sprite,
+            (x,y) => this.paralyzed = world.draggableObjects,
+            (dx,dy) => { if (world.draggableObjects) world.updateNematodePosition(this, this.GetX()+dx, this.GetY()+dy) },
+            (x,y) => this.paralyzed = false
+        )
+    }
 
     toJson() {
         return {
