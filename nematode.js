@@ -10,12 +10,21 @@
 
 class Nematode {
 
-    // Static variables
+    // Sensor constants
     static MAX_EYE_DISTANCE = 80;                           // The maximum distance that the eyes can see (in pixels)
     static MAX_SMELL_DISTANCE = 80;                         // The maximum distance that the smell can smell (in pixels)
+    static MAX_BITE_DISTANCE = 10;                          // The maximum distance that the bite can bite (in pixels)
+
+    // Nematode constants
     static PERCENTAGE_ENERGY_TO_REPRODUCE = 0.75;           // The percentage of energy that the nematode must have to reproduce
     static PERCENT_ENERGY_LOST_WHEN_REPRODUCING = 0.25;     // The percentage of energy that the nematode loses when reproducing
     static TIME_BETEWEEN_CHILDREN = 10;                     // The time between reproductions (in seconds)
+    
+    // Bite constants
+    static ENERGY_LOST_WHEN_BITING = 5;                     // The amount of energy that the nematode loses when biting (in energy units)
+    static ENERGY_LOST_WHEN_BITTEN = 20;                    // The amount of energy that the nematode loses when getting bit (in energy units)
+    static KNOCKBACK_POWER = 100;                           // The amount of knockback that the nematode gets when getting bit (in pixels)
+    static BITE_COOLDOWN = 1;                               // The time between bites (in seconds)
 
     // Constraints
     static SIZE_CONSTRAINT = { min: 5, max: 50 }            // The minimum and maximum size of the nematode (in pixels)
@@ -32,7 +41,7 @@ class Nematode {
     
     // ------------------------- Constructors ------------------------- //
 
-    // Instead of multiple constructors, use a single constructor that can take a position, a parent nematode, or nothing
+    /* Instead of multiple constructors, use a single constructor that can take a position, a parent nematode, or nothing */
     constructor(arg1) {
 
         // No arguments provided, create a random nematode
@@ -70,11 +79,14 @@ class Nematode {
         // Initialize the energy of the Nematode to its maximum value
         this.energy = this.maxEnergy;
 
+        // Create minor vars
+        this.biteCooldown = 0;          // The time until the nematode can bite again (in seconds)
+
         // Tell the world that this bibite exists
         world.addNematode(this)         
     }
 
-    /** Creates a random nematode (with random stats and position)
+    /* Creates a random nematode (with random stats and position)
      *  Called in the constructor when no arguments are provided or when a position is provided
      */
     CreateRandomNematode() {
@@ -86,7 +98,7 @@ class Nematode {
         this.alive = true;              // Nematodes are (hopefully) alive by default
         this.paralyzed = false;         // set flag to true to prevent nematode from moving
 
-        this.nn = new NeatNN(7, 2)      // The brain of the Nematode
+        this.nn = new NeatNN(7, 3)      // The brain of the Nematode
 
         this.CreateSpriteTemp();        // Create the sprite for the bibite
 
@@ -104,7 +116,7 @@ class Nematode {
         this.rotate = 0;               // The rotation of the Nematode (Set in SlowUpdate)
     }
 
-    /** Creates a child nematode from a parent
+    /* Creates a child nematode from a parent
      *  Called in the constructor when a parent is provided
      *  @param {Nematode} parent The parent of the child
      */
@@ -170,7 +182,7 @@ class Nematode {
     // ------------------------------------ Update Functions ------------------------------------ //
 
     /* Update the nematode, but only called every x frames (x = Nematode.SLOW_UPDATE_RATE)
-    */
+     */
     SlowUpdate(){
 
         // Return if the nematode is dead
@@ -195,14 +207,18 @@ class Nematode {
         this.rotate = this.nn.GetOutput(0) * this.maxTurnSpeed;
         this.speed  = this.nn.GetOutput(1) * this.maxSpeed;
 
+        // If the nematode wants to bite, bite
+        if (this.nn.GetOutput(2) > 0.5 && this.biteCooldown <= 0) 
+            this.Bite();
+
         // If speed is negative, halve it (Make backwards movement slower to encourage forward movement)
         this.speed = (this.speed < 0) ? this.speed * 0.5 : this.speed;
     }
 
-    /** Update the Nematodes
-    * 
-    * @param {number} delta - The time since the last update in seconds
-    */
+    /* Update the Nematodes
+     * 
+     * @param {number} delta - The time since the last update in seconds
+     */
     Update(delta) {
 
         // If the Nematodes is dead, run the death animation and return
@@ -223,6 +239,10 @@ class Nematode {
             // Update the Nematodes's position
             world.updateNematodePosition(this,  this.GetX() + this.direction.x * this.speed * delta, 
                                                 this.GetY() + this.direction.y * this.speed * delta);
+
+            // If the nematode has knockback, apply it
+            if (this.knockbackDirection != undefined)
+                this.KnockbackAnimation(delta);
         }
 
         // If the Nematodes has no energy, kill it
@@ -231,7 +251,7 @@ class Nematode {
         }
     }
 
-    /** Updates the stats of the Nematode
+    /* Updates the stats of the Nematode
      * Called in Update()
      * 
      * @param {number} delta The time since the last update in seconds
@@ -242,6 +262,7 @@ class Nematode {
         // Increase the age of the bibite (in seconds)
         this.age += delta;
         this.childTime -= delta;
+        if (this.biteCooldown > 0) this.biteCooldown -= delta;
 
         // Increase the size of the bibite and set the max speed to adjust for the new size
         this.size += this.growRate * delta;
@@ -267,8 +288,9 @@ class Nematode {
 
     // ---------------------- Sensor Functions ---------------------- //
 
-    // Returns the ratio of the distance to the closest food to the max distance
-    // Returns -1 if no food is found
+    /* Returns the ratio of the distance to the closest food to the max distance
+    *  Returns -1 if no food is found
+    */
     EyeRaycast(foodList, angleFromMiddle) {
         // Create a raycast result object
         var raycastResult = new RaycastResult2D();
@@ -294,13 +316,13 @@ class Nematode {
     }
 
     /* Returns the general amount of food in the area
-    *  The closer the food is to the Nematode, the more it will be counted
-    *  The return value will be 1 if there are 4 pieces of food directly on the Nematode
-    *  The return value will be -1 if there is no food in the area    
-    *  @param {Circle array} foodList - The list of food to check
-    * 
-    * WARNING: This function currently takes the same array of food as the EyeRaycast function (so MaxEyeDistance is used for inputs)
-    */
+     *  The closer the food is to the Nematode, the more it will be counted
+     *  The return value will be 1 if there are 4 pieces of food directly on the Nematode
+     *  The return value will be -1 if there is no food in the area    
+     *  @param {Circle array} foodList - The list of food to check
+     * 
+     * WARNING: This function currently takes the same array of food as the EyeRaycast function (so MaxEyeDistance is used for inputs)
+     */
     SmellArea(foodList) {
 
         // Default return value
@@ -330,31 +352,27 @@ class Nematode {
         return Math.min(1, totalSmell);
     }
 
-    // ------------------- Drawing ------------------- //
+    /* Attempts to bite another Nematode (If one is in range if its fangs) */
+    Bite(){
 
-    /* Draws the nematodes stats to the given graphics object
-    *  @param {PIXI.Graphics} graphics - The graphics object to draw to
-    */
-    DrawStats(NematodeStatsMenu) {
+        // Get a list of nematodes within the bite range
+        var nematodesInRange = world.getNematodesAt(this.GetX(), this.GetY(), this.size / 2 + Nematode.MAX_BITE_DISTANCE);
 
-        NematodeStatsMenu.statsText.text  = "Age: " + this.age.toFixed(2) + "s\n";
-        NematodeStatsMenu.statsText.text += "Energy: " + this.energy.toFixed(2) + " / " + this.maxEnergy.toFixed(2) + "\n";
-        NematodeStatsMenu.statsText.text += "\n";
-        NematodeStatsMenu.statsText.text += "Max Speed: " + this.maxSpeed.toFixed(2) + " pixels/s\n";
-        NematodeStatsMenu.statsText.text += "Turn Speed: " + this.maxTurnSpeed.toFixed(2) + "\n";
-        NematodeStatsMenu.statsText.text += "\n";
-        NematodeStatsMenu.statsText.text += "Size: " + this.size.toFixed(2) + " pixels\n";
-        NematodeStatsMenu.statsText.text += "Base Size: " + this.baseSize.toFixed(2) + " pixels\n";
-        NematodeStatsMenu.statsText.text += "Grow Rate: " + this.growRate.toFixed(2) + " pixels/s\n";
-        NematodeStatsMenu.statsText.text += "\n";
-        NematodeStatsMenu.statsText.text += "Energy Consumption: \n";
-        NematodeStatsMenu.statsText.text += "  Existence: " + 1 + " energy/s\n";
-        NematodeStatsMenu.statsText.text += "  Movement: " + (Math.abs(this.speed ) / this.maxSpeed).toFixed(3) + " energy/s\n";
-        NematodeStatsMenu.statsText.text += "  NN Penalty: " + this.nn.GetPenalty().toFixed(3) + " energy/s\n";
-        NematodeStatsMenu.statsText.text += "  Age: " + (1 + this.age / 300).toFixed(3) + " times the normal rate\n";
-        NematodeStatsMenu.statsText.text += "\n";
-        NematodeStatsMenu.statsText.text += "Tint: " + this.sprite.tint.toString(16) + "\n";
-        NematodeStatsMenu.statsText.text += "Time for next child: " + (this.childTime).toFixed(2) + "s\n";
+        // Create a raycast result object
+        var raycastResult = new RaycastResult2D();
+
+        if (Raycast(raycastResult, this.sprite.position, this.direction, this.size / 2 + Nematode.MAX_BITE_DISTANCE, nematodesInRange)){
+
+
+            // Lose energy for biting
+            this.energy -= Nematode.ENERGY_LOST_WHEN_BITING;
+
+            // Call the OnBite function of the nematode
+            raycastResult.GetHitObject().OnGetBitten(this.GetPosition(), this.size);
+
+            // Start the cooldown timer
+            this.biteCooldown = Nematode.BITE_COOLDOWN;
+        }
     }
 
     // ------------------- Events ------------------- //
@@ -368,6 +386,9 @@ class Nematode {
 
         // Set the nematode to be dead
         this.alive = false
+
+        // Set the sprite to be ignored by raycasts
+        this.ignoreRaycast = true;
 
         // Spawn food at the nematode's position
         Food.SpawnNematodeDeathFood(this.sprite.position, this.size);
@@ -389,6 +410,23 @@ class Nematode {
             this.energy -= this.maxEnergy * Nematode.PERCENT_ENERGY_LOST_WHEN_REPRODUCING;  // Lose energy when reproducing
             new Nematode(this);                                                             // Create a new Nematode child
         }
+    }
+
+    /* Called when the Nematode is bitten by another Nematode
+    *  pos -- The position of the attacking Nematode 
+    *  size -- The size of the attacking Nematode (used to calculate the knockback and damage)
+    */
+    OnGetBitten(pos, attackingSize){
+
+        // The ratio of the attacking Nematode's size to the size of this Nematode
+        var sizeRatio = attackingSize / this.size;   
+
+        // Lose energy for being bitten
+        this.energy -= Nematode.ENERGY_LOST_WHEN_BITTEN * sizeRatio;
+
+        // Set a knockback direction (to be used in KnockBackAnimation())
+        this.knockbackDirection = new PIXI.Point(this.GetX() - pos.x, this.GetY() - pos.y)
+                                          .normalize().MultiplyConstant(Nematode.KNOCKBACK_POWER * sizeRatio);
     }
 
     // ------------------- Animations ------------------- //
@@ -439,6 +477,51 @@ class Nematode {
         }
     }
 
+    /* Called in Update() when the nematode is bitten */
+    KnockbackAnimation(delta) {
+            
+        // Move the nematode in the knockback direction
+        world.updateNematodePosition(this,  this.GetX() + this.knockbackDirection.x * delta, 
+                                            this.GetY() + this.knockbackDirection.y * delta);
+
+        // Decrease the knockback power
+        this.knockbackDirection.MultiplyConstant(1 - delta * 10);
+
+        // If the knockback power is low enough, stop the knockback animation
+        if (DistFromOrigin(this.knockbackDirection) < 0.1) {
+            this.knockbackDirection = undefined; // Remove the knockback direction
+        }
+    }
+
+    // ------------------- Drawing ------------------- //
+
+    /* Draws the nematodes stats to the given graphics object
+    *  @param {PIXI.Graphics} graphics - The graphics object to draw to
+    */
+    DrawStats(NematodeStatsMenu) {
+
+        NematodeStatsMenu.statsText.text  = "Age: " + this.age.toFixed(2) + "s\n";
+        NematodeStatsMenu.statsText.text += "Energy: " + this.energy.toFixed(2) + " / " + this.maxEnergy.toFixed(2) + "\n";
+        NematodeStatsMenu.statsText.text += "\n";
+        NematodeStatsMenu.statsText.text += "Max Speed: " + this.maxSpeed.toFixed(2) + " pixels/s\n";
+        NematodeStatsMenu.statsText.text += "Turn Speed: " + this.maxTurnSpeed.toFixed(2) + "\n";
+        NematodeStatsMenu.statsText.text += "\n";
+        NematodeStatsMenu.statsText.text += "Size: " + this.size.toFixed(2) + " pixels\n";
+        NematodeStatsMenu.statsText.text += "Base Size: " + this.baseSize.toFixed(2) + " pixels\n";
+        NematodeStatsMenu.statsText.text += "Grow Rate: " + this.growRate.toFixed(2) + " pixels/s\n";
+        NematodeStatsMenu.statsText.text += "\n";
+        NematodeStatsMenu.statsText.text += "Bite Cooldown: " + this.biteCooldown.toFixed(2) + "s\n";
+        NematodeStatsMenu.statsText.text += "\n";
+        NematodeStatsMenu.statsText.text += "Energy Consumption: \n";
+        NematodeStatsMenu.statsText.text += "  Existence: " + 1 + " energy/s\n";
+        NematodeStatsMenu.statsText.text += "  Movement: " + (Math.abs(this.speed ) / this.maxSpeed).toFixed(3) + " energy/s\n";
+        NematodeStatsMenu.statsText.text += "  NN Penalty: " + this.nn.GetPenalty().toFixed(3) + " energy/s\n";
+        NematodeStatsMenu.statsText.text += "  Age: " + (1 + this.age / 300).toFixed(3) + " times the normal rate\n";
+        NematodeStatsMenu.statsText.text += "\n";
+        NematodeStatsMenu.statsText.text += "Tint: " + this.sprite.tint.toString(16) + "\n";
+        NematodeStatsMenu.statsText.text += "Time for next child: " + (this.childTime).toFixed(2) + "s\n";
+    }
+
     // ------------------- OTHER ------------------- //
 
     // Will be replaced with a call to a function that creates a sprite (hopefully in a separate file)
@@ -487,6 +570,10 @@ class Nematode {
 
     GetY() {
         return this.sprite.position.y;
+    }
+
+    GetRadius() {
+        return this.sprite.width / 2;
     }
 
     GetPosition() {

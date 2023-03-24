@@ -161,7 +161,7 @@ class Canvas {
 class NematodeStatsMenu {
 
   static width = 300;
-  static height = 420;
+  static height = 460;
   static xPos = -1;                                  // Left padding
   static yPos = 250;                                 // Top padding
 
