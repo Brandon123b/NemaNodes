@@ -584,6 +584,10 @@ class NeatNN {
         if (index >= this.inputCount)
             throw "You are trying to set an input that does not exist";
 
+        // Check if the value is a number
+        if (isNaN(value))
+            throw "You are trying to set an input to a non-number";
+
         // Set the input
         this.inputs[index] = value;
     }
