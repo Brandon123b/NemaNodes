@@ -90,7 +90,7 @@ class World {
   destroyNematode(obj) {
     if (!this.#nematodeZones.remove(obj))
       throw `Object ${obj} cannot be destroyed because it does not exist in the world`
-    this.#nematodeZones.remove(obj)
+    
     obj.sprite.destroy()
   }
 
@@ -184,7 +184,7 @@ class World {
   destroyFood(obj) {
     if (!this.#foodZones.remove(obj))
       throw `Object ${obj} cannot be destroyed because it does not exist in the world`
-    this.#foodZones.remove(obj)
+    
     obj.sprite.destroy()
   }
 
