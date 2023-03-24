@@ -113,7 +113,14 @@ function mkSlider(opts) {
   let range = opts.max - opts.min
 
   // quantize the slider value to the increment
-  let quantize = x => Math.floor((x-opts.min)/opts.increment)*opts.increment + opts.min
+  let quantize = x => {
+    let fraction = opts.increment.toString().split('.')[1]
+    let precision = fraction ? fraction.length : 0
+
+    // truncate the calculated float value because of funky float math
+    let floatVal = Math.floor((x-opts.min)/opts.increment)*opts.increment + opts.min
+    return Number.parseFloat(floatVal.toFixed(precision))
+  }
 
   // retrieve the unquantized value converted from knob position
   let getValue = (knobx) => (range/opts.length)*knobx + opts.min
