@@ -51,7 +51,7 @@ function CreateUI(){
     let ui = new UICard(300)
         .addText("User tools")
         .startToggleGroup()
-        .addToggle(enabled => world.draggableObjects = enabled, "drag tool", false)
+        .addToggle(enabled => world.draggableObjects = enabled, "drag tool", true)
         .addToggle(enabled => world.foodBrushOn = enabled, "food brush", false)
         .addSlider(x => world.foodBrushRadius = x, 0, 100, world.foodBrushRadius, 1, "brush radius")
         .addToggle(enabled => world.nematodeBrushOn = enabled, "nematode brush", false)
@@ -67,6 +67,9 @@ function CreateUI(){
         .addToggle(enabled => world.drawZones = enabled, "draw world zones", world.drawZones)
         .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)
         .make()
+
+    // Enable drag tool by default
+    world.draggableObjects = true
 
     app.stage.addChild(ui)
     ui.position.y = 300
