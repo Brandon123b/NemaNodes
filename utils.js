@@ -152,3 +152,30 @@ class Keys {
       this.#actions[key] = [action]
   }
 }
+
+/**
+ * Download the given string to a file
+ * 
+ * @param {string} content 
+ * @param {string} fileName 
+ * @param {string} contentType text/plain typically
+ */
+function download(content, fileName, contentType) {
+  var a = document.createElement("a");
+  var file = new Blob([content], {type: contentType});
+  a.href = URL.createObjectURL(file);
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(a.href)
+}
+
+
+/**
+ * Convert the given object to JSON and download it to user machine
+ * 
+ * @param {object} obj 
+ * @param {string} filename 
+ */
+function downloadJSON(obj, filename) {
+  download(JSON.stringify(obj), filename, 'text/plain')
+}
