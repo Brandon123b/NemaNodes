@@ -133,10 +133,11 @@ function mkSlider(opts) {
     
     knob.position.addXY(dx,0).clamp([0,opts.length], [0,0])
     value = quantize(getValue(knob.x))
-
+    drawFill()
+    
     if (value != initialValue) {
       opts.onChange(value, knob.x)
-      drawFill()
+      
     }
   }
 
