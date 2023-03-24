@@ -14,6 +14,9 @@ var movingFps = 60;
 let timeSinceFoodSpawn = 0;
 let timeSinceStart = 0;
 
+// flag for game pause
+let paused = false
+
 // Starts everything
 function main(){
 
@@ -67,10 +70,35 @@ function CreateUI(){
         .addText("Debug")
         .addToggle(enabled => world.drawZones = enabled, "draw world zones", world.drawZones)
         .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)
+        .addSlider(x => gameSpeedModifier = x, 0.1, 4, gameSpeedModifier, 0.1, "game speed")
         .make()
 
     app.stage.addChild(ui)
     ui.position.y = 300
+
+    // create Pause action
+    let pHeight = 100
+    let pWidth = 40
+    let pMargin = 25
+    let pauseSymbol = new PIXI.Graphics()
+    pauseSymbol.beginFill(0xffffff)
+    pauseSymbol.drawRect(0,0,pWidth,pHeight)
+    pauseSymbol.drawRect(pWidth+pMargin,0,pWidth,pHeight)
+    pauseSymbol.pivot.set(pWidth+pMargin/2, pHeight)
+    app.stage.addChild(pauseSymbol)
+    
+    let setPauseSymbol = () => {
+        pauseSymbol.visible = paused
+        pauseSymbol.x = app.screen.width/2
+        pauseSymbol.y = app.screen.height-pMargin
+    }
+
+    setPauseSymbol()
+    // pause/unpause when the space bar is pressed
+    Keys.addAction("Space", () => {
+        paused = !paused
+        setPauseSymbol()
+    })
 }
 
 
@@ -116,9 +144,24 @@ function CreateFpsCounter(){
 */
 function GameLoop(delta) {
 
-    // Clear the graphics
+    // Clear the graphics (eye raycasts, NN display, zone outlines)
     world.canvas.worldGraphics.clear();
     world.canvas.screenGraphics.clear();
+
+    // update the canvas
+    world.canvas.drawWorld(world)
+
+    // Update the moving fps
+    movingFps = movingFps * 0.95 + 1 / delta * 0.05;
+
+    // Update the fps counter
+    fpsCounter.text =   "FPS: " + (movingFps).toFixed(1) +
+                        " | Time: " + timeSinceStart.toFixed(1) +
+                        " | Nematodes: " + world.numNematodes() +
+                        " | Food: " + world.numFood();
+
+    // updates that shouldn't execute while game is paused go below this line
+    if (paused) return
 
     // Update the time
     timeSinceFoodSpawn += delta;
@@ -132,15 +175,8 @@ function GameLoop(delta) {
         SpawnFood(world.foodReplenishRate);
     }
 
-    // Clear the graphics (eye raycasts, NN display, zone outlines)
-    world.canvas.worldGraphics.clear();
-    world.canvas.screenGraphics.clear();
-
     // Update the nematodes
     world.forEachNematode(n => n.Update(delta))
-
-    // update the canvas
-    world.canvas.drawWorld(world)
 
     // If there is an extinction event
     if (world.numNematodes() == 0){
@@ -148,14 +184,6 @@ function GameLoop(delta) {
         SpawnNematodes(2000);
     }
 
-    // Update the moving fps
-    movingFps = movingFps * 0.95 + 1 / delta * 0.05;
-
-    // Update the fps counter
-    fpsCounter.text =   "FPS: " + (movingFps).toFixed(1) +
-                        " | Time: " + timeSinceStart.toFixed(1) +
-                        " | Nematodes: " + world.numNematodes() +
-                        " | Food: " + world.numFood();
 }
 
 // Very easy to miss this line
