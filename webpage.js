@@ -17,12 +17,17 @@ let timeSinceStart = 0;
 // flag for game pause
 let paused = false
 
+let gameSpeedMult = 1
+const minGameSpeedMult = 0.5
+const maxGameSpeedMult = 2
+
 // Starts everything
 function main(){
 
     // Create the application helper and add its render target to the page
     app = new PIXI.Application({resizeTo: window});
     document.body.appendChild(app.view);
+    app.ticker.maxFPS = 60
 
     // Create the world, TODO make world static class
     world = new World();
@@ -39,16 +44,27 @@ function main(){
     // Add some food
     SpawnFood(3000);
 
-    // This starts the main loop (with a 60 target fps cap)
-    setInterval(function() {
-
+    let gameLoopsThisSecond = 0
+    let lastSecond = performance.now()
+    // This starts the main loop
+    let mainLoop = () => {
         // Find the time in seconds since the last frame
         var delta = (performance.now() - lastTime) / 1000;
         lastTime = performance.now();
-
-        GameLoop(delta );
-
-    }, 1000 / 60);
+    
+        GameLoop(delta);
+        //console.log(delta)
+        if (performance.now() - lastSecond > 1000)  {
+            console.log(gameLoopsThisSecond, "game loops performed in the last second")
+            gameLoopsThisSecond = 0
+            lastSecond = performance.now()
+        }
+        else gameLoopsThisSecond++
+        // set timeout for next execution according to gamespeed
+        setTimeout(mainLoop, 1000 / (60*gameSpeedMult))
+    }
+    
+    mainLoop()
 }
 
 // create a UI card
@@ -70,7 +86,7 @@ function CreateUI(){
         .addText("Debug")
         .addToggle(enabled => world.drawZones = enabled, "draw world zones", world.drawZones)
         .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)
-        .addSlider(x => gameSpeedModifier = x, 0.1, 4, gameSpeedModifier, 0.1, "game speed")
+        .addSlider(x => gameSpeedMult = x, minGameSpeedMult, maxGameSpeedMult, gameSpeedMult, 0.1, "game speed")
         .make()
 
     app.stage.addChild(ui)
@@ -139,11 +155,11 @@ function CreateFpsCounter(){
     fpsCounter.style.stroke = 0x000000;
 }
 
-/** GameLoop Called every frame from the ticker 
- *  @param {number} delta - Time since last frame in seconds
-*/
-function GameLoop(delta) {
-
+/**
+ * DrawLoop is called by app.ticker
+ * @param {*} delta time since last frame in seconds
+ */
+function DrawLoop(delta) {
     // Clear the graphics (eye raycasts, NN display, zone outlines)
     world.canvas.worldGraphics.clear();
     world.canvas.screenGraphics.clear();
@@ -159,6 +175,15 @@ function GameLoop(delta) {
                         " | Time: " + timeSinceStart.toFixed(1) +
                         " | Nematodes: " + world.numNematodes() +
                         " | Food: " + world.numFood();
+}
+
+/** GameLoop Called every frame from the ticker 
+ *  @param {number} delta - Time since last frame in seconds
+*/
+function GameLoop(delta) {
+    // TODO maybe separate out this DrawLoop from the game loop
+    // and add it to app.ticker
+    DrawLoop(delta)
 
     // updates that shouldn't execute while game is paused go below this line
     if (paused) return
