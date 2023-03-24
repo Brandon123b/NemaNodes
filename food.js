@@ -79,7 +79,7 @@ class Food {
     */
     Eat(){
 
-        // Set the food to ignore raycasts (so it can't be eaten again)
+        // Set the food to ignore raycasts (so it can't be eaten again) (This also ignores things like smell)
         this.ignoreRaycast = true;
 
         // Remove the food from the world
