@@ -69,30 +69,6 @@ function CreateUI(){
 
     app.stage.addChild(ui)
     ui.position.y = 300
-
-    // create Pause action
-    let pHeight = 100
-    let pWidth = 40
-    let pMargin = 25
-    let pauseSymbol = new PIXI.Graphics()
-    pauseSymbol.beginFill(0xffffff)
-    pauseSymbol.drawRect(0,0,pWidth,pHeight)
-    pauseSymbol.drawRect(pWidth+pMargin,0,pWidth,pHeight)
-    pauseSymbol.pivot.set(pWidth+pMargin/2, pHeight)
-    app.stage.addChild(pauseSymbol)
-    
-    let setPauseSymbol = () => {
-        pauseSymbol.visible = paused
-        pauseSymbol.x = app.screen.width/2
-        pauseSymbol.y = app.screen.height-pMargin
-    }
-
-    setPauseSymbol()
-    // pause/unpause when the space bar is pressed
-    Keys.addAction("Space", () => {
-        paused = !paused
-        setPauseSymbol()
-    })
 }
 
 /**
