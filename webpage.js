@@ -68,9 +68,6 @@ function CreateUI(){
         .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)
         .make()
 
-    // Enable drag tool by default
-    world.draggableObjects = true
-
     app.stage.addChild(ui)
     ui.position.y = 300
 }

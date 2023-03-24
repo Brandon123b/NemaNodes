@@ -36,7 +36,7 @@ class World {
 
     this.drawZones = false
     this.drawEyeRays = false
-    this.draggableObjects = false // flag for enabled ability to drag world objects
+    this.draggableObjects = true // flag for enabled ability to drag world objects
 
     // create food brush action for dragging
     this.foodBrushOn = false
