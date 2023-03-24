@@ -1,17 +1,18 @@
 
 /**
- * Bibite
+ * Nematode.js
  * 
- * A bibite is a creature that can see food and move towards it.
- * It has three eyes that can see food. The eyes are raycasted from the bibite's position.
- * The bibite has a neural network that takes the eye raycasts as inputs and outputs a rotation and speed.
- * The bibite moves in the direction of the rotation and at the speed.
+ * A Nematode is a creature that can see food and move towards it.
+ * It has three eyes that can see food. The eyes are raycasted from the Nematode's position.
+ * The Nematode has a neural network that takes the eye raycasts as inputs and outputs a rotation and speed.
+ * The Nematode moves in the direction of the rotation and at the speed.
  */
 
 class Nematode {
 
     // Static variables
     static MAX_EYE_DISTANCE = 80;                           // The maximum distance that the eyes can see (in pixels)
+    static MAX_SMELL_DISTANCE = 80;                         // The maximum distance that the smell can smell (in pixels)
     static PERCENTAGE_ENERGY_TO_REPRODUCE = 0.75;           // The percentage of energy that the nematode must have to reproduce
     static PERCENT_ENERGY_LOST_WHEN_REPRODUCING = 0.25;     // The percentage of energy that the nematode loses when reproducing
     static TIME_BETEWEEN_CHILDREN = 10;                     // The time between reproductions (in seconds)
@@ -83,7 +84,7 @@ class Nematode {
         this.alive = true;              // Nematodes are (hopefully) alive by default
         this.paralyzed = false;         // set flag to true to prevent nematode from moving
 
-        this.nn = new NeatNN(6, 2)      // The brain of the Nematode
+        this.nn = new NeatNN(7, 2)      // The brain of the Nematode
 
         this.CreateSpriteTemp();        // Create the sprite for the bibite
 
@@ -194,9 +195,10 @@ class Nematode {
         this.nn.SetInput(0, this.EyeRaycast(foodList, -25));
         this.nn.SetInput(1, this.EyeRaycast(foodList, 0));
         this.nn.SetInput(2, this.EyeRaycast(foodList, 25));
-        this.nn.SetInput(3, this.age / 200 - 1);                                    // Start at -1 and at 400 seconds, be at 1
-        this.nn.SetInput(4, this.energy / this.maxEnergy);                          // Range from 0 to 1
-        this.nn.SetInput(5, DistFromOrigin(this.sprite.position) / World.radius);   // Range from 0 to 1
+        this.nn.SetInput(3, this.age / 200 - 1);                                    // Range from -1 to 1 (400sec == 1)
+        this.nn.SetInput(4, this.energy / this.maxEnergy);                          // Range from  0 to 1
+        this.nn.SetInput(5, DistFromOrigin(this.sprite.position) / World.radius);   // Range from  0 to 1
+        this.nn.SetInput(6, this.SmellArea(foodList));                              // Range from -1 to 1
 
         // Run the neural network
         this.nn.RunNN();
@@ -275,6 +277,8 @@ class Nematode {
         this.sprite.angle = this.direction.getAngle()
     }
 
+    // ---------------------- Sensor Functions ----------------------
+
     // Returns the ratio of the distance to the closest food to the max distance
     // Returns -1 if no food is found
     EyeRaycast(foodList, angleFromMiddle) {
@@ -291,7 +295,7 @@ class Nematode {
         if (Raycast(raycastResult, this.sprite.position, dir, Nematode.MAX_EYE_DISTANCE, foodList)){
 
             // If the raycast is close enough to the food, eat it
-            if (raycastResult.GetDistance() < this.size / 2) 
+            if (raycastResult.GetDistance() < this.size / 2)
                 this.OnEat(raycastResult.GetHitObject());
 
             // Return the ratio of the distance to the closest food to the max distance
@@ -299,6 +303,43 @@ class Nematode {
         }
         // Return -1 if no food is found
         return -1;
+    }
+
+    /* Returns the general amount of food in the area
+    *  The closer the food is to the Nematode, the more it will be counted
+    *  The return value will be 1 if there are 4 pieces of food directly on the Nematode
+    *  The return value will be -1 if there is no food in the area    
+    *  @param {Circle array} foodList - The list of food to check
+    * 
+    * WARNING: This function currently takes the same array of food as the EyeRaycast function (so MaxEyeDistance is used for inputs)
+    */
+    SmellArea(foodList) {
+
+        // Default return value
+        var totalSmell = -1;
+
+        // Loop through all the food
+        for (var i = 0; i < foodList.length; i++) {
+
+            // Ignore food that does not want to be seen
+            if (foodList[i].ignoreRaycast) continue;
+
+            // Get the distance to the food
+            var distance = this.sprite.position.Dist(foodList[i].GetPosition());
+
+            // If the food is close enough to smell
+            if (distance < Nematode.MAX_SMELL_DISTANCE) {
+
+                // Calculate the smell value of the food (The max smell value per food is 0.5)
+                var smell = (1 - distance / Nematode.MAX_SMELL_DISTANCE) / 2; 
+
+                // Add the smell value to the total
+                totalSmell += smell;
+            }
+        }
+
+        // Return the total smell (-1 to 1)
+        return Math.min(1, totalSmell);
     }
 
     // ------------------- Drawing ------------------- //
