@@ -22,7 +22,7 @@ class Nematode {
     
     // Bite constants
     static ENERGY_LOST_WHEN_BITING = 5;                     // The amount of energy that the nematode loses when biting (in energy units)
-    static ENERGY_LOST_WHEN_BITTEN = 20;                    // The amount of energy that the nematode loses when getting bit (in energy units)
+    static ENERGY_LOST_WHEN_BITTEN = 20;                    // The amount of energy that the nematode loses when getting bit (will me multiplied by the size ratio) (in energy units)
     static KNOCKBACK_POWER = 100;                           // The amount of knockback that the nematode gets when getting bit (in pixels)
     static BITE_COOLDOWN = 1;                               // The time between bites (in seconds)
 
@@ -385,7 +385,7 @@ class Nematode {
         this.timeSinceDeath = 0;
 
         // Set the nematode to be dead
-        this.alive = false
+        this.alive = false;
 
         // Set the sprite to be ignored by raycasts
         this.ignoreRaycast = true;
@@ -463,7 +463,7 @@ class Nematode {
             this.sprite.alpha = Math.max(0, this.sprite.alpha - delta * 0.5);
         }
 
-        // Remove the nematode from the world after 10 seconds
+        // Remove the nematode from the world after 14 seconds
         if (this.timeSinceDeath > 14) {
             // Remove the nematode from the world
             world.destroyNematode(this);
