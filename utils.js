@@ -162,3 +162,18 @@ function download(content, fileName, contentType) {
 function downloadJSON(obj, filename) {
   download(JSON.stringify(obj), filename, 'text/plain')
 }
+
+/**
+ * Prompt the user to select files
+ * @return {Promise} promise containing list of selected files
+ */
+async function upload() {
+  let a = document.createElement("input")
+  a.setAttribute("type", "file")
+  a.setAttribute("multiple", "") // to allow selecting multiple files
+  a.click()
+  let files = await new Promise((resolve, reject) => {
+    a.onchange = () => resolve(a.files)
+  })
+  return files
+}
