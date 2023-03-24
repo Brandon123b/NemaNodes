@@ -79,7 +79,7 @@ class World {
     // when the nematode is clicked, select it
     obj.sprite.onmousedown = () => { this.selectedNematode = obj }
     
-    // TODO clamp object's position to be within world borders
+    // Insert the nematode into the zone hash table
     this.#nematodeZones.insert(obj)
 
     // add the game object so it can be drawn
@@ -97,7 +97,8 @@ class World {
   // update the position of the object
   // NOTE: this will modify the object's position
   updateNematodePosition(obj, x, y) {
-    // TODO clamp newWorldPos to be within world borders
+
+    // clamp newWorldPos to be within world borders
     let [newX, newY] = this.clampWorldPos(x, y)
 
     let {oldX,oldY} = obj.GetPosition()
@@ -166,12 +167,13 @@ class World {
   // ----------------- Food -----------------
 
 
-  // add a food object to the world
-  // Food objects are not clickable
-  // an object should implement GetX(), GetY(), GetPosition(), SetPos()
+  /* add a food object to the world
+   * Food objects are not clickable
+   * an object should implement GetX(), GetY(), GetPosition(), SetPos()
+   */
   addFood(obj) {
 
-    // TODO clamp object's position to be within world borders
+    // Insert the food into the food zone hash table
     this.#foodZones.insert(obj)
 
     // add the game object so it can be drawn
@@ -266,7 +268,6 @@ class World {
    * @param {function} action (x,y) => ... procedure applied to world coordinates of mouse on mouse move
    * @param {number} strength strength of brush value (0 to 1)
    */
-
   createBrush(flagGetter, action, strength) {
     createDragAction(this.canvas.backGround, this.canvas.container,
       null,
