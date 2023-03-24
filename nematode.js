@@ -208,7 +208,7 @@ class Nematode {
         this.speed  = this.nn.GetOutput(1) * this.maxSpeed;
 
         // If the nematode wants to bite, bite
-        if (this.nn.GetOutput(2) > 0.5 && this.biteCooldown <= 0) 
+        if (this.nn.GetOutput(2) > 0 && this.biteCooldown <= 0) 
             this.Bite();
 
         // If speed is negative, halve it (Make backwards movement slower to encourage forward movement)
