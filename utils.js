@@ -109,17 +109,20 @@ function addBlur(obj, amount) {
 class Keys {
   static #pressedKeys = new Set()
   static debug = false
+  static #actions = {}
 
   static {
     addEventListener("keydown", e => {
       if (!e.repeat) {
-        this.#pressedKeys.add(e.key)
-        if (this.debug) console.log(e.key, "pressed")
+        this.#pressedKeys.add(e.code)
+        if (this.debug) console.log(e.code, "pressed")
+        for (const action of this.#actions[e.code] || []) action()
       }
     })
+
     addEventListener("keyup", e => {
-      this.#pressedKeys.delete(e.key)
-      if (this.debug) console.log(e.key, "lifted")
+      this.#pressedKeys.delete(e.code)
+      if (this.debug) console.log(e.code, "lifted")
     })
 
     // prevent right clicks from bringing up the context menu
@@ -130,10 +133,22 @@ class Keys {
   }
 
   /**
-   * Return true if the given key is being pressed
-   * @param {string} key string like 'd' or 'W' or 'Shift' 
+   * Return true if the given key code is being pressed
+   * @param {string} key string like 'Space' or 'KeyW' or 'ShiftLeft' 
    */
   static keyPressed(key) {
     return this.#pressedKeys.has(key)
+  }
+
+  /**
+   * 
+   * @param {string} key code for key 
+   * @param {function} action callback to be performed on key down
+   */
+  static addAction(key, action) {
+    if (this.#actions[key])
+      this.#actions[key].push(action)
+    else
+      this.#actions[key] = [action]
   }
 }
