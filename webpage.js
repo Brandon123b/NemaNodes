@@ -70,7 +70,7 @@ function main(){
 // create a UI card
 function CreateUI(){
     
-    let ui = new UICard(300)
+    let ui = new UICard(300,300)
         .addText("User tools")
         .startToggleGroup()
         .addToggle(enabled => world.draggableObjects = enabled, "drag tool", false)
