@@ -60,7 +60,7 @@ function CreateUI(){
         .addText("Environment")
         .addSlider(x => world.maxNumFood = x, 0, world.maxNumFood*2, world.maxNumFood, 5, "max food number")
         .addSlider(x => world.foodReplenishRate = x, 0, world.maxReplenishRate, world.foodReplenishRate, 1, "food replenish rate")
-        .addSlider(x => World.radius = x, 500, World.radius*3, World.radius, 10, "petri dish radius")
+        .addSlider(x => World.radius = x, 50, World.radius*3, World.radius, 10, "petri dish radius")
         .addText("Performance")
         .addSlider(x => world.SlowUpdateInterval = x, 1, 10, world.SlowUpdateInterval, 1, "slow update interval")
         .addText("Debug")
