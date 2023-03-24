@@ -96,7 +96,7 @@ class Nematode {
         this.alive = true;              // Nematodes are (hopefully) alive by default
         this.paralyzed = false;         // set flag to true to prevent nematode from moving
 
-        this.nn = new NeatNN(7, 3)      // The brain of the Nematode
+        this.nn = new NeatNN(11, 3)      // The brain of the Nematode
 
         this.CreateSpriteTemp();        // Create the sprite for the bibite
 
@@ -190,14 +190,21 @@ class Nematode {
         // Get all the food in the world (for the eye raycasts)
         var foodList = world.getFoodAt(this.sprite.x, this.sprite.y, Nematode.MAX_EYE_DISTANCE * 1.1);
 
+        // Get all the nematodes in the world (for the eye raycasts)
+        var nematodeList = world.getNematodesAt(this.sprite.x, this.sprite.y, Nematode.MAX_EYE_DISTANCE * 1.1);
+
         // Set the neural network inputs from the eye raycasts
         this.nn.SetInput(0, this.EyeRaycast(foodList, -25));
         this.nn.SetInput(1, this.EyeRaycast(foodList, 0));
         this.nn.SetInput(2, this.EyeRaycast(foodList, 25));
-        this.nn.SetInput(3, this.age / 200 - 1);                                    // Range from -1 to 1 (400sec == 1)
-        this.nn.SetInput(4, this.energy / this.maxEnergy);                          // Range from  0 to 1
-        this.nn.SetInput(5, DistFromOrigin(this.sprite.position) / World.radius);   // Range from  0 to 1
+        this.nn.SetInput(3, this.EyeRaycast(nematodeList, -25, false));
+        this.nn.SetInput(4, this.EyeRaycast(nematodeList, 0, false));
+        this.nn.SetInput(5, this.EyeRaycast(nematodeList, 25, false));
         this.nn.SetInput(6, this.SmellArea(foodList));                              // Range from -1 to 1
+        this.nn.SetInput(7, this.SmellArea(nematodeList));                          // Range from -1 to 1
+        this.nn.SetInput(8, this.age / 200 - 1);                                    // Range from -1 to 1 (400sec == 1)
+        this.nn.SetInput(9, this.energy / this.maxEnergy);                          // Range from  0 to 1
+        this.nn.SetInput(10, DistFromOrigin(this.sprite.position) / World.radius);  // Range from  0 to 1
 
         // Run the neural network
         this.nn.RunNN();
@@ -208,7 +215,7 @@ class Nematode {
 
         // If the nematode wants to bite, bite
         if (this.nn.GetOutput(2) > 0 && this.biteCooldown <= 0) 
-            this.Bite();
+            this.Bite(nematodeList);
 
         // If speed is negative, halve it (Make backwards movement slower to encourage forward movement)
         this.speed = (this.speed < 0) ? this.speed * 0.5 : this.speed;
@@ -290,7 +297,7 @@ class Nematode {
     /* Returns the ratio of the distance to the closest food to the max distance
     *  Returns -1 if no food is found
     */
-    EyeRaycast(foodList, angleFromMiddle) {
+    EyeRaycast(foodList, angleFromMiddle, isFood = true) {
         // Create a raycast result object
         var raycastResult = new RaycastResult2D();
 
@@ -304,7 +311,7 @@ class Nematode {
         if (Raycast(raycastResult, this.sprite.position, dir, Nematode.MAX_EYE_DISTANCE, foodList)){
 
             // If the raycast is close enough to the food, eat it
-            if (raycastResult.GetDistance() < this.size / 2)
+            if (isFood && raycastResult.GetDistance() < this.size / 2)
                 this.OnEat(raycastResult.GetHitObject());
 
             // Return the ratio of the distance to the closest food to the max distance
@@ -352,15 +359,12 @@ class Nematode {
     }
 
     /* Attempts to bite another Nematode (If one is in range if its fangs) */
-    Bite(){
-
-        // Get a list of nematodes within the bite range
-        var nematodesInRange = world.getNematodesAt(this.GetX(), this.GetY(), this.size / 2 + Nematode.MAX_BITE_DISTANCE);
+    Bite(nematodeList){
 
         // Create a raycast result object
         var raycastResult = new RaycastResult2D();
 
-        if (Raycast(raycastResult, this.sprite.position, this.direction, this.size / 2 + Nematode.MAX_BITE_DISTANCE, nematodesInRange)){
+        if (Raycast(raycastResult, this.sprite.position, this.direction, this.size / 2 + Nematode.MAX_BITE_DISTANCE, nematodeList)){
 
 
             // Lose energy for biting
@@ -582,5 +586,7 @@ class Nematode {
     SetPos(x, y) {
         this.sprite.position.set(x,y)
     }
+
+    Eat(){}
 }
 
