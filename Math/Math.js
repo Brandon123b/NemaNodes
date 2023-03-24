@@ -9,8 +9,6 @@ function Raycast(raycastResult, pos, dir, maxLength, circleList) {
 
     tempResult = new RaycastResult2D();
 
-    circles = world.getFoodAt(pos.x, pos.y, maxLength * 1.1);
-
     // Loop through all circles in the scene
     for (var i = 0; i < circleList.length; i++) {
 
