@@ -136,7 +136,7 @@ class Nematode {
         // make nematodes draggable
         createDragAction(this.sprite, this.sprite,
             (x,y) => this.paralyzed = world.draggableObjects,
-            (dx,dy) => { if (world.draggableObjects) world.updateNematodePosition(this, this.GetX()+dx, this.GetY()+dy) },
+            (dx,dy,x,y) => {if (world.draggableObjects) world.updateNematodePosition(this, x, y)},
             (x,y) => this.paralyzed = false
         )
     }

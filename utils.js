@@ -6,6 +6,7 @@
  * @param {function} dragStartAction function (x, y) => ... action to take when dragging begins
  * @param {function} dragMoveAction function (dx, dy, x, y) => ... action to perform given mouse displacement (by default, simply translate dragTarget's position)
  * @param {function} dragEndAction function (x, y) => ... action to perform when dragging ends
+ * @param {boolean} rightMouse drag on right click, default = false
  */
 function createDragAction(registerDisplayObject, dragTarget, dragStartAction, dragMoveAction, dragEndAction, rightMouse = false) {
   let dragging = false

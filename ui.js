@@ -128,22 +128,20 @@ function mkSlider(opts) {
   knob.x = (value-opts.min)*opts.length/range
   drawFill()
 
-  let moveKnob = function(dx) {
+  let moveKnob = function(x) {
     let initialValue = value
-    
-    knob.position.addXY(dx,0).clamp([0,opts.length], [0,0])
+    knob.x = x
+    knob.position.clamp([0,opts.length], [0,0])
     value = quantize(getValue(knob.x))
     drawFill()
     
-    if (value != initialValue) {
+    if (value != initialValue)
       opts.onChange(value, knob.x)
-      
-    }
   }
 
   createDragAction(knob, knob,
       null,
-      (dx,dy) => moveKnob(dx),
+      (dx,dy,x,y) => moveKnob(x),
       null
   )
 
