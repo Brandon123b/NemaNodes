@@ -241,7 +241,7 @@ class World {
   */
   SpawnFood(number){
     for (let i = 0; i < number && world.numFood() < world.maxNumFood; i++) {
-      //new Food()
+      new Food()
     }
   }
 
