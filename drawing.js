@@ -5,7 +5,7 @@ class Canvas {
   this.camera = {
     zoomLevel : 1,
     maxZoomLevel : 10,
-    minZoomLevel : 0.1,
+    minZoomLevel : 0.025,
     // TODO add bounds for panning
   }
 
