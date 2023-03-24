@@ -1,6 +1,8 @@
 /* NeatNN.js
 * A neural network that uses the NEAT algorithm
 *
+* Created by: Brandon Hall
+*
 * Public functions:
 *   SetInput(index, newValue) - Sets the input of the neural network
 *   RunNN() - Runs the neural network
@@ -9,16 +11,14 @@
 *   Mutate() - Mutates the neural network
 *   GetPenalty() - Gets the penalty of the neural network
 *   Clone() - Clones the neural network
-*
-* TODO:
-*   Serialize() - Serializes the neural network
-*   Deserialize() - Deserializes the neural network
+*   toJson() - Creates a JSON object from the neural network
+*   fromJson(json) - Creates a neural network from a JSON object
 */
 
 
 class NeatNN {
 
-    constructor(_inputCount, _outputCount, isCloning = false) {
+    constructor(_inputCount, _outputCount, dontRandomize = false) {
         this.inputCount = _inputCount;
         this.outputCount = _outputCount;
 
@@ -30,8 +30,8 @@ class NeatNN {
 
         this.penalty = 0;       // The penalty of the network (increases for larger networks)
 
-        // If the network is not being cloned, create the network
-        if (isCloning)
+        // If the network is not being cloned or loaded, create the network
+        if (dontRandomize)
             return;
 
         // Create the input nodes
@@ -53,14 +53,6 @@ class NeatNN {
             }
         }
 
-        // Default the input values
-        for(let i = 0; i < this.inputCount; i++)
-            this.inputs.push(0);
-
-        // Default the output values
-        for(let i = 0; i < this.outputCount; i++)
-            this.outputs.push(0);
-
         // Calculate the penalty of the network
         this.CalculatePenalty();
     }
@@ -76,6 +68,11 @@ class NeatNN {
 
             // If the node is an input node, set the activation to the input value and continue
             if(node.nodeType === NodeType.Input) {
+
+                // If the input is undefined, throw an error
+                if (this.inputs[i] === undefined)
+                    throw new Error("ERROR: NeatNN input " + i + " is undefined");
+
                 node.CalculateActivation(this.inputs[i]);
                 continue;
             }
@@ -98,7 +95,7 @@ class NeatNN {
     * to: The node that the connection is going to
     * weight: The weight of the connection (Can be undefined for a random weight)
     */
-    connect(from, to, weight) {
+    connect(from, to, weight = null) {
         
         // If the nodes are already connected, throw an error
         if(from.IsConnectedTo(to)){
@@ -587,6 +584,10 @@ class NeatNN {
         if (index >= this.inputCount)
             throw "You are trying to set an input that does not exist";
 
+        // Check if the value is a number
+        if (isNaN(value))
+            throw "You are trying to set an input " + index + " to a non-number: " + value;
+
         // Set the input
         this.inputs[index] = value;
     }
@@ -644,6 +645,56 @@ class NeatNN {
         return newNN;
     }
 
+    toJson() {
+
+        var nodesJson = [];
+        var connectionsJson = [];
+
+        // For each node
+        for (let i = 0; i < this.nodes.length; i++) {
+            nodesJson.push(this.nodes[i].toJson());
+        }
+
+        // For each connection
+        for (let i = 0; i < this.connections.length; i++) {
+            connectionsJson.push(this.connections[i].toJson(this.nodes));
+        }
+
+        return {
+            inputCount: this.inputCount,
+            outputCount: this.outputCount,
+            nodesJson: nodesJson,
+            connectionsJson: connectionsJson
+        };
+    }
+
+    static fromJson(json) {
+
+        var nn = new NeatNN(json.inputCount, json.outputCount, true);
+
+        // For each node
+        for (let i = 0; i < json.nodesJson.length; i++) {
+            nn.nodes.push(Node.fromJson(json.nodesJson[i]));
+        }
+
+        // For each connection
+        for (let i = 0; i < json.connectionsJson.length; i++) {
+
+            var fromNode = nn.nodes[json.connectionsJson[i].from];
+            var toNode = nn.nodes[json.connectionsJson[i].to];
+            var weight = json.connectionsJson[i].weight;
+
+            //console.log("From: " + fromNode + " To: " + toNode + " Weight: " + weight);
+
+            nn.connect(fromNode, toNode, weight)
+        }
+
+        // Ensure the penalty is calculated
+        nn.CalculatePenalty();
+
+        return nn;
+    }
+
     Destroy() {
 
         // Destroy the nodes
@@ -676,11 +727,11 @@ class Connection {
     * _to: The node that the connection is going to
     * _weight: The weight of the connection
     */
-    constructor(_from, _to, _weight) {
+    constructor(_from, _to, _weight = null) {
         this.from = _from;
         this.to = _to;
 
-        if (_weight === undefined)
+        if (_weight === null)
             this.weight = Math.random() * 2 - 1;
         else
             this.weight = _weight;
@@ -688,6 +739,23 @@ class Connection {
 
     toString() {
         return "{ Connection: " + this.from + " -> " + this.to + " " + this.weight + " }";
+    }
+
+    toJson(nodes) {
+        return {
+            from: nodes.indexOf(this.from),
+            to: nodes.indexOf(this.to),
+            weight: this.weight
+        }
+    }
+
+    static fromJson(json, nodes) {
+
+        // Add the connection to the nodes
+        nodes[json.from].AddIncomingConnection(nodes[json.to]);
+        nodes[json.to].AddOutgoingConnection(nodes[json.from]);
+
+        return new Connection(nodes[json.from], nodes[json.to], json.weight);
     }
 
     Destroy() {
