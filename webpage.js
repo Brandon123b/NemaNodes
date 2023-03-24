@@ -45,14 +45,15 @@ function main(){
         // Find the time in seconds since the last frame
         var delta = (performance.now() - lastTime) / 1000;
         lastTime = performance.now();
-    
+
+        // Clear the graphics (eye raycasts, NN display, zone outlines)
+        world.canvas.worldGraphics.clear()
+        world.canvas.screenGraphics.clear()
+        let eyerays = world.drawEyeRays
+        world.drawEyeRays = false
         for (let i = 0; i < gameSpeedMult; i++) {
-            if (i == gameSpeedMult -1) {
-                // Clear the graphics (eye raycasts, NN display, zone outlines)
-                world.canvas.worldGraphics.clear()
-                world.canvas.screenGraphics.clear()
-                // must clear after previous GameLoops or else many raycasts are drawn
-            }
+            // only draw eyerays on the last game loop 
+            if (i == gameSpeedMult-1) world.drawEyeRays = eyerays
             GameLoop(delta)
         }
         DrawLoop(delta)
