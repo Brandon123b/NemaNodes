@@ -297,7 +297,7 @@ class UICard {
       else
         this.content.y += 15
         
-      this.content.position.clamp([0,0], [Math.min(this.container.height - this.nextPos,0),0])
+      this.content.position.clamp([0,0], [Math.min(this.container.height - this.nextPos - this.margin,0),0])
     }
   }
 
