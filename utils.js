@@ -58,24 +58,6 @@ function createDragAction(registerDisplayObject, dragTarget, dragStartAction, dr
     .on('pointerupoutside', onDragEnd)
 }
 
-/**
- * 
- * Deregister drag actions from the obj
- * Omit the function parameters to remove all drag actions
- * 
- * @param {PIXI.DisplayObject} registerObject to deregister actions on
- * @param {*} onDragStart 
- * @param {*} onDragMove 
- * @param {*} onDragEnd 
- */
-function removeDragAction(registerObject, onDragStart, onDragMove, onDragEnd) {
-  registerObject
-    .off('pointerdown', onDragStart)
-    .off('pointerup', onDragEnd)
-    .off('pointerupoutside', onDragEnd)
-
-  app.stage.off('pointermove', onDragMove)
-}
 
 /**
  * Fill the undefined attributes of the given object according to the default object
