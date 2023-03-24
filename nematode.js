@@ -71,8 +71,6 @@ class Nematode {
             return;
         }
 
-        // TODO: Add a constructor that takes a json object as an argument to create a nematode from a saved state
-
         // Update the stats of the Nematode (to set the initial values)
         this.UpdateStats(0, 0)   
         
@@ -146,6 +144,8 @@ class Nematode {
         this.childTime = Nematode.MATURITY_RANGE.min + Math.random() * (Nematode.MATURITY_RANGE.max - Nematode.MATURITY_RANGE.min);  // The age at which the Nematode can reproduce (in seconds)
 
         this.energy = -1;              // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
+        this.speed = 0;                // The speed of the Nematode (Set in SlowUpdate)
+        this.rotate = 0;               // The rotation of the Nematode (Set in SlowUpdate)
     }
 
     /* Creates a nematode from a json object
@@ -181,8 +181,7 @@ class Nematode {
 
     // ------------------------------------ Update Functions ------------------------------------ //
 
-    /* Update the nematode, but only called every x frames (x = Nematode.SLOW_UPDATE_RATE)
-     */
+    /* Update the nematode, but only called every x frames (x = Nematode.SLOW_UPDATE_RATE) */
     SlowUpdate(){
 
         // Return if the nematode is dead
@@ -479,7 +478,7 @@ class Nematode {
 
     /* Called in Update() when the nematode is bitten */
     KnockbackAnimation(delta) {
-            
+
         // Move the nematode in the knockback direction
         world.updateNematodePosition(this,  this.GetX() + this.knockbackDirection.x * delta, 
                                             this.GetY() + this.knockbackDirection.y * delta);
