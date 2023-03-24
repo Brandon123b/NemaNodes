@@ -77,7 +77,7 @@ class World {
     obj.sprite.interactive = true
 
     // when the nematode is clicked, select it
-    obj.sprite.onclick = () => { this.selectedNematode = obj }
+    obj.sprite.onmousedown = () => { this.selectedNematode = obj }
     
     // TODO clamp object's position to be within world borders
     this.#nematodeZones.insert(obj)
