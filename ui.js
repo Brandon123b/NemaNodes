@@ -113,7 +113,14 @@ function mkSlider(opts) {
   let range = opts.max - opts.min
 
   // quantize the slider value to the increment
-  let quantize = x => Math.floor((x-opts.min)/opts.increment)*opts.increment + opts.min
+  let quantize = x => {
+    let fraction = opts.increment.toString().split('.')[1]
+    let precision = fraction ? fraction.length : 0
+
+    // truncate the calculated float value because of funky float math
+    let floatVal = Math.floor((x-opts.min)/opts.increment)*opts.increment + opts.min
+    return Number.parseFloat(floatVal.toFixed(precision))
+  }
 
   // retrieve the unquantized value converted from knob position
   let getValue = (knobx) => (range/opts.length)*knobx + opts.min
@@ -121,21 +128,20 @@ function mkSlider(opts) {
   knob.x = (value-opts.min)*opts.length/range
   drawFill()
 
-  let moveKnob = function(dx) {
+  let moveKnob = function(x) {
     let initialValue = value
-    
-    knob.position.addXY(dx,0).clamp([0,opts.length], [0,0])
+    knob.x = x
+    knob.position.clamp([0,opts.length], [0,0])
     value = quantize(getValue(knob.x))
-
-    if (value != initialValue) {
+    drawFill()
+    
+    if (value != initialValue)
       opts.onChange(value, knob.x)
-      drawFill()
-    }
   }
 
   createDragAction(knob, knob,
       null,
-      (dx,dy) => moveKnob(dx),
+      (dx,dy,x,y) => moveKnob(x),
       null
   )
 
@@ -249,9 +255,10 @@ function mkButton(opts) {
  * 
  */
 class UICard {
-  constructor(width) {
+  constructor(width, maxHeight = 500) {
     this.container = new PIXI.Container()
     this.width = width
+    this.maxHeight = maxHeight
     this.margin = 10
     this.padding = 5
     // track the next y-position for the next UI element in this card to be added
@@ -262,9 +269,14 @@ class UICard {
     this.trim = 0x000000
     this.trimOpacity = 0.8
 
+    // graphics object for background
     this.card = new PIXI.Graphics()
 
+    // content container for the actual content
+    this.content = new PIXI.Container()
+
     this.container.addChild(this.card)
+    this.container.addChild(this.content)
 
     this.textStyle = new PIXI.TextStyle({
       wordWrap: true,
@@ -276,11 +288,22 @@ class UICard {
       letterSpacing: 2,
       fill: this.trim
     })
+
+    // scroll contents with the mousewheel
+    this.container.onwheel = e => {
+      const scroll = e.deltaY
+      if (scroll > 0)
+        this.content.y -= 15
+      else
+        this.content.y += 15
+        
+      this.content.position.clamp([0,0], [Math.min(this.container.height - this.nextPos - this.margin,0),0])
+    }
   }
 
   // return the container for this UI card
   make() {
-    let height = this.nextPos + this.margin
+    let height = Math.min(this.nextPos + this.margin, this.maxHeight)
     // transparent bluish background to mimic glass
     this.card.beginFill(this.color,this.opacity)
     this.card.drawRoundedRect(0,0,this.width,height,10)
@@ -294,6 +317,14 @@ class UICard {
     createDragAction(this.card, this.container)
 
     addBlur(this.card, 0.5)
+
+    // create a mask to hide contents that overflow due to scrolling
+    let rect = new PIXI.Graphics()
+    rect.beginFill()
+    rect.drawRect(0,0,this.width,this.maxHeight)
+    rect.endFill()
+    this.content.mask = rect
+    this.container.addChild(rect)
 
     return this.container
   }
@@ -309,11 +340,9 @@ class UICard {
 
   // add the given UI element to the next row on the card
   #addElement(element) {
-    this.container.addChild(element)
-  
+    this.content.addChild(element)
     element.y = this.nextPos
     element.x = this.margin
-
     // update starting y position for next element
     this.nextPos = element.y + element.height + this.padding
   }
@@ -324,7 +353,7 @@ class UICard {
     return this
   }
 
-  // add callbacks to all toggle buttons so that they are mutually exclusive
+  // add callbacks to all toggle buttons in the group so that they are mutually exclusive
   endToggleGroup() {
     for (const toggle1 of this.toggleGroup)
     for (const toggle2 of this.toggleGroup)

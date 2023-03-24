@@ -11,6 +11,12 @@ var lastTime = 0;
 let timeSinceFoodSpawn = 0;
 let timeSinceStart = 0;
 
+// flag for game pause
+let paused = false
+
+let gameSpeedMult = 1
+const minGameSpeedMult = 1
+const maxGameSpeedMult = 10
 // Slow Update counter (The currently updated frame)
 let slowUpdateCounter = 0;
 
@@ -20,6 +26,7 @@ function main(){
     // Create the application helper and add its render target to the page
     app = new PIXI.Application({resizeTo: window});
     document.body.appendChild(app.view);
+    app.ticker.maxFPS = 60
 
     // Create the world, TODO make world static class
     world = new World();
@@ -32,17 +39,8 @@ function main(){
 
     // Add some food
     world.SpawnFood(5000);
-
-    // This starts the main loop (with a 60 target fps cap)
-    setInterval(function() {
-
-        // Find the time in seconds since the last frame
-        var delta = (performance.now() - lastTime) / 1000;
-        lastTime = performance.now();
-
-        GameLoop(delta );
-
-    }, 1000 / 60);
+    
+    setInterval(mainLoop, 1000/60)
 }
 
 // create a UI card
@@ -66,21 +64,27 @@ function CreateUI(){
         .addText("Debug")
         .addToggle(enabled => world.drawZones = enabled, "draw world zones", world.drawZones)
         .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)
+        .addSlider(x => gameSpeedMult = x, minGameSpeedMult, maxGameSpeedMult, gameSpeedMult, 1, "game speed")
         .make()
 
     app.stage.addChild(ui)
     ui.position.y = 300
 }
 
+/**
+ * Perform any graphics drawing or things that should be updated even while paused
+ */
+function DrawLoop(delta) {
+    // update the canvas
+    world.canvas.drawWorld(delta)
+}
 
-/** GameLoop Called every frame from the ticker 
+/**
+ * Make any updates to the game world
  *  @param {number} delta - Time since last frame in seconds
 */
 function GameLoop(delta) {
-
-    // Clear the graphics (eye raycasts, NN display, zone outlines)
-    world.canvas.worldGraphics.clear();
-    world.canvas.screenGraphics.clear();
+    if (paused) return
 
     // Update the time
     timeSinceFoodSpawn += delta;
@@ -113,14 +117,33 @@ function GameLoop(delta) {
     // Update the nematodes
     world.forEachNematode(n => n.Update(delta))
 
-    // update the canvas
-    world.canvas.drawWorld(delta)
-
     // If there is an extinction event
     if (world.numNematodes() == 0){
         console.log("Extinction event at " + timeSinceStart.toFixed(1) + " seconds. Spawned 2000 nematodes.");
         world.SpawnNematodes(2000);
     }
+
+}
+
+/**
+ * The main loop
+ */
+function mainLoop() {
+    // Find the time in seconds since the last frame
+    var delta = (performance.now() - lastTime) / 1000;
+    lastTime = performance.now();
+
+    // Clear the graphics (eye raycasts, NN display, zone outlines)
+    world.canvas.worldGraphics.clear()
+    world.canvas.screenGraphics.clear()
+    let eyerays = world.drawEyeRays
+    world.drawEyeRays = false
+    for (let i = 0; i < gameSpeedMult; i++) {
+        // only draw eyerays on the last game loop 
+        if (i == gameSpeedMult-1) world.drawEyeRays = eyerays
+        GameLoop(delta)
+    }
+    DrawLoop(delta)
 }
 
 // Very easy to miss this line

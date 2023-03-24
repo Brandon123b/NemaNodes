@@ -72,6 +72,8 @@ class Canvas {
     this.backGround.onwheel = onScroll
     this.container.onwheel = onScroll
 
+
+    this.CreatePauseAction()
   }
 
   // take a world point and convert it to a point on the screen
@@ -87,6 +89,33 @@ class Canvas {
   // add a sprite to this canvas
   add(sprite) {
     this.container.addChild(sprite)
+  }
+
+  // pause the game on space bar and display pause symbol
+  CreatePauseAction() {
+    // create Pause action
+    let pHeight = 100
+    let pWidth = 40
+    let pMargin = 25
+    let pauseSymbol = new PIXI.Graphics()
+    pauseSymbol.beginFill(0xffffff)
+    pauseSymbol.drawRect(0,0,pWidth,pHeight)
+    pauseSymbol.drawRect(pWidth+pMargin,0,pWidth,pHeight)
+    pauseSymbol.pivot.set(pWidth+pMargin/2, pHeight)
+    app.stage.addChild(pauseSymbol)
+    
+    let setPauseSymbol = () => {
+        pauseSymbol.visible = paused
+        pauseSymbol.x = app.screen.width/2
+        pauseSymbol.y = app.screen.height-pMargin
+    }
+
+    setPauseSymbol()
+    // pause/unpause when the space bar is pressed
+    Keys.addAction("Space", () => {
+        paused = !paused
+        setPauseSymbol()
+    })
   }
 
   // Create the fps counter
