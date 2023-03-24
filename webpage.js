@@ -59,6 +59,7 @@ function CreateUI(){
         .addSlider(x => world.foodBrushRadius = x, 0, 100, world.foodBrushRadius, 1, "brush radius")
         .addToggle(enabled => world.nematodeBrushOn = enabled, "nematode brush", false)
         .addSlider(x => world.nematodeBrushRadius = x, 0, 100, world.nematodeBrushRadius, 1, "brush radius")
+        .addToggle(enabled => world.energyBarOn = true, "show nematode energy levels", false)
         .endToggleGroup()
         .addText("Environment")
         .addSlider(x => world.maxNumFood = x, 0, world.maxNumFood*2, world.maxNumFood, 5, "max food number")

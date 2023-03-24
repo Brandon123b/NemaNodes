@@ -99,6 +99,12 @@ class Canvas {
       this.worldGraphics.drawRect(world.zoneSize()*x, world.zoneSize()*y, world.zoneSize(), world.zoneSize())
     }
 
+    //draw energy level bars above nematodes
+    if(world.energyBarOn) {
+      world.forEachNematode(n => this.nematodeStatsMenuObj.DrawEnergyLevel(n));
+
+    }
+
     // draw the selected nematode's neural network and stats
     if (world.selectedNematode != null){
 
@@ -159,5 +165,19 @@ class NematodeStatsMenu {
   MakeInvisible() {
     this.headerText.visible = false;
     this.statsText.visible = false;
+  }
+
+  //this method might be better off in another class
+  DrawEnergyLevel(nematode) {
+    
+    //setting variables here is dumb and to be changed later
+    var offset_y = 10;
+    var bar_height = 20
+    var rect_position = nematode.sprite.position;
+    console.log(rect_position);
+
+    graphics.drawRect(nematode.sprite.x, nematode.sprite.y - offset_y, nematod.sprite.width, bar_height)
+    //graphics.drawRect(rect_position.)
+
   }
 }

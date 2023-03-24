@@ -45,6 +45,9 @@ class World {
     this.nematodeBrushOn = false
     this.nematodeBrushRadius = 10
 
+    // create a button to display nematode energy
+    this.energyBarOn = false;
+
     this.#setUpBrushes()
   }
 
