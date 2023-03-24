@@ -124,6 +124,36 @@ class World {
   numNematodes() {
     return this.#nematodeZones.size()
   }
+
+  // return a list of objects from the given area
+  getNematodesAt(worldPosX, worldPosY, radius) {
+    let [minZoneX,minZoneY] = this.#pos2zone(worldPosX-radius,worldPosY-radius)
+    let [maxZoneX,maxZoneY] = this.#pos2zone(worldPosX+radius,worldPosY+radius)
+    
+    let results = []
+    
+    for (let x = minZoneX; x <= maxZoneX; x++)
+    for (let y = minZoneY; y <= maxZoneY; y++)
+    for (let obj of this.getNematodeAtZone(x,y))
+
+    // Take the square of radius to avoid taking the square root of the sum of squares
+    if ((obj.GetX()-worldPosX)**2 + (obj.GetY()-worldPosY)**2 <= radius * radius) 
+      results.push(obj)
+
+    return results
+  }
+  
+  /**
+   * 
+   * @param {*} zoneX column of zone
+   * @param {*} zoneY row of zone
+   * @returns the hash bucket of food at that zone
+   * 
+   * WARNING: DO NOT MODIFY RETURNED COLLECTION
+   */
+  getNematodeAtZone(zoneX, zoneY) {
+    return this.#nematodeZones.getItemsWithKey(this.#zone2hashkey(zoneX,zoneY))
+  }
   
   // return the currently occupied zones: [[0,1], [-2,2], [5,0]]
   getOccupiedZones() {
@@ -211,7 +241,7 @@ class World {
   */
   SpawnFood(number){
     for (let i = 0; i < number && world.numFood() < world.maxNumFood; i++) {
-        new Food()
+      //new Food()
     }
   }
 
