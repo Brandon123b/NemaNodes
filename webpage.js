@@ -7,9 +7,6 @@ var world;
 // The last time the game loop was called
 var lastTime = 0;
 
-// Keeps a moving average of the fps (This smooths out the fps counter)
-var movingFps = 60;
-
 // Count the time since the last food spawn
 let timeSinceFoodSpawn = 0;
 let timeSinceStart = 0;
@@ -17,9 +14,11 @@ let timeSinceStart = 0;
 // flag for game pause
 let paused = false
 
-let gameSpeedMult = 1
+let gameSpeedMult = 2
 const minGameSpeedMult = 0.5
 const maxGameSpeedMult = 2
+// Slow Update counter (The currently updated frame)
+let slowUpdateCounter = 0;
 
 // Starts everything
 function main(){
@@ -32,20 +31,15 @@ function main(){
     // Create the world, TODO make world static class
     world = new World();
 
-    // Create the fps counter
-    CreateFpsCounter();
-
     // Create the UI
     CreateUI();
 
     // Add some nematodes
-    SpawnNematodes(4000);
+    world.SpawnNematodes(5000);
 
     // Add some food
-    SpawnFood(3000);
+    world.SpawnFood(5000);
 
-    let gameLoopsThisSecond = 0
-    let lastSecond = performance.now()
     // This starts the main loop
     let mainLoop = () => {
         // Find the time in seconds since the last frame
@@ -53,13 +47,6 @@ function main(){
         lastTime = performance.now();
     
         GameLoop(delta);
-        //console.log(delta)
-        if (performance.now() - lastSecond > 1000)  {
-            console.log(gameLoopsThisSecond, "game loops performed in the last second")
-            gameLoopsThisSecond = 0
-            lastSecond = performance.now()
-        }
-        else gameLoopsThisSecond++
         // set timeout for next execution according to gamespeed
         setTimeout(mainLoop, 1000 / (60*gameSpeedMult))
     }
@@ -73,7 +60,7 @@ function CreateUI(){
     let ui = new UICard(300,300)
         .addText("User tools")
         .startToggleGroup()
-        .addToggle(enabled => world.draggableObjects = enabled, "drag tool", false)
+        .addToggle(enabled => world.draggableObjects = enabled, "drag tool", true)
         .addToggle(enabled => world.foodBrushOn = enabled, "food brush", false)
         .addSlider(x => world.foodBrushRadius = x, 0, 100, world.foodBrushRadius, 1, "brush radius")
         .addToggle(enabled => world.nematodeBrushOn = enabled, "nematode brush", false)
@@ -82,7 +69,9 @@ function CreateUI(){
         .addText("Environment")
         .addSlider(x => world.maxNumFood = x, 0, world.maxNumFood*2, world.maxNumFood, 5, "max food number")
         .addSlider(x => world.foodReplenishRate = x, 0, world.maxReplenishRate, world.foodReplenishRate, 1, "food replenish rate")
-        .addSlider(x => World.radius = x, 500, World.radius*3, World.radius, 10, "petri dish radius")
+        .addSlider(x => World.radius = x, 50, World.radius*3, World.radius, 10, "petri dish radius")
+        .addText("Performance")
+        .addSlider(x => world.SlowUpdateInterval = x, 1, 10, world.SlowUpdateInterval, 1, "slow update interval")
         .addText("Debug")
         .addToggle(enabled => world.drawZones = enabled, "draw world zones", world.drawZones)
         .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)
@@ -118,75 +107,16 @@ function CreateUI(){
 }
 
 
-/** Spawn a number of nematodes
- * 
- * @param {*} number The number of nematodes to spawn
- */
-function SpawnNematodes(number){
-    for (let i = 0; i < number; i++) {
-        world.selectedNematode = new Nematode()
-    }
-}
-
-/** Spawn a number of food
- *  Will not spawn more than world.maxNumFood
- * 
- * @param {*} number The number of food to spawn
- */
-function SpawnFood(number){
-    for (let i = 0; i < number && world.numFood() < world.maxNumFood; i++) {
-        new Food()
-    }
-}
-
-// Create the fps counter
-function CreateFpsCounter(){
-        
-    // Create the fps counter
-    fpsCounter = new PIXI.Text("FPS: 0", {fontFamily : 'Arial', fontSize: 20, fill : 0x00FF00, align : 'center'});
-    fpsCounter.x = 10;
-    fpsCounter.y = 8;
-    app.stage.addChild(fpsCounter);
-
-    // Make the border thicker
-    fpsCounter.style.strokeThickness = 2;
-
-    // Set the border to black
-    fpsCounter.style.stroke = 0x000000;
-}
-
-/**
- * DrawLoop is called by app.ticker
- * @param {*} delta time since last frame in seconds
- */
-function DrawLoop(delta) {
-    // Clear the graphics (eye raycasts, NN display, zone outlines)
-    world.canvas.worldGraphics.clear();
-    world.canvas.screenGraphics.clear();
-
-    // update the canvas
-    world.canvas.drawWorld(world)
-
-    // Update the moving fps
-    movingFps = movingFps * 0.95 + 1 / delta * 0.05;
-
-    // Update the fps counter
-    fpsCounter.text =   "FPS: " + (movingFps).toFixed(1) +
-                        " | Time: " + timeSinceStart.toFixed(1) +
-                        " | Nematodes: " + world.numNematodes() +
-                        " | Food: " + world.numFood();
-}
-
 /** GameLoop Called every frame from the ticker 
  *  @param {number} delta - Time since last frame in seconds
 */
 function GameLoop(delta) {
-    // TODO maybe separate out this DrawLoop from the game loop
-    // and add it to app.ticker
-    DrawLoop(delta)
-
     // updates that shouldn't execute while game is paused go below this line
     if (paused) return
+
+    // Clear the graphics (eye raycasts, NN display, zone outlines)
+    world.canvas.worldGraphics.clear();
+    world.canvas.screenGraphics.clear();
 
     // Update the time
     timeSinceFoodSpawn += delta;
@@ -197,16 +127,35 @@ function GameLoop(delta) {
         timeSinceFoodSpawn -= 1;
 
         // Spawn food
-        SpawnFood(world.foodReplenishRate);
+        world.SpawnFood(world.foodReplenishRate);
     }
+
+    // Slow update (Runs each nematode's SlowUpdate() function every SlowUpdateInterval frames)
+    slowUpdateCounter++;
+    if (slowUpdateCounter >= world.SlowUpdateInterval){
+        slowUpdateCounter = 0;
+    }
+
+    // SlowUpdate the nematodes
+    let i = 0;
+    world.forEachNematode(
+    n => {
+        // Only update when the slow update counter is the correct frame
+        if (i++ % world.SlowUpdateInterval == slowUpdateCounter){
+            n.SlowUpdate(delta)
+        }
+    })
 
     // Update the nematodes
     world.forEachNematode(n => n.Update(delta))
 
+    // update the canvas
+    world.canvas.drawWorld(delta)
+
     // If there is an extinction event
     if (world.numNematodes() == 0){
         console.log("Extinction event at " + timeSinceStart.toFixed(1) + " seconds. Spawned 2000 nematodes.");
-        SpawnNematodes(2000);
+        world.SpawnNematodes(2000);
     }
 
 }

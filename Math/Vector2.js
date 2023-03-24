@@ -2,6 +2,10 @@
 /**
  * Vector2.js
  * Additional methods for PIXI.Points
+ * 
+ * 
+ * PIXI.js uses both Point and ObservablePoint so duplicate the extensions for both
+ * May want to convert these helper functions into standalones if it becomes an issue
  */
 
 // rotate this vector by some angle in degrees
@@ -20,8 +24,6 @@ PIXI.Point.prototype.rotate = function(_angle) {
     // Return just in case we want to chain
     return this
 }
-// PIXI.js uses both Point and ObservablePoint so duplicate the extensions for both
-// May want to convert these helper functions into standalones if it becomes an issue
 PIXI.ObservablePoint.prototype.rotate = PIXI.Point.prototype.rotate
 
 // get the angle of the vector in degrees
@@ -36,8 +38,9 @@ PIXI.Point.prototype.addXY = function(_x, _y) {
     this.y += _y
     return this
 }
+PIXI.ObservablePoint.prototype.addXY = PIXI.Point.prototype.addXY
 
-/** Turns this vector into a unit vector in a random direction
+/* Turns this vector into a unit vector in a random direction
  * 
  * @returns This direction
  */
@@ -51,8 +54,9 @@ PIXI.Point.prototype.RandomDirection = function() {
     // Return just in case we want to chain
     return this
 }
+PIXI.ObservablePoint.prototype.RandomDirection = PIXI.Point.prototype.RandomDirection
 
-/** Sets this vector to a random position within a circle
+/* Sets this vector to a random position within a circle
  * 
  * @param {*} radius The radius of the circle
  * @returns This vector
@@ -69,11 +73,35 @@ PIXI.Point.prototype.RandomPosition = function(radius) {
     // Return just in case we want to chain
     return this;
 }
+PIXI.ObservablePoint.prototype.RandomPosition = PIXI.Point.prototype.RandomPosition
 
-PIXI.ObservablePoint.prototype.addXY = PIXI.Point.prototype.addXY
+/* Gets the distance from this vector to another */
+PIXI.Point.prototype.Dist = function(other) {
+    return Math.sqrt((this.x - other.x) * (this.x - other.x) + (this.y - other.y) * (this.y - other.y));
+}
+PIXI.ObservablePoint.prototype.Dist = PIXI.Point.prototype.Dist
 
-// clamp the values of this point to be within the given bounds
-// Example: new PIXI.Point(4,9).clamp([0,2], [10,15]) => PIXI.Point(2,10)
+/* Multiplies this vector by a scalar */
+PIXI.Point.prototype.MultiplyConstant = function(scalar) {
+    this.x *= scalar;
+    this.y *= scalar;
+    return this;
+}
+PIXI.ObservablePoint.prototype.MultiplyConstant = PIXI.Point.prototype.MultiplyConstant
+
+/** Gets the distance from this vector to the origin
+ * 
+ * @param {*} radius The radius of the circle
+ * @returns This vector
+ */
+function DistFromOrigin(pos) {
+    return Math.sqrt(pos.x * pos.x + pos.y * pos.y);
+}
+
+
+/* clamp the values of this point to be within the given bounds
+ * Example: new PIXI.Point(4,9).clamp([0,2], [10,15]) => PIXI.Point(2,10)
+*/
 PIXI.Point.prototype.clamp = function(xbounds, ybounds) {
     let [minX, maxX] = xbounds
     let [minY, maxY] = ybounds

@@ -5,8 +5,8 @@
  */
 
 class World {
-  static radius = 5000
-  static #zoneSize = 500
+  static radius = 1500
+  static #zoneSize = 200
 
   // hash table that maps nematodes to a zone
   #nematodeZones = new HashTable(obj => {
@@ -36,7 +36,7 @@ class World {
 
     this.drawZones = false
     this.drawEyeRays = false
-    this.draggableObjects = false // flag for enabled ability to drag world objects
+    this.draggableObjects = true // flag for enabled ability to drag world objects
 
     // create food brush action for dragging
     this.foodBrushOn = false
@@ -45,10 +45,14 @@ class World {
     this.nematodeBrushOn = false
     this.nematodeBrushRadius = 10
 
+    // Debug slider vars
+    this.SlowUpdateInterval = 5;
+
     this.#setUpBrushes()
   }
 
   // ----------------- Nematodes -----------------
+  
   /**
    * 
    * @param {number} x x world coordinate
@@ -73,9 +77,9 @@ class World {
     obj.sprite.interactive = true
 
     // when the nematode is clicked, select it
-    obj.sprite.onclick = () => { this.selectedNematode = obj }
+    obj.sprite.onmousedown = () => { this.selectedNematode = obj }
     
-    // TODO clamp object's position to be within world borders
+    // Insert the nematode into the zone hash table
     this.#nematodeZones.insert(obj)
 
     // add the game object so it can be drawn
@@ -86,14 +90,15 @@ class World {
   destroyNematode(obj) {
     if (!this.#nematodeZones.remove(obj))
       throw `Object ${obj} cannot be destroyed because it does not exist in the world`
-    this.#nematodeZones.remove(obj)
+    
     obj.sprite.destroy()
   }
 
   // update the position of the object
   // NOTE: this will modify the object's position
   updateNematodePosition(obj, x, y) {
-    // TODO clamp newWorldPos to be within world borders
+
+    // clamp newWorldPos to be within world borders
     let [newX, newY] = this.clampWorldPos(x, y)
 
     let {oldX,oldY} = obj.GetPosition()
@@ -120,6 +125,42 @@ class World {
   numNematodes() {
     return this.#nematodeZones.size()
   }
+
+  // return a list of objects from the given area
+  getNematodesAt(worldPosX, worldPosY, radius) {
+    let [minZoneX,minZoneY] = this.#pos2zone(worldPosX-radius,worldPosY-radius)
+    let [maxZoneX,maxZoneY] = this.#pos2zone(worldPosX+radius,worldPosY+radius)
+    
+    let results = []
+
+    let rSq = radius * radius;
+    
+    for (let x = minZoneX; x <= maxZoneX; x++)
+    for (let y = minZoneY; y <= maxZoneY; y++)
+    for (let obj of this.getNematodeAtZone(x,y))
+
+      // Take the square of radius to avoid taking the square root of the sum of squares
+      if (obj.GetX() >= worldPosX - radius &&
+          obj.GetX() <= worldPosX + radius &&
+          obj.GetY() >= worldPosY - radius &&
+          obj.GetY() <= worldPosY + radius &&
+          (obj.GetX() - worldPosX) ** 2 + (obj.GetY() - worldPosY) ** 2 <= rSq)
+            results.push(obj)
+
+    return results
+  }
+  
+  /**
+   * 
+   * @param {*} zoneX column of zone
+   * @param {*} zoneY row of zone
+   * @returns the hash bucket of food at that zone
+   * 
+   * WARNING: DO NOT MODIFY RETURNED COLLECTION
+   */
+  getNematodeAtZone(zoneX, zoneY) {
+    return this.#nematodeZones.getItemsWithKey(this.#zone2hashkey(zoneX,zoneY))
+  }
   
   // return the currently occupied zones: [[0,1], [-2,2], [5,0]]
   getOccupiedZones() {
@@ -131,12 +172,14 @@ class World {
 
   // ----------------- Food -----------------
 
-  // add a food object to the world
-  // Food objects are not clickable
-  // an object should implement GetX(), GetY(), GetPosition(), SetPos()
+
+  /* add a food object to the world
+   * Food objects are not clickable
+   * an object should implement GetX(), GetY(), GetPosition(), SetPos()
+   */
   addFood(obj) {
 
-    // TODO clamp object's position to be within world borders
+    // Insert the food into the food zone hash table
     this.#foodZones.insert(obj)
 
     // add the game object so it can be drawn
@@ -147,7 +190,7 @@ class World {
   destroyFood(obj) {
     if (!this.#foodZones.remove(obj))
       throw `Object ${obj} cannot be destroyed because it does not exist in the world`
-    this.#foodZones.remove(obj)
+    
     obj.sprite.destroy()
   }
 
@@ -162,14 +205,20 @@ class World {
     let [maxZoneX,maxZoneY] = this.#pos2zone(worldPosX+radius,worldPosY+radius)
     
     let results = []
+
+    let rSq = radius * radius;
     
     for (let x = minZoneX; x <= maxZoneX; x++)
     for (let y = minZoneY; y <= maxZoneY; y++)
     for (let obj of this.getFoodAtZone(x,y))
 
-    // Take the square of radius to avoid taking the square root of the sum of squares
-    if ((obj.GetX()-worldPosX)**2 + (obj.GetY()-worldPosY)**2 <= radius * radius) 
-      results.push(obj)
+      // Take the square of radius to avoid taking the square root of the sum of squares
+      if (obj.GetX() >= worldPosX - radius &&
+          obj.GetX() <= worldPosX + radius &&
+          obj.GetY() >= worldPosY - radius &&
+          obj.GetY() <= worldPosY + radius &&
+          (obj.GetX() - worldPosX) ** 2 + (obj.GetY() - worldPosY) ** 2 <= rSq)
+            results.push(obj)
 
     return results
   }
@@ -186,9 +235,34 @@ class World {
     return this.#foodZones.getItemsWithKey(this.#zone2hashkey(zoneX,zoneY))
   }
 
+  // ----------------- Spawn Functions -----------------
+  
+
+  /** Spawn a number of nematodes
+   * 
+   * @param {*} number The number of nematodes to spawn
+   */
+  SpawnNematodes(number){
+    for (let i = 0; i < number; i++) {
+        world.selectedNematode = new Nematode()
+    }
+  }
+
+  /** Spawn a number of food
+  *  Will not spawn more than world.maxNumFood
+  * 
+  * @param {*} number The number of food to spawn
+  */
+  SpawnFood(number){
+    for (let i = 0; i < number && world.numFood() < world.maxNumFood; i++) {
+      new Food()
+    }
+  }
+
   // ----------------- Hash functions -----------------
 
   // get zone coordinates from world coordinates
+  
   #pos2zone(worldPosX,worldPosY) {
     return [Math.floor(worldPosX/World.#zoneSize), Math.floor(worldPosY/World.#zoneSize)]
   }
@@ -206,7 +280,6 @@ class World {
    * @param {function} action (x,y) => ... procedure applied to world coordinates of mouse on mouse move
    * @param {number} strength strength of brush value (0 to 1)
    */
-
   createBrush(flagGetter, action, strength) {
     createDragAction(this.canvas.backGround, this.canvas.container,
       null,
