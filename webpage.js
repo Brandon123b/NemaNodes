@@ -39,25 +39,6 @@ function main(){
 
     // Add some food
     world.SpawnFood(5000);
-
-    // This starts the main loop
-    let mainLoop = () => {
-        // Find the time in seconds since the last frame
-        var delta = (performance.now() - lastTime) / 1000;
-        lastTime = performance.now();
-
-        // Clear the graphics (eye raycasts, NN display, zone outlines)
-        world.canvas.worldGraphics.clear()
-        world.canvas.screenGraphics.clear()
-        let eyerays = world.drawEyeRays
-        world.drawEyeRays = false
-        for (let i = 0; i < gameSpeedMult; i++) {
-            // only draw eyerays on the last game loop 
-            if (i == gameSpeedMult-1) world.drawEyeRays = eyerays
-            GameLoop(delta)
-        }
-        DrawLoop(delta)
-    }
     
     setInterval(mainLoop, 1000/60)
 }
@@ -122,7 +103,8 @@ function DrawLoop(delta) {
     world.canvas.drawWorld(delta)
 }
 
-/** GameLoop Called every frame from the ticker 
+/**
+ * Make any updates to the game world
  *  @param {number} delta - Time since last frame in seconds
 */
 function GameLoop(delta) {
@@ -165,6 +147,27 @@ function GameLoop(delta) {
         world.SpawnNematodes(2000);
     }
 
+}
+
+/**
+ * The main loop
+ */
+function mainLoop() {
+    // Find the time in seconds since the last frame
+    var delta = (performance.now() - lastTime) / 1000;
+    lastTime = performance.now();
+
+    // Clear the graphics (eye raycasts, NN display, zone outlines)
+    world.canvas.worldGraphics.clear()
+    world.canvas.screenGraphics.clear()
+    let eyerays = world.drawEyeRays
+    world.drawEyeRays = false
+    for (let i = 0; i < gameSpeedMult; i++) {
+        // only draw eyerays on the last game loop 
+        if (i == gameSpeedMult-1) world.drawEyeRays = eyerays
+        GameLoop(delta)
+    }
+    DrawLoop(delta)
 }
 
 // Very easy to miss this line
