@@ -586,7 +586,7 @@ class NeatNN {
 
         // Check if the value is a number
         if (isNaN(value))
-            throw "You are trying to set an input to a non-number";
+            throw "You are trying to set an input " + index + " to a non-number: " + value;
 
         // Set the input
         this.inputs[index] = value;
