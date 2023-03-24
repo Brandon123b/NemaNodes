@@ -1,6 +1,8 @@
 /* NeatNN.js
 * A neural network that uses the NEAT algorithm
 *
+* Created by: Brandon Hall
+*
 * Public functions:
 *   SetInput(index, newValue) - Sets the input of the neural network
 *   RunNN() - Runs the neural network
@@ -9,10 +11,8 @@
 *   Mutate() - Mutates the neural network
 *   GetPenalty() - Gets the penalty of the neural network
 *   Clone() - Clones the neural network
-*
-* TODO:
-*   Serialize() - Serializes the neural network
-*   Deserialize() - Deserializes the neural network
+*   toJson() - Creates a JSON object from the neural network
+*   fromJson(json) - Creates a neural network from a JSON object
 */
 
 
