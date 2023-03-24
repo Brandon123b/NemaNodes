@@ -6,7 +6,7 @@
 
 class World {
   static radius = 1500
-  static #zoneSize = 500
+  static #zoneSize = 200
 
   // hash table that maps nematodes to a zone
   #nematodeZones = new HashTable(obj => {
@@ -132,14 +132,20 @@ class World {
     let [maxZoneX,maxZoneY] = this.#pos2zone(worldPosX+radius,worldPosY+radius)
     
     let results = []
+
+    let rSq = radius * radius;
     
     for (let x = minZoneX; x <= maxZoneX; x++)
     for (let y = minZoneY; y <= maxZoneY; y++)
     for (let obj of this.getNematodeAtZone(x,y))
 
-    // Take the square of radius to avoid taking the square root of the sum of squares
-    if ((obj.GetX()-worldPosX)**2 + (obj.GetY()-worldPosY)**2 <= radius * radius) 
-      results.push(obj)
+      // Take the square of radius to avoid taking the square root of the sum of squares
+      if (obj.GetX() >= worldPosX - radius &&
+          obj.GetX() <= worldPosX + radius &&
+          obj.GetY() >= worldPosY - radius &&
+          obj.GetY() <= worldPosY + radius &&
+          (obj.GetX() - worldPosX) ** 2 + (obj.GetY() - worldPosY) ** 2 <= rSq)
+            results.push(obj)
 
     return results
   }
@@ -199,14 +205,20 @@ class World {
     let [maxZoneX,maxZoneY] = this.#pos2zone(worldPosX+radius,worldPosY+radius)
     
     let results = []
+
+    let rSq = radius * radius;
     
     for (let x = minZoneX; x <= maxZoneX; x++)
     for (let y = minZoneY; y <= maxZoneY; y++)
     for (let obj of this.getFoodAtZone(x,y))
 
-    // Take the square of radius to avoid taking the square root of the sum of squares
-    if ((obj.GetX()-worldPosX)**2 + (obj.GetY()-worldPosY)**2 <= radius * radius) 
-      results.push(obj)
+      // Take the square of radius to avoid taking the square root of the sum of squares
+      if (obj.GetX() >= worldPosX - radius &&
+          obj.GetX() <= worldPosX + radius &&
+          obj.GetY() >= worldPosY - radius &&
+          obj.GetY() <= worldPosY + radius &&
+          (obj.GetX() - worldPosX) ** 2 + (obj.GetY() - worldPosY) ** 2 <= rSq)
+            results.push(obj)
 
     return results
   }
