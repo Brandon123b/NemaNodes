@@ -1,75 +1,76 @@
 
 class Canvas {
+
   constructor() {
 
-  this.camera = {
-    zoomLevel : 1,
-    maxZoomLevel : 10,
-    minZoomLevel : 0.1,
-    // TODO add bounds for panning
-  }
-  
-
-  // background sprite to interact with (mouse wheel zoom and clicks)
-  // a background sprite is needed to register mouse events
-  this.backGround = new PIXI.Sprite(PIXI.Texture.WHITE);
-  this.backGround.width = app.screen.width;
-  this.backGround.height = app.screen.height;
-  this.backGround.tint = 0x999955;
-  this.backGround.interactive = true
-  app.stage.addChild(this.backGround)
-
-  // container to hold world object sprites
-  // the local position of a sprite within the canvas container is 1:1 with its world object position
-  this.container = new PIXI.Container()
-  this.container.interactive = true // mark interactive to register clicks on objects
-  this.container.position.set(app.screen.width/2, app.screen.height/2)
-  this.initialScale = this.container.scale.clone()
-  app.stage.addChild(this.container)
-
-  // Add a graphis object to the canvas This is for drawing to the world (like raycasts)
-  // This may/may not be kept, but it is useful for debugging
-  this.worldGraphics = new PIXI.Graphics();
-  this.container.addChild(this.worldGraphics);
-
-  // Add a graphis object to the canvas This is for drawing to the screen (like the neural network)
-  // This may/may not be kept, but it is useful for debugging
-  this.screenGraphics = new PIXI.Graphics();
-  app.stage.addChild(this.screenGraphics);
-
-  // Create the nematode stats menu
-  this.nematodeStatsMenuObj = new NematodeStatsMenu(this.screenGraphics);
-
-  // Create the fps counter
-  this.CreateFpsCounter();
-
-  // set up callbacks for mouse drag behavior (for panning)
-  createDragAction(this.backGround, this.container,
-    null,
-    (dx,dy) => { this.container.position.addXY(dx,dy) },
-    null,
-    true  // make world drag occur with right mouse button drag
-  )
-
-  // on mouse wheel, change the zoom level
-  let onScroll = e => {
-    const scroll = e.deltaY
-    if (scroll > 0)
-      this.camera.zoomLevel /= 1.1
-    else
-      this.camera.zoomLevel *= 1.1
-    // clamp the zoomlevel
-    this.camera.zoomLevel = Math.min(this.camera.zoomLevel, this.camera.maxZoomLevel)
-    this.camera.zoomLevel = Math.max(this.camera.zoomLevel, this.camera.minZoomLevel)
+    this.camera = {
+      zoomLevel : 1,
+      maxZoomLevel : 10,
+      minZoomLevel : 0.1,
+      // TODO add bounds for panning
+    }
     
-    let mousePos = e.data.global
-    let returnPivot = this.container.toLocal(mousePos)
-    this.container.scale = this.initialScale.multiplyScalar(this.camera.zoomLevel)
-    this.container.pivot = this.container.pivot.subtract(this.container.toLocal(mousePos).subtract(returnPivot))
-  }
 
-  this.backGround.onwheel = onScroll
-  this.container.onwheel = onScroll
+    // background sprite to interact with (mouse wheel zoom and clicks)
+    // a background sprite is needed to register mouse events
+    this.backGround = new PIXI.Sprite(PIXI.Texture.WHITE);
+    this.backGround.width = app.screen.width;
+    this.backGround.height = app.screen.height;
+    this.backGround.tint = 0x999955;
+    this.backGround.interactive = true
+    app.stage.addChild(this.backGround)
+
+    // container to hold world object sprites
+    // the local position of a sprite within the canvas container is 1:1 with its world object position
+    this.container = new PIXI.Container()
+    this.container.interactive = true // mark interactive to register clicks on objects
+    this.container.position.set(app.screen.width/2, app.screen.height/2)
+    this.initialScale = this.container.scale.clone()
+    app.stage.addChild(this.container)
+
+    // Add a graphis object to the canvas This is for drawing to the world (like raycasts)
+    // This may/may not be kept, but it is useful for debugging
+    this.worldGraphics = new PIXI.Graphics();
+    this.container.addChild(this.worldGraphics);
+
+    // Add a graphis object to the canvas This is for drawing to the screen (like the neural network)
+    // This may/may not be kept, but it is useful for debugging
+    this.screenGraphics = new PIXI.Graphics();
+    app.stage.addChild(this.screenGraphics);
+
+    // Create the nematode stats menu
+    this.nematodeStatsMenuObj = new NematodeStatsMenu(this.screenGraphics);
+
+    // Create the fps counter
+    this.CreateFpsCounter();
+
+    // set up callbacks for mouse drag behavior (for panning)
+    createDragAction(this.backGround, this.container,
+      null,
+      (dx,dy) => { this.container.position.addXY(dx,dy) },
+      null,
+      true  // make world drag occur with right mouse button drag
+    )
+
+    // on mouse wheel, change the zoom level
+    let onScroll = e => {
+      const scroll = e.deltaY
+      if (scroll > 0)
+        this.camera.zoomLevel /= 1.1
+      else
+        this.camera.zoomLevel *= 1.1
+      // clamp the zoomlevel
+      this.camera.zoomLevel = Math.min(this.camera.zoomLevel, this.camera.maxZoomLevel)
+      this.camera.zoomLevel = Math.max(this.camera.zoomLevel, this.camera.minZoomLevel)
+      
+      let mousePos = e.data.global
+      let returnPivot = this.container.toLocal(mousePos)
+      this.container.scale = this.initialScale.multiplyScalar(this.camera.zoomLevel)
+      this.container.pivot = this.container.pivot.subtract(this.container.toLocal(mousePos).subtract(returnPivot))
+    }
+
+    this.backGround.onwheel = onScroll
+    this.container.onwheel = onScroll
 
   }
 
@@ -121,6 +122,7 @@ class Canvas {
                             " | Food: " + world.numFood();
   }
   
+  // Draws the border, zones, and nematode stats/nn (if needed) (called every frame)
   drawWorld(delta) {
     // resize the background if window changes
     this.backGround.width = app.screen.width
@@ -158,6 +160,10 @@ class Canvas {
   }
 }
 
+/* Represents the nematode stats menu 
+ * This is the menu that shows the stats of the selected nematode
+ * The menu can be made invisible by calling MakeInvisible() and will reappear on DrawBackground()
+ */
 class NematodeStatsMenu {
 
   static width = 300;
