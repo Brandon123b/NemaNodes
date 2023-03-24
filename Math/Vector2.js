@@ -81,6 +81,14 @@ PIXI.Point.prototype.Dist = function(other) {
 }
 PIXI.ObservablePoint.prototype.Dist = PIXI.Point.prototype.Dist
 
+/* Multiplies this vector by a scalar */
+PIXI.Point.prototype.MultiplyConstant = function(scalar) {
+    this.x *= scalar;
+    this.y *= scalar;
+    return this;
+}
+PIXI.ObservablePoint.prototype.MultiplyConstant = PIXI.Point.prototype.MultiplyConstant
+
 /** Gets the distance from this vector to the origin
  * 
  * @param {*} radius The radius of the circle
