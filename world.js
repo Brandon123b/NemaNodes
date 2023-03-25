@@ -5,8 +5,13 @@
  */
 
 class World {
+  static SMALL_ZONE_SIZE = 50
+  static MED_ZONE_SIZE = 200
+  static LARGE_ZONE_SIZE = 500
+  static XL_ZONE_SIZE = 1000
+
   static radius = 1500
-  static #zoneSize = 200
+  static #zoneSize = World.MED_ZONE_SIZE
 
   // brushes
   static foodBrushOn = false
@@ -357,6 +362,35 @@ class World {
       this.canvas.worldGraphics.lineStyle(1, 0)
       this.canvas.worldGraphics.drawCircle(x,y,r)
     }, 1)
+  }
+
+  /**
+   * Rehash all world objects into their new zones
+   * @param {number} newZoneSize 
+   */
+  rezone(newZoneSize) {
+    console.log("rezoning")
+    let objs = []
+    this.forEach(obj => objs.push(obj))
+
+    if (objs.length != this.numFood() + this.numNematodes())
+      throw `ERROR WHILE REZONING: ${objs.length} != ${this.numFood()} + ${this.numNematodes()}`
+
+    // remove objects from hash structure
+    for (const obj of objs) {
+      let zoneHash = this.getHashTableFor(obj)
+      zoneHash.remove(obj)
+    }
+
+    // reinsert objects into hash
+    World.#zoneSize = newZoneSize
+    for (const obj of objs) {
+      let zoneHash = this.getHashTableFor(obj)
+      zoneHash.insert(obj)
+    }
+
+    if (objs.length != this.numFood() + this.numNematodes())
+      throw "ERROR WHILE REZONING"
   }
 
   // ----------------- Getters -----------------
