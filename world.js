@@ -175,17 +175,6 @@ class World {
     obj.SetPos(newX, newY)
     if (zoneChange) zoneHash.insert(obj)
   }
-  
-  // perform an action on each nematode of the world
-  forEachNematode(f) {
-    this.forEach(f, Nematode)
-  }
-
-  // return the number of nematodes in the world
-  numNematodes() {
-    return this.#nematodeZones.size()
-  }
-
 
   /**
    * 
@@ -236,6 +225,8 @@ class World {
     return results
   }
 
+////// Nematode stuff ///////
+
   /**
    * 
    * @param {*} worldPosX 
@@ -245,6 +236,16 @@ class World {
    */
   getNematodesAt(worldPosX,worldPosY,radius) {
     return this.getObjectsAt(worldPosX,worldPosY,radius,Nematode)
+  }
+
+  // perform an action on each nematode of the world
+  forEachNematode(f) {
+    this.forEach(f, Nematode)
+  }
+
+  // return the number of nematodes in the world
+  numNematodes() {
+    return this.#nematodeZones.size()
   }
   
   /**
