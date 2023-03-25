@@ -8,6 +8,12 @@ class World {
   static radius = 1500
   static #zoneSize = 200
 
+  // brushes
+  static foodBrushOn = false
+  static nematodeBrushOn = false
+  static eraseBrushOn = false
+  static brushRadius = 10
+
   // hash table that maps nematodes to a zone
   #nematodeZones = new HashTable(obj => {
     let [zoneX,zoneY] = this.#pos2zone(obj.GetX(), obj.GetY())
@@ -37,13 +43,6 @@ class World {
     this.drawZones = false
     this.drawEyeRays = false
     this.draggableObjects = true // flag for enabled ability to drag world objects
-
-    // create food brush action for dragging
-    this.foodBrushOn = false
-    this.foodBrushRadius = 10
-
-    this.nematodeBrushOn = false
-    this.nematodeBrushRadius = 10
 
     // Debug slider vars
     this.SlowUpdateInterval = 5;
@@ -284,7 +283,7 @@ class World {
     createDragAction(this.canvas.backGround, this.canvas.container,
       null,
       (dx,dy,x,y) => {
-        // perform brush action if the supplied flag is enabled and the user isn't holding shift (for world panning)
+        // perform brush action if the supplied flag is enabled
         if (flagGetter() && Math.random() < strength) {
           let pos = this.canvas.screen2WorldPos({x: x, y: y})
           action(pos.x,pos.y)
@@ -294,20 +293,34 @@ class World {
     )
   }
 
+  // set up any brushing tools the user has
   #setUpBrushes() {
     // food brush
-    this.createBrush(() => this.foodBrushOn, (x,y) => {
+    this.createBrush(() => World.foodBrushOn, (x,y) => {
       let pos = new PIXI.Point(x,y)
-      pos.perturb(this.foodBrushRadius)
+      pos.perturb(World.brushRadius)
       new Food(pos)
     }, 0.25)
 
     // nematode brush
-    this.createBrush(() => this.nematodeBrushOn, (x,y) => {
+    this.createBrush(() => World.nematodeBrushOn, (x,y) => {
       let pos = new PIXI.Point(x,y)
-      pos.perturb(this.nematodeBrushRadius)
+      pos.perturb(World.brushRadius)
       new Nematode(pos)
     }, 0.1)
+
+    // erase brush
+    this.createBrush(() => World.eraseBrushOn, (x,y) => {
+      let r = World.brushRadius
+      // collect world objects at mouse
+      let objs = this.getFoodAt(x,y,r).concat(this.getNematodesAt(x,y,r))
+      for (const obj of objs) obj.Destroy()
+      // draw box for the area being erased
+      // BUG: the erase square flashes in and out
+      // TODO: figure out a better way to draw in the world
+      this.canvas.worldGraphics.lineStyle(1, 0)
+      this.canvas.worldGraphics.drawRect(x-r,y-r,r*2,r*2)
+    }, 1)
   }
 
   // ----------------- Getters -----------------
