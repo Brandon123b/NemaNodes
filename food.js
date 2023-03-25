@@ -83,10 +83,18 @@ class Food {
         this.ignoreRaycast = true;
 
         // Remove the food from the world
-        world.destroyFood(this)
+        this.Destroy()
 
         // Return the nutrition value of the food
         return 30;
+    }
+
+    /**
+     * Destroy this food object
+     * 
+     */
+    Destroy() {
+        world.destroyFood(this)
     }
 
     toString() {

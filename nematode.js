@@ -467,17 +467,21 @@ class Nematode {
         }
 
         // Remove the nematode from the world after 14 seconds
-        if (this.timeSinceDeath > 14) {
-            // Remove the nematode from the world
-            world.destroyNematode(this);
+        if (this.timeSinceDeath > 14) this.Destroy()
+    }
 
-            // Set the nematode to not exist
-            this.exists = false;
+    /*
+    Destroy this nematode
+    */
+    Destroy() {
+        world.destroyNematode(this);
 
-            // Clean un the neural network
-            this.nn.Destroy();
-            this.nn = null;
-        }
+        // Set the nematode to not exist
+        this.exists = false;
+
+        // Clean un the neural network
+        this.nn.Destroy();
+        this.nn = null;
     }
 
     /* Called in Update() when the nematode is bitten */
