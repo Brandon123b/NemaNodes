@@ -128,8 +128,12 @@ class World {
     let key = this.#zone2hashkey(zx,zy)
     if (type === Nematode) return this.#nematodeZones.getItemsWithKey(key)
     else if (type === Food) return this.#foodZones.getItemsWithKey(key)
-    else if (type === undefined)
-      return [].push(...this.getObjectsAtZone(zx,zy,Nematode)).push(...this.getObjectsAtZone(zx,zy,Food))
+    else if (type === undefined) {
+      let results = []
+      results.push(...this.#nematodeZones.getItemsWithKey(key))
+      results.push(...this.#foodZones.getItemsWithKey(key))
+      return results
+    }
     else throw `Unsupported world object type: ${type}`
   }
   
