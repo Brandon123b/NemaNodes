@@ -162,6 +162,7 @@ function mkSlider(opts) {
  * toggled: boolean for initial state
  * fillAlpha: alpha value of button
  * activeFillAlpha: alpha value when active
+ * required: true if clicking on the button when it is already active should do nothing
  * }
  */
 function mkButton(opts) {
@@ -172,6 +173,7 @@ function mkButton(opts) {
     bg: 0x000000,
     onToggle: () => {},
     toggled: false,
+    required: false,
     fillAlpha: 1,
     activeFillAlpha: 1
   })
@@ -215,7 +217,7 @@ function mkButton(opts) {
   // on mouse up, perform toggle action
   let onUp = function() {
     btnfilter.brightness(1, false)
-    toggle(!toggled)
+    if (!(opts.required && toggled)) toggle(!toggled)
     btn.setBorderPct(0.25)
     app.stage.off("pointerup", onUp)
     app.stage.off("pointerupoutside", onUp)
@@ -259,15 +261,16 @@ class UICard {
     this.container = new PIXI.Container()
     this.width = width
     this.maxHeight = maxHeight
-    this.margin = 10
+    this.margin = 15
     this.padding = 5
     // track the next y-position for the next UI element in this card to be added
     this.nextPos = this.margin
 
-    this.opacity = 0.15
-    this.color = 0x4444ff
-    this.trim = 0x000000
-    this.trimOpacity = 0.8
+    // TODO make these fields as arguments if this is class is used anywhere else
+    this.opacity = 0.6
+    this.color = 0x0
+    this.trim = 0x00cc00
+    this.trimOpacity = 1
 
     // graphics object for background
     this.card = new PIXI.Graphics()
@@ -296,25 +299,24 @@ class UICard {
         this.content.y -= 15
       else
         this.content.y += 15
-        
+      
       this.content.position.clamp([0,0], [Math.min(this.container.height - this.nextPos - this.margin,0),0])
     }
   }
 
   // return the container for this UI card
-  make() {
+  make(rounded = true) {
+    let cornerRadius = rounded ? 10 : 0
     let height = Math.min(this.nextPos + this.margin, this.maxHeight)
     // transparent bluish background to mimic glass
     this.card.beginFill(this.color,this.opacity)
-    this.card.drawRoundedRect(0,0,this.width,height,10)
+    this.card.drawRoundedRect(0,0,this.width,height,cornerRadius)
     this.card.endFill()
-    // black border
-    this.card.lineStyle(2,this.trim,this.trimOpacity)
-    this.card.drawRoundedRect(0,0,this.width,height,10)
-    this.card.drawRoundedRect(0,0,this.width-4,height-5,10)
+    // border
+    // this.card.lineStyle(2,this.trim,this.trimOpacity)
+    // this.card.drawRoundedRect(0,0,this.width,height,cornerRadius)
     
     this.card.interactive = true
-    createDragAction(this.card, this.container)
 
     addBlur(this.card, 0.5)
 
@@ -380,7 +382,8 @@ class UICard {
       onToggle: onClick,
       toggled: isToggle ? toggled : false,
       fillAlpha: this.opacity,
-      activeFillAlpha: isToggle ? this.trimOpacity : this.opacity
+      activeFillAlpha: isToggle ? this.trimOpacity : this.opacity,
+      required : this.toggleGroup ? true : false  // if part of a toggle group, then the button can only be disabled when its neighbor is clicked
     })
     btnContainer.addChild(btn)
     btn.position.set(btn.width/2)

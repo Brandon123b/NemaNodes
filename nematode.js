@@ -67,7 +67,7 @@ class Nematode {
 
             // These are to avoid the nematode from gaining max energy when the game is loaded
             this.UpdateStats(0, 0);
-            world.addNematode(this);
+            world.add(this);
             return;
         }
 
@@ -81,7 +81,7 @@ class Nematode {
         this.biteCooldown = 0;          // The time until the nematode can bite again (in seconds)
 
         // Tell the world that this bibite exists
-        world.addNematode(this)         
+        world.add(this)         
     }
 
     /* Creates a random nematode (with random stats and position)
@@ -243,8 +243,8 @@ class Nematode {
             this.direction.rotate(this.rotate * delta);
 
             // Update the Nematodes's position
-            world.updateNematodePosition(this,  this.GetX() + this.direction.x * this.speed * delta, 
-                                                this.GetY() + this.direction.y * this.speed * delta);
+            world.updatePosition(this,  this.GetX() + this.direction.x * this.speed * delta, 
+                                this.GetY() + this.direction.y * this.speed * delta);
 
             // If the nematode has knockback, apply it
             if (this.knockbackDirection != undefined)
@@ -467,25 +467,29 @@ class Nematode {
         }
 
         // Remove the nematode from the world after 14 seconds
-        if (this.timeSinceDeath > 14) {
-            // Remove the nematode from the world
-            world.destroyNematode(this);
+        if (this.timeSinceDeath > 14) this.Destroy()
+    }
 
-            // Set the nematode to not exist
-            this.exists = false;
+    /*
+    Destroy this nematode
+    */
+    Destroy() {
+        world.destroy(this);
 
-            // Clean un the neural network
-            this.nn.Destroy();
-            this.nn = null;
-        }
+        // Set the nematode to not exist
+        this.exists = false;
+
+        // Clean un the neural network
+        this.nn.Destroy();
+        this.nn = null;
     }
 
     /* Called in Update() when the nematode is bitten */
     KnockbackAnimation(delta) {
 
         // Move the nematode in the knockback direction
-        world.updateNematodePosition(this,  this.GetX() + this.knockbackDirection.x * delta, 
-                                            this.GetY() + this.knockbackDirection.y * delta);
+        world.updatePosition(this,  this.GetX() + this.knockbackDirection.x * delta, 
+                            this.GetY() + this.knockbackDirection.y * delta);
 
         // Decrease the knockback power
         this.knockbackDirection.MultiplyConstant(1 - delta * 10);
@@ -541,7 +545,7 @@ class Nematode {
         // make nematodes draggable
         createDragAction(this.sprite, this.sprite,
             (x,y) => this.paralyzed = world.draggableObjects,
-            (dx,dy,x,y) => { if (world.draggableObjects) world.updateNematodePosition(this, x, y) },
+            (dx,dy,x,y) => { if (world.draggableObjects) world.updatePosition(this, x, y) },
             (x,y) => this.paralyzed = false
         )
     }

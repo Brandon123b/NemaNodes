@@ -45,15 +45,16 @@ function main(){
 
 // create a UI card
 function CreateUI(){
-    
-    let ui = new UICard(300)
+    let container = new PIXI.Container()
+
+    let ui = new UICard(385, 290)
         .addText("User tools")
         .startToggleGroup()
         .addToggle(enabled => world.draggableObjects = enabled, "drag tool", true)
-        .addToggle(enabled => world.foodBrushOn = enabled, "food brush", false)
-        .addSlider(x => world.foodBrushRadius = x, 0, 100, world.foodBrushRadius, 1, "brush radius")
-        .addToggle(enabled => world.nematodeBrushOn = enabled, "nematode brush", false)
-        .addSlider(x => world.nematodeBrushRadius = x, 0, 100, world.nematodeBrushRadius, 1, "brush radius")
+        .addToggle(enabled => World.foodBrushOn = enabled, "food brush", false)
+        .addToggle(enabled => World.nematodeBrushOn = enabled, "nematode brush", false)
+        .addToggle(enabled => World.eraseBrushOn = enabled, "eraser", false)
+        .addSlider(x => World.brushRadius = x, 0, 100, World.brushRadius, 1, "brush radius")
         .endToggleGroup()
         .addText("Environment")
         .addSlider(x => world.maxNumFood = x, 0, world.maxNumFood*2, world.maxNumFood, 5, "max food number")
@@ -61,14 +62,47 @@ function CreateUI(){
         .addSlider(x => World.radius = x, 50, World.radius*3, World.radius, 10, "petri dish radius")
         .addText("Performance")
         .addSlider(x => world.SlowUpdateInterval = x, 1, 10, world.SlowUpdateInterval, 1, "slow update interval")
+        .startToggleGroup()
+        .addText("world zone size")
+        .addToggle(enabled => enabled && world.rezone(World.SMALL_ZONE_SIZE), "small", world.zoneSize() == World.SMALL_ZONE_SIZE)
+        .addToggle(enabled => enabled && world.rezone(World.MED_ZONE_SIZE), "medium", world.zoneSize() == World.MED_ZONE_SIZE)
+        .addToggle(enabled => enabled && world.rezone(World.LARGE_ZONE_SIZE), "large", world.zoneSize() == World.LARGE_ZONE_SIZE)
+        .addToggle(enabled => enabled && world.rezone(World.XL_ZONE_SIZE), "xl", world.zoneSize() == World.XL_ZONE_SIZE)
+        .endToggleGroup()
         .addText("Debug")
         .addToggle(enabled => world.drawZones = enabled, "draw world zones", world.drawZones)
         .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)
         .addSlider(x => gameSpeedMult = x, minGameSpeedMult, maxGameSpeedMult, gameSpeedMult, 1, "game speed")
-        .make()
+        .make(false) // set false to not round corners
 
-    app.stage.addChild(ui)
-    ui.position.y = 300
+    let monitor = PIXI.Sprite.from("monitor-nobg.png")
+    monitor.scale.set(0.25)
+    // hardcode monitor position to place well on left side of screen
+    monitor.position.x = -80
+    // hardcode position of UI to fit on monitor screen
+    ui.position.set(78,108)
+    container.addChild(monitor)
+    container.addChild(ui)
+
+    // initialize monitor position to bottom
+    container.y = app.screen.height-200
+
+    monitor.interactive = true
+    // scroll contents with the mousewheel
+    monitor.onwheel = e => {
+        const scroll = e.deltaY
+        if (scroll > 0)
+            container.y -= 50
+        else
+            container.y += 50
+        
+        container.position.clamp([0,0], [app.screen.height-monitor.height*0.6,app.screen.height-200])
+    }
+
+    // hardcode hit area for the monitor sprite
+    monitor.hitArea = new PIXI.Rectangle(350,150,2100,1700)
+
+    app.stage.addChild(container)
 }
 
 /**
