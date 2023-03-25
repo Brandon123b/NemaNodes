@@ -162,6 +162,7 @@ function mkSlider(opts) {
  * toggled: boolean for initial state
  * fillAlpha: alpha value of button
  * activeFillAlpha: alpha value when active
+ * required: true if clicking on the button when it is already active should do nothing
  * }
  */
 function mkButton(opts) {
@@ -172,6 +173,7 @@ function mkButton(opts) {
     bg: 0x000000,
     onToggle: () => {},
     toggled: false,
+    required: false,
     fillAlpha: 1,
     activeFillAlpha: 1
   })
@@ -215,7 +217,7 @@ function mkButton(opts) {
   // on mouse up, perform toggle action
   let onUp = function() {
     btnfilter.brightness(1, false)
-    toggle(!toggled)
+    if (!(opts.required && toggled)) toggle(!toggled)
     btn.setBorderPct(0.25)
     app.stage.off("pointerup", onUp)
     app.stage.off("pointerupoutside", onUp)
@@ -380,7 +382,8 @@ class UICard {
       onToggle: onClick,
       toggled: isToggle ? toggled : false,
       fillAlpha: this.opacity,
-      activeFillAlpha: isToggle ? this.trimOpacity : this.opacity
+      activeFillAlpha: isToggle ? this.trimOpacity : this.opacity,
+      required : this.toggleGroup ? true : false  // if part of a toggle group, then the button can only be disabled when its neighbor is clicked
     })
     btnContainer.addChild(btn)
     btn.position.set(btn.width/2)
