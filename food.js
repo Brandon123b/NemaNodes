@@ -32,7 +32,7 @@ class Food {
         this.sprite.width = this.width
         this.sprite.height = this.height
         
-        world.addFood(this)
+        world.add(this)
 
     }
 
@@ -94,7 +94,7 @@ class Food {
      * 
      */
     Destroy() {
-        world.destroyFood(this)
+        world.destroy(this)
     }
 
     toString() {
