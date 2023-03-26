@@ -1,4 +1,10 @@
 /**
+ * compose functions
+ */
+const compose = (...functions) => args => functions.reduceRight((arg, fn) => fn(arg), args)
+
+
+/**
  * Register mouse drag events for some object
  * 
  * @param {PIXI.DisplayObject} registerDisplayObject object to register initial mouse click on 
@@ -195,21 +201,26 @@ requestAnimationFrame(animateWithTween)
 
 /**
  * 
- * @param {*} obj 
- * @param {*} to 
- * @param {*} duration 
- * @param {*} opts 
- * @returns 
+ * @param {*} obj object to tween
+ * @param {*} to object properties to tween toward
+ * @param {*} duration duration of animation
+ * @param {*} opts {
+ * easing: easing function to use
+ * onUpdate: action to perform for each update
+ * onComplete: action to perform when transition succeeds
+ * }
  */
 function transition(obj, to, duration, opts = {}) {
   fillDefaults(opts, {
     easing: TWEEN.Easing.Quadratic.Out,
-    onUpdate: () => {}
+    onUpdate: () => {},
+    onComplete: () => {}
   })
 
   new TWEEN.Tween(obj)
     .to(to, duration)
     .easing(opts.easing)
     .onUpdate(opts.onUpdate)
+    .onComplete(opts.onComplete)
     .start()
 }

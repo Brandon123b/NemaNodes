@@ -84,23 +84,47 @@ function CreateUI(){
     container.addChild(monitor)
     container.addChild(ui)
 
+    // set the container's position to be the bottom left corner of the monitor
+    container.pivot.set(15,460)
+    let topPos = app.screen.height - container.height*0.1       // min y value for container position
+    let bottomPos = app.screen.height + container.height*0.8    // max y value for container position
     // initialize monitor position to bottom
-    container.y = app.screen.height-200
+    container.y = bottomPos
+    container.x = 30
 
     monitor.interactive = true
-    // scroll contents with the mousewheel
-    monitor.onwheel = e => {
-        const scroll = e.deltaY
-        if (scroll > 0)
-            container.y -= 50
-        else
-            container.y += 50
-        
-        container.position.clamp([0,0], [app.screen.height-monitor.height*0.6,app.screen.height-200])
+
+    // pull up the monitor
+    let pullup = () => transition(container.position, {y: topPos}, 400)
+    // move the monitor down out of sight
+    let putaway = () => transition(container.position, {y: bottomPos}, 400)
+    // blow up the monitor
+    let blowup = () => transition(container.scale, {x:2, y:2}, 400, {
+        onComplete: () => scalingMonitor = false
+    })
+    // shrink monitor to normal size
+    let shrink = () => transition(container.scale, {x:1, y:1}, 400, {
+        onComplete: () => scalingMonitor = false
+    })
+
+    let blownup = false
+    let scalingMonitor = false
+    container.onmouseover = () => {blownup || scalingMonitor || pullup()}
+    container.onmouseout = () => {blownup || scalingMonitor || putaway()}
+    monitor.onmousedown = () => {
+        scalingMonitor = true
+        if (blownup) {
+            shrink()
+            putaway()
+        } else {
+            blowup()
+            pullup()
+        }
+        blownup = !blownup
     }
 
     // hardcode hit area for the monitor sprite
-    monitor.hitArea = new PIXI.Rectangle(350,150,2100,1700)
+    monitor.hitArea = new PIXI.Rectangle(350,150,2100,2000)
 
     app.stage.addChild(container)
 }
