@@ -74,6 +74,16 @@ class Canvas {
 
 
     this.CreatePauseAction()
+
+
+    //Settings for drawing energy levels above nematodes
+    this.ebar_offset_y = 30;
+    this.ebar_height = 0.001;
+
+    //undecided on whether this should be a gradient instead
+    this.ebarcolor_low = 0xbd1111;
+    this.ebarcolor_mid = 0xfcd303;
+    this.ebarcolor_high = 0x0339fc;
   }
 
   // take a world point and convert it to a point on the screen
@@ -198,16 +208,21 @@ class Canvas {
   DrawEnergyLevel(nematode) {
     
     //setting variables here is dumb and to be changed later
-    var offset_y = 30;
-    var bar_height = 0.001
-    var bar_width = 30
-    //console.log(rect_position);
+    
 
-    let barcolor = 0xbd1111
+    let ebar_ratio = nematode.energy / nematode.maxEnergy;
+
+    let barcolor = this.ebarcolor_high;
+    if(ebar_ratio < 0.33) {
+      barcolor = this.ebarcolor_low;
+    }
+    else if (ebar_ratio < 0.66) {
+      barcolor = this.ebarcolor_mid;
+    }
 
     this.worldGraphics.beginFill(barcolor);
     this.worldGraphics.lineStyle(5, barcolor);
-    this.worldGraphics.drawRect(nematode.sprite.x - (bar_width/2), nematode.sprite.y - offset_y, bar_width, bar_height);
+    this.worldGraphics.drawRect(nematode.sprite.x - (30 * ebar_ratio/2), nematode.sprite.y - this.ebar_offset_y, 30 * ebar_ratio, this.ebar_height);
     
     //graphics.drawRect(rect_position.)
 
