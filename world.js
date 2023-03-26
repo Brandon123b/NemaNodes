@@ -105,9 +105,9 @@ class World {
    */
   forEach(f, type) {
     if (type === Nematode)
-      for (const nematode of this.#nematodeZones.items()) f(nematode)
+      this.#nematodeZones.items().forEach(f)
     else if (type === Food)
-      for (const food of this.#foodZones.items()) f(food)
+      this.#foodZones.items().forEach(f)
     else if (type === undefined) {
       this.forEach(f, Nematode)
       this.forEach(f, Food)
