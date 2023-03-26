@@ -6,6 +6,7 @@
  * @param {function} dragStartAction function (x, y) => ... action to take when dragging begins
  * @param {function} dragMoveAction function (dx, dy, x, y) => ... action to perform given mouse displacement (by default, simply translate dragTarget's position)
  * @param {function} dragEndAction function (x, y) => ... action to perform when dragging ends
+ * @param {boolean} rightMouse drag on right click, default = false
  */
 function createDragAction(registerDisplayObject, dragTarget, dragStartAction, dragMoveAction, dragEndAction, rightMouse = false) {
   let dragging = false
@@ -58,24 +59,6 @@ function createDragAction(registerDisplayObject, dragTarget, dragStartAction, dr
     .on('pointerupoutside', onDragEnd)
 }
 
-/**
- * 
- * Deregister drag actions from the obj
- * Omit the function parameters to remove all drag actions
- * 
- * @param {PIXI.DisplayObject} registerObject to deregister actions on
- * @param {*} onDragStart 
- * @param {*} onDragMove 
- * @param {*} onDragEnd 
- */
-function removeDragAction(registerObject, onDragStart, onDragMove, onDragEnd) {
-  registerObject
-    .off('pointerdown', onDragStart)
-    .off('pointerup', onDragEnd)
-    .off('pointerupoutside', onDragEnd)
-
-  app.stage.off('pointermove', onDragMove)
-}
 
 /**
  * Fill the undefined attributes of the given object according to the default object
@@ -109,17 +92,20 @@ function addBlur(obj, amount) {
 class Keys {
   static #pressedKeys = new Set()
   static debug = false
+  static #actions = {}
 
   static {
     addEventListener("keydown", e => {
       if (!e.repeat) {
-        this.#pressedKeys.add(e.key)
-        if (this.debug) console.log(e.key, "pressed")
+        this.#pressedKeys.add(e.code)
+        if (this.debug) console.log(e.code, "pressed")
+        for (const action of this.#actions[e.code] || []) action()
       }
     })
+
     addEventListener("keyup", e => {
-      this.#pressedKeys.delete(e.key)
-      if (this.debug) console.log(e.key, "lifted")
+      this.#pressedKeys.delete(e.code)
+      if (this.debug) console.log(e.code, "lifted")
     })
 
     // prevent right clicks from bringing up the context menu
@@ -130,10 +116,64 @@ class Keys {
   }
 
   /**
-   * Return true if the given key is being pressed
-   * @param {string} key string like 'd' or 'W' or 'Shift' 
+   * Return true if the given key code is being pressed
+   * @param {string} key string like 'Space' or 'KeyW' or 'ShiftLeft' 
    */
   static keyPressed(key) {
     return this.#pressedKeys.has(key)
   }
+
+  /**
+   * 
+   * @param {string} key code for key 
+   * @param {function} action callback to be performed on key down
+   */
+  static addAction(key, action) {
+    if (this.#actions[key])
+      this.#actions[key].push(action)
+    else
+      this.#actions[key] = [action]
+  }
+}
+
+/**
+ * Download the given string to a file
+ * 
+ * @param {string} content 
+ * @param {string} fileName 
+ * @param {string} contentType text/plain typically
+ */
+function download(content, fileName, contentType) {
+  var a = document.createElement("a");
+  var file = new Blob([content], {type: contentType});
+  a.href = URL.createObjectURL(file);
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(a.href)
+}
+
+
+/**
+ * Convert the given object to JSON and download it to user machine
+ * 
+ * @param {object} obj 
+ * @param {string} filename 
+ */
+function downloadJSON(obj, filename) {
+  download(JSON.stringify(obj), filename, 'text/plain')
+}
+
+/**
+ * Prompt the user to select files
+ * @return {Promise} promise containing list of selected files
+ */
+async function upload() {
+  let a = document.createElement("input")
+  a.setAttribute("type", "file")
+  a.setAttribute("multiple", "") // to allow selecting multiple files
+  a.click()
+  let files = await new Promise((resolve, reject) => {
+    a.onchange = () => resolve(a.files)
+  })
+  return files
 }

@@ -32,7 +32,7 @@ class Food {
         this.sprite.width = this.width
         this.sprite.height = this.height
         
-        world.addFood(this)
+        world.add(this)
 
     }
 
@@ -78,13 +78,40 @@ class Food {
     *  Returns the nutrition value of the food (TODO: add nutrition value to food)
     */
     Eat(){
-        world.destroyFood(this)
 
+        // Set the food to ignore raycasts (so it can't be eaten again) (This also ignores things like smell)
+        this.ignoreRaycast = true;
+
+        // Remove the food from the world
+        this.Destroy()
+
+        // Return the nutrition value of the food
         return 30;
+    }
+
+    /**
+     * Destroy this food object
+     * 
+     */
+    Destroy() {
+        world.destroy(this)
     }
 
     toString() {
         return `{Food at (${this.GetX()}, ${this.GetY()})}`
     }
 
+    // TODO: consider energy preservation?
+    /* Static function to spawn food when a nematode dies */
+    static SpawnNematodeDeathFood(deathPos, size) {
+
+        // Find the amount of food to spawn based on size
+        var num = Math.floor(size / 5);
+
+        // Spawn the food
+        for (var i = 0; i < num; i++) {
+            var pos = new PIXI.Point(deathPos.x, deathPos.y).perturb(size / 2);
+            new Food(pos);
+        }
+    }
 }
