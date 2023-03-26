@@ -81,6 +81,16 @@ function CreateUI(){
     monitor.position.x = -80
     // hardcode position of UI to fit on monitor screen
     ui.position.set(78,108)
+    ui.filters = [new PIXI.filters.CRTFilter({
+        vignetting: 0,
+        lineWidth: 3,
+        time: 1,
+        curvature: 2,
+        noise: 0.2,
+        noiseSize: 3
+    })]
+    app.ticker.add(() => ui.filters[0].time += 10)
+
     container.addChild(monitor)
     container.addChild(ui)
 
