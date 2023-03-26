@@ -59,19 +59,23 @@ function createDragAction(registerDisplayObject, dragTarget, dragStartAction, dr
     .on('pointerupoutside', onDragEnd)
 }
 
-
+class Required{}
 /**
  * Fill the undefined attributes of the given object according to the default object
  * 
  * useful for objects used to pass parameters
  * 
  * @param {object} obj 
- * @param {object} defaults 
+ * @param {object} defaults default values to insert into obj if obj.key is undefined.
+ *     Set defaults.key to Required if obj must specify its value
  */
 function fillDefaults(obj, defaults) {
   for (prop in defaults)
-  if (obj[prop] === undefined)
+  if (obj[prop] === undefined) {
+    if (defaults[prop] === Required)
+      throw `Object ${obj} must supply value for ${prop}`
     obj[prop] = defaults[prop]
+  }
 
   return obj
 }
@@ -176,4 +180,36 @@ async function upload() {
     a.onchange = () => resolve(a.files)
   })
   return files
+}
+
+
+/**
+ * start animation loop for transitions. not meant to be called again
+ */
+function animateWithTween(time) {
+  requestAnimationFrame(animateWithTween)
+  TWEEN.update(time)
+}
+requestAnimationFrame(animateWithTween)
+
+
+/**
+ * 
+ * @param {*} obj 
+ * @param {*} to 
+ * @param {*} duration 
+ * @param {*} opts 
+ * @returns 
+ */
+function transition(obj, to, duration, opts = {}) {
+  fillDefaults(opts, {
+    easing: TWEEN.Easing.Quadratic.Out,
+    onUpdate: () => {}
+  })
+
+  new TWEEN.Tween(obj)
+    .to(to, duration)
+    .easing(opts.easing)
+    .onUpdate(opts.onUpdate)
+    .start()
 }
