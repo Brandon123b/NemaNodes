@@ -1,7 +1,7 @@
 /**
  * Structure to hold information about the world and objects in the world
  * 
- * Objects to be placed in the world need to have a worldPos field containing a Vector2
+ * Objects to be placed in the world must implement GetX(), GetY(), GetPosition()
  */
 
 class World {
