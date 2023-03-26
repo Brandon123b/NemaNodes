@@ -101,7 +101,7 @@ class Canvas {
 
     //draw energy level bars above nematodes
     if(world.energyBarOn) {
-      world.forEachNematode(n => this.nematodeStatsMenuObj.DrawEnergyLevel(n));
+      world.forEachNematode(n => this.DrawEnergyLevel(n));
 
     }
 
@@ -120,6 +120,25 @@ class Canvas {
         world.selectedNematode = null;
       }
     }
+  }
+
+  //Draw a bar above a nematode's head that shows its energy level
+  DrawEnergyLevel(nematode) {
+    
+    //setting variables here is dumb and to be changed later
+    var offset_y = 30;
+    var bar_height = 0.001
+    var bar_width = 30
+    //console.log(rect_position);
+
+    let barcolor = 0xbd1111
+
+    this.worldGraphics.beginFill(barcolor);
+    this.worldGraphics.lineStyle(5, barcolor);
+    this.worldGraphics.drawRect(nematode.sprite.x - (bar_width/2), nematode.sprite.y - offset_y, bar_width, bar_height);
+    
+    //graphics.drawRect(rect_position.)
+
   }
 }
 
@@ -167,17 +186,5 @@ class NematodeStatsMenu {
     this.statsText.visible = false;
   }
 
-  //this method might be better off in another class
-  DrawEnergyLevel(nematode) {
-    
-    //setting variables here is dumb and to be changed later
-    var offset_y = 10;
-    var bar_height = 20
-    var rect_position = nematode.sprite.position;
-    console.log(rect_position);
-
-    graphics.drawRect(nematode.sprite.x, nematode.sprite.y - offset_y, nematod.sprite.width, bar_height)
-    //graphics.drawRect(rect_position.)
-
-  }
+  
 }
