@@ -104,6 +104,7 @@ function CreateUI(){
         crt.time += 10
         let jitter = Math.random()
         if (jitter < 0.5) glitch.seed = jitter
+        if (jitter < 0.2) glitch.slices = Math.random()*10
     })
 
     container.addChild(monitor)
