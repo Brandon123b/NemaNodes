@@ -85,7 +85,6 @@ function CreateUI(){
     let crt = new PIXI.filters.CRTFilter({
         vignetting: 0,
         lineWidth: 3,
-        time: 1,
         curvature: 2,
         noise: 0.2,
         noiseSize: 3
@@ -101,7 +100,7 @@ function CreateUI(){
     ui.filters = [crt,glitch]
     // animate the filters
     app.ticker.add(() => {
-        crt.time += 10
+        crt.time += 2
         let jitter = Math.random()
         if (jitter < 0.5) glitch.seed = jitter
         if (jitter < 0.2) glitch.slices = Math.random()*10
