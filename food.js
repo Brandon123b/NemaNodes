@@ -8,7 +8,10 @@
 
 
 class Food {
-    
+    static FOOD_DECAY_AGE = 100 // seconds until food decays away
+
+    // number of ticks between each call to SlowUpdate() for a food object
+    static FOOD_UPDATE_INTERVAL = 100
 
     constructor(position) {
 
@@ -20,7 +23,10 @@ class Food {
         this.width = 6
         this.height = 6
 
-        this.age = 0
+        this.age = 0 // this is not used as of now
+
+        this.birthTime = timeSinceStart
+
         this.spriteScaleX = 0.25 //scale sprite as needed
         this.spriteScaleY = 0.25
 
@@ -33,7 +39,6 @@ class Food {
         this.sprite.height = this.height
         
         world.add(this)
-
     }
 
     /*
@@ -42,7 +47,16 @@ class Food {
     * @param {number} delta - time since last udpate
     */
     Update(delta) {
+        // this is never called as of now
         this.age += delta
+    }
+
+    /**
+     * SlowUpdate only called once very few frames
+     */
+    SlowUpdate() {
+        if (timeSinceStart - this.birthTime >= Food.FOOD_DECAY_AGE)
+            this.Destroy()
     }
 
     GetPosition() {
