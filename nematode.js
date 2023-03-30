@@ -215,6 +215,7 @@ class Nematode {
         // Set the rotate and speed variables from the neural network outputs
         this.rotate = this.nn.GetOutput(0) * this.maxTurnSpeed;
         this.speed  = this.nn.GetOutput(1) * this.maxSpeed;
+        // Output 2 is used for Biting in OnBite (Called from EyeRaycast)
 
         // If speed is negative, halve it (Make backwards movement slower to encourage forward movement)
         this.speed = (this.speed < 0) ? this.speed * 0.5 : this.speed;
@@ -432,6 +433,18 @@ class Nematode {
                                           .normalize().MultiplyConstant(Nematode.KNOCKBACK_POWER * sizeRatio);
     }
 
+    /* Destroy this nematode */
+    Destroy() {
+        world.destroy(this);
+
+        // Set the nematode to not exist
+        this.exists = false;
+
+        // Clean un the neural network
+        this.nn.Destroy();
+        this.nn = null;
+    }
+
     // ------------------- Animations ------------------- //
 
     /** Called in Update() when the nematode is dead
@@ -468,20 +481,6 @@ class Nematode {
 
         // Remove the nematode from the world after 14 seconds
         if (this.timeSinceDeath > 14) this.Destroy()
-    }
-
-    /*
-    Destroy this nematode
-    */
-    Destroy() {
-        world.destroy(this);
-
-        // Set the nematode to not exist
-        this.exists = false;
-
-        // Clean un the neural network
-        this.nn.Destroy();
-        this.nn = null;
     }
 
     /* Called in Update() when the nematode is bitten */
@@ -604,6 +603,4 @@ class Nematode {
     SetPos(x, y) {
         this.sprite.position.set(x,y)
     }
-
-    Eat(){}
 }
