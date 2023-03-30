@@ -91,6 +91,7 @@ class Nematode {
 
         // The age in seconds
         this.age = 0;
+        this.generation = 0;
 
         this.exists = true;             // Nematodes exist by default
         this.alive = true;              // Nematodes are (hopefully) alive by default
@@ -122,6 +123,7 @@ class Nematode {
 
         // The age in seconds (always 0 for children)
         this.age = 0;  
+        this.generation = parent.generation + 1
 
         this.exists = true;             // Nematodes exist by default
         this.alive = true;              // Nematodes are (hopefully) alive by default
@@ -156,6 +158,7 @@ class Nematode {
             
         // The age in seconds
         this.age = json.age;
+        this.generation = json.generation; // Number of ancestors this nematode has
 
         this.exists = true;             // Nematodes exist by default
         this.alive = json.alive;        // Nematodes are (hopefully) alive by default
@@ -553,6 +556,7 @@ class Nematode {
     toJson() {
         return {
             age: this.age,
+            generation: this.generation,
             alive: this.alive,
             nn: this.nn.toJson(),
             pos: {x: this.GetX(), y: this.GetY()},

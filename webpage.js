@@ -19,6 +19,7 @@ const minGameSpeedMult = 1
 const maxGameSpeedMult = 10
 // Slow Update counter (The currently updated frame)
 let slowUpdateCounter = 0;
+let foodUpdateCounter = 0
 
 // Starts everything
 function main(){
@@ -135,22 +136,20 @@ function GameLoop(delta) {
 
     // Slow update (Runs each nematode's SlowUpdate() function every SlowUpdateInterval frames)
     slowUpdateCounter++;
-    if (slowUpdateCounter >= world.SlowUpdateInterval){
-        slowUpdateCounter = 0;
-    }
-
-    // SlowUpdate the nematodes
-    let i = 0;
-    world.forEachNematode(
-    n => {
-        // Only update when the slow update counter is the correct frame
-        if (i++ % world.SlowUpdateInterval == slowUpdateCounter){
-            n.SlowUpdate(delta)
-        }
+    slowUpdateCounter %= world.SlowUpdateInterval
+    // Update the nematodes
+    world.forEachNematode((n, i) => {
+        if (i % world.SlowUpdateInterval == slowUpdateCounter)
+            n.SlowUpdate()
+        n.Update(delta)
     })
 
-    // Update the nematodes
-    world.forEachNematode(n => n.Update(delta))
+    foodUpdateCounter++
+    foodUpdateCounter %= Food.FOOD_UPDATE_INTERVAL
+    // slow update on food
+    world.forEach((f, i) => {
+        if (i % Food.FOOD_UPDATE_INTERVAL == foodUpdateCounter) f.SlowUpdate()
+    }, Food)
 
     // If there is an extinction event
     if (world.numNematodes() == 0){

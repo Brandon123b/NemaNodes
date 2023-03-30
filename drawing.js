@@ -1,4 +1,9 @@
-
+/**
+ * This class contains the PIXI container that holds the sprites for world objects.
+ * It also handles:
+ *  - some user interactions (world panning/zooming, pausing game)
+ *  - graphics drawing in the world space and the screen space (for debugging mostly)
+ */
 class Canvas {
 
   constructor() {
