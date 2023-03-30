@@ -216,10 +216,6 @@ class Nematode {
         this.rotate = this.nn.GetOutput(0) * this.maxTurnSpeed;
         this.speed  = this.nn.GetOutput(1) * this.maxSpeed;
 
-        // If the nematode wants to bite, bite
-        if (this.nn.GetOutput(2) > 0 && this.biteCooldown <= 0) 
-            this.Bite(nematodeList);
-
         // If speed is negative, halve it (Make backwards movement slower to encourage forward movement)
         this.speed = (this.speed < 0) ? this.speed * 0.5 : this.speed;
     }
@@ -316,6 +312,10 @@ class Nematode {
             // If the raycast is close enough to the food, eat it
             if (isFood && raycastResult.GetDistance() < this.size / 2)
                 this.OnEat(raycastResult.GetHitObject());
+            
+            // If the raycast is close enough to the nematode, bite it
+            else if (!isFood && raycastResult.GetDistance() < this.size / 2 + Nematode.MAX_BITE_DISTANCE)
+                this.OnBite(raycastResult.GetHitObject());
 
             // Return the ratio of the distance to the closest food to the max distance
             return (1 - raycastResult.GetDistance() / Nematode.MAX_EYE_DISTANCE);
@@ -361,26 +361,6 @@ class Nematode {
         return Math.min(1, totalSmell);
     }
 
-    /* Attempts to bite another Nematode (If one is in range if its fangs) */
-    Bite(nematodeList){
-
-        // Create a raycast result object
-        var raycastResult = new RaycastResult2D();
-
-        if (Raycast(raycastResult, this.sprite.position, this.direction, this.size / 2 + Nematode.MAX_BITE_DISTANCE, nematodeList)){
-
-
-            // Lose energy for biting
-            this.energy -= Nematode.ENERGY_LOST_WHEN_BITING;
-
-            // Call the OnBite function of the nematode
-            raycastResult.GetHitObject().OnGetBitten(this.GetPosition(), this.size);
-
-            // Start the cooldown timer
-            this.biteCooldown = Nematode.BITE_COOLDOWN;
-        }
-    }
-
     // ------------------- Events ------------------- //
 
     /* Called when the nematode dies
@@ -416,6 +396,23 @@ class Nematode {
             this.energy -= this.maxEnergy * Nematode.PERCENT_ENERGY_LOST_WHEN_REPRODUCING;  // Lose energy when reproducing
             new Nematode(this);                                                             // Create a new Nematode child
         }
+    }
+    
+    /* Bites another Nematode (Called from EyeRaycast)
+     *  @param {Nematode} nematode - The nematode to bite
+     */
+    OnBite(nematode){
+        // If the nematode is on cooldown or does not want to bite, don't bite
+        if (this.biteCooldown > 0 || this.nn.GetOutput(2) < 0) return;
+        
+        // Lose energy for biting
+        this.energy -= Nematode.ENERGY_LOST_WHEN_BITING;
+
+        // Call the OnBite function of the nematode
+        nematode.OnGetBitten(this.GetPosition(), this.size);
+
+        // Start the cooldown timer
+        this.biteCooldown = Nematode.BITE_COOLDOWN;
     }
 
     /* Called when the Nematode is bitten by another Nematode
