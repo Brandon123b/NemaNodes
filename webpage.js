@@ -36,10 +36,10 @@ function main(){
     CreateUI();
 
     // Add some nematodes
-    world.SpawnNematodes(5000);
+    world.SpawnNematodes(2000);
 
     // Add some food
-    world.SpawnFood(5000);
+    world.SpawnFood(2000);
     
     setInterval(mainLoop, 1000/60)
 }
@@ -57,6 +57,9 @@ function CreateUI(){
         .addToggle(enabled => World.eraseBrushOn = enabled, "eraser", false)
         .addSlider(x => World.brushRadius = x, 0, 100, World.brushRadius, 1, "brush radius")
         .endToggleGroup()
+        .addText("Nematodes")
+        .addSlider(x => NeatNN.MUTATION_MULTIPLIER = x, 0, 5, NeatNN.MUTATION_MULTIPLIER, .1, "Nematode NN mutation multiplier")
+        .addToggle(enabled => NNDisplay.DRAW_LABELS = enabled, "Draw NN Labels", NNDisplay.DRAW_LABELS)
         .addText("Environment")
         .addSlider(x => world.maxNumFood = x, 0, world.maxNumFood*2, world.maxNumFood, 5, "max food number")
         .addSlider(x => world.foodReplenishRate = x, 0, world.maxReplenishRate, world.foodReplenishRate, 1, "food replenish rate")
@@ -73,6 +76,7 @@ function CreateUI(){
         .addText("Debug")
         .addToggle(enabled => world.drawZones = enabled, "draw world zones", world.drawZones)
         .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)
+        .addToggle(enabled => world.drawSmell = enabled, "draw nematode smell", world.drawSmell)
         .addSlider(x => gameSpeedMult = x, minGameSpeedMult, maxGameSpeedMult, gameSpeedMult, 1, "game speed")
         .make(false) // set false to not round corners
 

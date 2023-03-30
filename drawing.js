@@ -46,6 +46,9 @@ class Canvas {
     // Create the nematode stats menu
     this.nematodeStatsMenuObj = new NematodeStatsMenu(this.screenGraphics);
 
+    // Create the NN display
+    this.nnDisplayObj = new NNDisplay(app.stage);
+
     // Create the fps counter
     this.CreateFpsCounter();
 
@@ -180,7 +183,13 @@ class Canvas {
       if (world.selectedNematode.exists) {
         this.nematodeStatsMenuObj.DrawBackground(this.screenGraphics);
         world.selectedNematode.DrawStats(this.nematodeStatsMenuObj);
-        world.selectedNematode.nn.DrawNN(this.screenGraphics);
+
+        // Update the neural network display and draw it (TODO: only update when the nn changes)
+        world.selectedNematode.nn.UpdateDisplay(this.nnDisplayObj);
+        this.nnDisplayObj.Draw(this.screenGraphics);
+
+        if (world.drawSmell)
+          world.selectedNematode.DrawSmellRange(this.worldGraphics);
       }
       // If the selected nematode no longer exists, deselect it
       else {

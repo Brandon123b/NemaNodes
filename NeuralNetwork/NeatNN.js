@@ -18,6 +18,8 @@
 
 class NeatNN {
 
+    static MUTATION_MULTIPLIER = 1;       // The mutation multiplier of the neural network
+
     constructor(_inputCount, _outputCount, dontRandomize = false) {
         this.inputCount = _inputCount;
         this.outputCount = _outputCount;
@@ -142,52 +144,56 @@ class NeatNN {
         this.penalty = this.connections.length * 0.005 + this.nodes.length * 0.02;
     }
 
-    // ---------------------------- Mutate Functions ------------------------------------
+    // ---------------------------- Mutate Functions ------------------------------------ //
 
     // Mutate the network
     Mutate() {
 
-        var mutateWeightChance = 0.6;
-        var mutateBiasChance = 0.3;
-        var mutateAddConnectionChance = 0.06;
-        var mutateRemoveConnectionChance = 0.05;
-        var mutateAddNodeChance = 0.05;
-        var mutateRemoveConnectionChance = 0.04;
+        var mutateWeightChance =            0.6  * NeatNN.MUTATION_MULTIPLIER;
+        var mutateBiasChance =              0.3  * NeatNN.MUTATION_MULTIPLIER;
+        var mutateAddConnectionChance =     0.05 * NeatNN.MUTATION_MULTIPLIER;
+        var mutateRemoveConnectionChance =  0.05 * NeatNN.MUTATION_MULTIPLIER;
+        var mutateAddNodeChance =           0.03 * NeatNN.MUTATION_MULTIPLIER;
+        var mutateRemoveConnectionChance =  0.03 * NeatNN.MUTATION_MULTIPLIER;
 
         // Mutate the weight of a random connection
-        if (Math.random() < mutateWeightChance){
+        while (mutateWeightChance > 0 && Math.random() < mutateWeightChance){
+            mutateWeightChance -= 1;
 
-            for (let i = 0; i < 2; i++)
-                this.MutateModifyWeight();
+            this.MutateModifyWeight();
         }
 
         // Mutate the bias of a random node
-        if (Math.random() < mutateBiasChance){
+        while (mutateBiasChance > 0 && Math.random() < mutateBiasChance){
+            mutateBiasChance -= 1;
 
-            for (let i = 0; i < 2; i++)
-                this.MutateModifyBias();
+            this.MutateModifyBias();
         }
         
         // Add a random connection to the network
-        if (Math.random() < mutateAddConnectionChance){
+        while (mutateAddConnectionChance > 0 && Math.random() < mutateAddConnectionChance){
+            mutateAddConnectionChance -= 1;
 
             this.MutateAddConnection();
         }
         
         // Remove a random connection from the network
-        if (Math.random() < mutateRemoveConnectionChance){
+        while (mutateRemoveConnectionChance > 0 && Math.random() < mutateRemoveConnectionChance){
+            mutateRemoveConnectionChance -= 1;
 
             this.MutateRemoveConnection();
         }
         
         // Add a random node to the network
-        if (Math.random() < mutateAddNodeChance){
+        while (mutateAddNodeChance > 0 && Math.random() < mutateAddNodeChance){
+            mutateAddNodeChance -= 1;
 
             this.MutateAddNode();
         }
 
         // Remove a random node from the network
-        if (Math.random() < mutateRemoveConnectionChance){
+        while (mutateRemoveConnectionChance > 0 && Math.random() < mutateRemoveConnectionChance){
+            mutateRemoveConnectionChance -= 1;
 
             this.MutateRemoveNode();
         }
@@ -367,34 +373,27 @@ class NeatNN {
 
     // ---------------------------- Draw Functions --------------------------------------
 
-    /** Draws the neural network to the canvas
-     * Draws the nn to the top left of the canvas using the given graphics object
-     * The network is drawn with the input nodes on the left, the output nodes on the right, and the hidden nodes in the middle
-     * This function is not optimized and should not be used too often
-     * @param {PIXI.Graphics} graphics The graphics object to draw to
-     * @param {number} xSize The width of the canvas
-     * @param {number} ySize The height of the canvas
-     * @param {number} nodeSize The size of the nodes
+    /* Updates the display of the network using the gicen NNDisplay
+     * @param {NNDisplay} diagram - The NNDisplay that will be used to draw the network
      */
-    DrawNN(graphics, xSize = 300, ySize = 200, nodeSize = 10) {
+    UpdateDisplay(diagram) {
 
-        var xPadding = 35;
-        var yPadding = 20;
+        // The padding between the outside of the box and the nodes
+        const xPadding = 35;
+        const yPadding = 20;
 
-        var nodeLocations = [];                     // The x,y locations of the nodes
-        var nodeDepths = this.FindDepths();         // The depth of each node
-        var maxDepth = Math.max(...nodeDepths) + 1; // The max depth of the network
-        var nodeDepthsCount = [];                   // The number of nodes at each depth
+        // The amount of space to the left to allow for the node labels
+        const leftPadding = (NNDisplay.DRAW_LABELS) ? NNDisplay.leftPadding : 0;
+
+        var nodeLocations = [];                      // The x,y locations of the nodes
+        var nodeDepths = this.FindDepths();          // The depth of each node
+        var maxDepth = Math.max(...nodeDepths) + 1;  // The max depth of the network
+        var nodeDepthsCount = [];                    // The number of nodes at each depth
         var yPositionsUsed = [];                     // The y positions that are already used
 
         // If the network has been destroyed, return
         if (this.nodes === null)
             return;
-
-        // Draw a black rounded rectangle as the background
-        graphics.beginFill(0x000000);
-        graphics.drawRoundedRect(10, 10, xSize, ySize, 20);
-        graphics.endFill();
 
         // Set the depths of the output nodes to the max depth
         for (let i = 0; i < this.outputCount; i++) {
@@ -420,84 +419,18 @@ class NeatNN {
         for (let i = 0; i < this.nodes.length; i++) {
 
             // Set the x location to the x padding plus the max x size divided by the number of layers
-            var xLoc = xPadding + nodeDepths[i] * (xSize - xPadding * 2) / (maxDepth-1);
-
+            var xLoc = xPadding + nodeDepths[i] * (NNDisplay.xSize - xPadding * 2) / (maxDepth-1) + leftPadding;
+    
             // Center the nodes at the y location
-            var yLoc = yPadding + (ySize - yPadding * 2) * (yPositionsUsed[nodeDepths[i]] + .5) / nodeDepthsCount[nodeDepths[i]];
+            var yLoc = yPadding + (NNDisplay.ySize - yPadding * 2) * (yPositionsUsed[nodeDepths[i]] + .5) / nodeDepthsCount[nodeDepths[i]];
             yPositionsUsed[nodeDepths[i]]++;
-
+    
             // Add the location to the list of locations
-            nodeLocations.push(new PIXI.Point(xLoc, yLoc));
+            nodeLocations.push(new PIXI.Point(xLoc + NNDisplay.xPos, yLoc + NNDisplay.yPos));
         }
 
-        // Draw the connections
-        for(let i = 0; i < this.connections.length; i++) {
-            this.DrawConnection(graphics, this.connections[i], nodeLocations);
-        }
-
-        // Draw the nodes
-        for(let i = 0; i < nodeLocations.length; i++) {
-            this.DrawNode(graphics, this.nodes[i], nodeLocations[i], nodeSize);
-        }
-
-    }
-
-    /* Draws a node
-    * graphics: The graphics object to draw to
-    * node: The node to draw
-    * loc: The location to draw the node
-    * nodeSize: The size of circle to draw for the node
-    */
-    DrawNode(graphics, node, loc, nodeSize) {
-
-        // The intensity of the color
-        var intensity = Math.min(255, Math.abs(node.activation * 255));
-        intensity = Math.floor(intensity).toString(16).toUpperCase();
-
-        // If the intensity is only one digit, add a 0 to the front
-        if(intensity.length === 1)
-            intensity = "0" + intensity;
-        
-        // If the activation is less than 0, make the color red, otherwise make it green
-        var color = (node.activation < 0) ? "0x" + intensity + "0000" : "0x00" + intensity + "00";
-
-        // Set the fill color
-        graphics.beginFill(color);
-
-        // Add a blue border
-        graphics.lineStyle(1 , 0x0000FF);
-
-        // Draw the circle
-        graphics.drawCircle(loc.x, loc.y, nodeSize);
-    }
-
-    /* Draws a connection
-    * graphics: The graphics object to draw to
-    * connection: The connection to draw
-    * nodeLocations: The locations of the nodes
-    */
-    DrawConnection(graphics, connection, nodeLocations) {
-            
-        // The width of the line
-        var lineWidth = 3;
-
-        // The intensity of the color
-        var intensity = Math.min(255, Math.abs(connection.weight * 255));
-        intensity = Math.floor(intensity).toString(16).toUpperCase();
-
-        // If the intensity is only one digit, add a 0 to the front
-        if(intensity.length === 1)
-            intensity = "0" + intensity;
-
-        // If the weight is less than 0, make the color red, otherwise make it green
-        var color = (connection.weight < 0) ? "0x" + intensity + "0000" : "0x00" + intensity + "00";
-
-        // Set the line style
-        graphics.lineStyle(lineWidth, color);
-
-        // Draw the line
-        graphics.moveTo(nodeLocations[this.nodes.indexOf(connection.from)].x, nodeLocations[this.nodes.indexOf(connection.from)].y);
-        graphics.lineTo(nodeLocations[this.nodes.indexOf(connection.to)].x, nodeLocations[this.nodes.indexOf(connection.to)].y);
+        // Sets the diagram to the given node locations
+        diagram.SetNN(nodeLocations, this.connections, this.nodes);
     }
 
     /* Finds the depth of each node
@@ -606,10 +539,7 @@ class NeatNN {
 
     // ---------------------------- Other Functions ------------------------------------
 
-    /** Returns a clone of the neural network
-     * 
-     * @returns a clone of the neural network
-     */
+    /* Returns a clone of the neural network */
     Clone() {
 
         // Create a new neural network
@@ -645,6 +575,7 @@ class NeatNN {
         return newNN;
     }
 
+    /* Returns a json object of this NN */
     toJson() {
 
         var nodesJson = [];
@@ -668,6 +599,7 @@ class NeatNN {
         };
     }
 
+    /* Creates a new NN from a json object */
     static fromJson(json) {
 
         var nn = new NeatNN(json.inputCount, json.outputCount, true);
@@ -695,6 +627,7 @@ class NeatNN {
         return nn;
     }
 
+    /* Sets most values to null to avoid memory leaks */
     Destroy() {
 
         // Destroy the nodes
@@ -741,6 +674,7 @@ class Connection {
         return "{ Connection: " + this.from + " -> " + this.to + " " + this.weight + " }";
     }
 
+    /* Returns a json object of this Connection */
     toJson(nodes) {
         return {
             from: nodes.indexOf(this.from),
@@ -749,6 +683,7 @@ class Connection {
         }
     }
 
+    /* Creates a new Connection from a json object */
     static fromJson(json, nodes) {
 
         // Add the connection to the nodes
@@ -758,8 +693,11 @@ class Connection {
         return new Connection(nodes[json.from], nodes[json.to], json.weight);
     }
 
+    /* Sets most values to null to avoid memory leaks */
     Destroy() {
         this.from = null;
         this.to = null;
     }
 }
+
+
