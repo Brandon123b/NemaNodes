@@ -100,7 +100,8 @@ function CreateUI(){
     ui.filters = [crt,glitch]
     // animate the filters
     app.ticker.add(() => {
-        crt.time += 2
+        crt.time += 0.5
+        if (crt.time > 1000) crt.time = 0
         let jitter = Math.random()
         if (jitter < 0.5) glitch.seed = jitter
         if (jitter < 0.2) glitch.slices = Math.random()*10
