@@ -141,7 +141,7 @@ class NeatNN {
     *  Penalty is calculated by the number of connections and nodes
     */ 
     CalculatePenalty() {
-        this.penalty = this.connections.length * 0.005 + this.nodes.length * 0.02;
+        this.penalty = this.connections.length * 0.002 + this.nodes.length * 0.005;
     }
 
     // ---------------------------- Mutate Functions ------------------------------------ //
