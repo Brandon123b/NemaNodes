@@ -213,6 +213,7 @@ class Canvas {
       else {
         this.nematodeStatsMenuObj.MakeInvisible();
         world.selectedNematode = null;
+        this.highlightCircle.visible = false
       }
     }
 
