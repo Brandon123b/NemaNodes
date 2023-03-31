@@ -379,6 +379,10 @@ class Nematode {
 
         // Spawn food at the nematode's position
         Food.SpawnNematodeDeathFood(this.sprite.position, this.size);
+
+        // If we are training, add the nematode to the training data
+        if (NematodeTrainer.isTraining)
+            NematodeTrainer.AddNematode(this.toJson());
     }
 
     /* Called when the Nematode touches a food object
@@ -582,7 +586,15 @@ class Nematode {
         }
     }
 
+    toString() {
+        return "Nematode(" + "Age: " + this.age.toFixed(2) + ") ";
+    }
+
     // ------------------- GETTERS AND SETTERS ------------------- //
+
+    GetAge(){
+        return this.age;
+    }
 
     GetX() {
         return this.sprite.position.x;

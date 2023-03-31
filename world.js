@@ -288,13 +288,30 @@ class World {
   // ----------------- Spawn Functions -----------------
   
 
-  /** Spawn a number of nematodes
-   * 
-   * @param {*} number The number of nematodes to spawn
+  /* Spawn a number of nematodes
+   * number: the number of nematodes to spawn
    */
   SpawnNematodes(number){
     for (let i = 0; i < number; i++) {
-        world.selectedNematode = new Nematode()
+      world.selectedNematode = new Nematode()
+    }
+  }
+
+  /* Spawn a number of "Smart" nematodes
+   * number: the number of nematodes to spawn
+   */
+  SpawnSmartNematodes(number){
+
+    for (let i = 0; i < number; i++) {
+
+      // Load a random nematode from the training data
+      var nematodeData = NematodeTrainer.GetRandomNematode();
+
+      // Create a new nematode with the loaded data
+      var nematode = new Nematode(nematodeData);
+
+      // Mutate the nematode
+      nematode.nn.Mutate();
     }
   }
 
