@@ -228,6 +228,10 @@ class NematodeStatsMenu {
     this.statsText = new PIXI.Text("", {fontFamily : 'Arial', fontSize: 16, fill : 0xffffff, align : 'left', lineHeight: 20});
     this.statsText.position.set(NematodeStatsMenu.xPos + 30, NematodeStatsMenu.yPos + 50);
     graphics.addChild(this.statsText);
+
+    // Make the text invisible
+    this.headerText.visible = false;
+    this.statsText.visible = false;
   }
 
   /* Draws the background of the stats menu 
