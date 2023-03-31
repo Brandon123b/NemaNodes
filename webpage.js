@@ -39,7 +39,7 @@ function main(){
     NematodeTrainer.Initialize();
 
     // Add some "Smart" nematodes
-    world.SpawnSmartNematodes(1000);
+    world.SpawnSmartNematodes(2000);
 
     // Add some food
     world.SpawnFood(2000);
@@ -160,8 +160,8 @@ function GameLoop(delta) {
 
     // If there is an extinction event
     if (world.numNematodes() == 0){
-        //console.log("Extinction event at " + timeSinceStart.toFixed(1) + " seconds. Spawned 2000 nematodes.");
-        //world.SpawnNematodes(2000);
+        console.log("Extinction event at " + timeSinceStart.toFixed(1) + " seconds. Spawned 2000 nematodes.");
+        world.SpawnNematodes(2000);
     }
 
 }
