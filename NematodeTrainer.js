@@ -10,7 +10,7 @@ class NematodeTrainer {
     static isTraining = true;
 
     // The maximum number of nematodes to store
-    static maxNematodes = 100;
+    static maxNematodes = 2000;
 
     // The priority queue of smart nematodes json objects
     static priorityQueue;
