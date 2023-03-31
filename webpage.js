@@ -36,15 +36,17 @@ function main(){
     CreateUI();
 
     // Start the trainer (Used for training/spawning Smart Nematodes)
-    NematodeTrainer.Initialize();
+    // This must be in a promise because it loads a file
+    NematodeTrainer.Initialize().then(() => {
 
-    // Add some "Smart" nematodes
-    world.SpawnSmartNematodes(2000);
+        // Add some "Smart" nematodes
+        world.SpawnSmartNematodes(2000);
 
-    // Add some food
-    world.SpawnFood(2000);
-    
-    setInterval(mainLoop, 1000/60)
+        // Add some food
+        world.SpawnFood(2000);
+        
+        setInterval(mainLoop, 1000/60)
+    });
 }
 
 // create a UI card
@@ -60,23 +62,28 @@ function CreateUI(){
         .addToggle(enabled => World.eraseBrushOn = enabled, "eraser", false)
         .addSlider(x => World.brushRadius = x, 0, 100, World.brushRadius, 1, "brush radius")
         .endToggleGroup()
+        .addText("")
         .addText("Nematodes")
         .addSlider(x => NeatNN.MUTATION_MULTIPLIER = x, 0, 5, NeatNN.MUTATION_MULTIPLIER, .1, "Nematode NN mutation multiplier")
         .addToggle(enabled => NNDisplay.DRAW_LABELS = enabled, "Draw NN Labels", NNDisplay.DRAW_LABELS)
         .addToggle(x => NematodeTrainer.Download(), "Download Training Data", false)
+        .addText("")
         .addText("Environment")
         .addSlider(x => world.maxNumFood = x, 0, world.maxNumFood*2, world.maxNumFood, 5, "max food number")
         .addSlider(x => world.foodReplenishRate = x, 0, world.maxReplenishRate, world.foodReplenishRate, 1, "food replenish rate")
         .addSlider(x => World.radius = x, 50, World.radius*3, World.radius, 10, "petri dish radius")
+        .addText("")
         .addText("Performance")
         .addSlider(x => world.SlowUpdateInterval = x, 1, 10, world.SlowUpdateInterval, 1, "slow update interval")
         .startToggleGroup()
+        .addText("")
         .addText("world zone size")
         .addToggle(enabled => enabled && world.rezone(World.SMALL_ZONE_SIZE), "small", world.zoneSize() == World.SMALL_ZONE_SIZE)
         .addToggle(enabled => enabled && world.rezone(World.MED_ZONE_SIZE), "medium", world.zoneSize() == World.MED_ZONE_SIZE)
         .addToggle(enabled => enabled && world.rezone(World.LARGE_ZONE_SIZE), "large", world.zoneSize() == World.LARGE_ZONE_SIZE)
         .addToggle(enabled => enabled && world.rezone(World.XL_ZONE_SIZE), "xl", world.zoneSize() == World.XL_ZONE_SIZE)
         .endToggleGroup()
+        .addText("")
         .addText("Debug")
         .addToggle(enabled => world.drawZones = enabled, "draw world zones", world.drawZones)
         .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)

@@ -67,6 +67,7 @@ class Nematode {
 
             // These are to avoid the nematode from gaining max energy when the game is loaded
             this.UpdateStats(0, 0);
+            this.biteCooldown = 0;          // The time until the nematode can bite again (in seconds)
             world.add(this);
             return;
         }

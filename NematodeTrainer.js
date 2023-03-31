@@ -16,7 +16,7 @@ class NematodeTrainer {
     static priorityQueue;
 
     /* Load the nematode data from a file and creates the priority queue */
-    static Initialize() {
+    static async Initialize() {
 
         // Create a compare function for the priority queue (Based on age)
         var compare = (a, b) => { return a.age - b.age };
@@ -25,7 +25,7 @@ class NematodeTrainer {
         NematodeTrainer.priorityQueue = new PriorityQueue(compare, NematodeTrainer.maxNematodes);
 
         // Load all data from the stored smart nematode data
-        NematodeTrainer.LoadData();
+        await NematodeTrainer.LoadData();
     }
 
     /* Loads the nematode data from a JSON file */

@@ -305,13 +305,16 @@ class World {
     for (let i = 0; i < number; i++) {
 
       // Load a random nematode from the training data
-      var nematodeData = NematodeTrainer.GetRandomNematode();
+      const nematodeData = NematodeTrainer.GetRandomNematode();
 
       // Create a new nematode with the loaded data
-      var nematode = new Nematode(nematodeData);
+      const parent = new Nematode(nematodeData);
 
-      // Mutate the nematode
-      nematode.nn.Mutate();
+      // Create a new nematode with the loaded data as a parent
+      new Nematode(parent);
+
+      // Destroy the parent
+      parent.Destroy();
     }
   }
 
