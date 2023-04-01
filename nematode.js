@@ -67,6 +67,7 @@ class Nematode {
 
             // These are to avoid the nematode from gaining max energy when the game is loaded
             this.UpdateStats(0, 0);
+            this.biteCooldown = 0;          // The time until the nematode can bite again (in seconds)
             world.add(this);
             return;
         }
@@ -215,10 +216,7 @@ class Nematode {
         // Set the rotate and speed variables from the neural network outputs
         this.rotate = this.nn.GetOutput(0) * this.maxTurnSpeed;
         this.speed  = this.nn.GetOutput(1) * this.maxSpeed;
-
-        // If the nematode wants to bite, bite
-        if (this.nn.GetOutput(2) > 0 && this.biteCooldown <= 0) 
-            this.Bite(nematodeList);
+        // Output 2 is used for Biting in OnBite (Called from EyeRaycast)
 
         // If speed is negative, halve it (Make backwards movement slower to encourage forward movement)
         this.speed = (this.speed < 0) ? this.speed * 0.5 : this.speed;
@@ -316,6 +314,10 @@ class Nematode {
             // If the raycast is close enough to the food, eat it
             if (isFood && raycastResult.GetDistance() < this.size / 2)
                 this.OnEat(raycastResult.GetHitObject());
+            
+            // If the raycast is close enough to the nematode, bite it
+            else if (!isFood && raycastResult.GetDistance() < this.size / 2 + Nematode.MAX_BITE_DISTANCE)
+                this.OnBite(raycastResult.GetHitObject());
 
             // Return the ratio of the distance to the closest food to the max distance
             return (1 - raycastResult.GetDistance() / Nematode.MAX_EYE_DISTANCE);
@@ -361,26 +363,6 @@ class Nematode {
         return Math.min(1, totalSmell);
     }
 
-    /* Attempts to bite another Nematode (If one is in range if its fangs) */
-    Bite(nematodeList){
-
-        // Create a raycast result object
-        var raycastResult = new RaycastResult2D();
-
-        if (Raycast(raycastResult, this.sprite.position, this.direction, this.size / 2 + Nematode.MAX_BITE_DISTANCE, nematodeList)){
-
-
-            // Lose energy for biting
-            this.energy -= Nematode.ENERGY_LOST_WHEN_BITING;
-
-            // Call the OnBite function of the nematode
-            raycastResult.GetHitObject().OnGetBitten(this.GetPosition(), this.size);
-
-            // Start the cooldown timer
-            this.biteCooldown = Nematode.BITE_COOLDOWN;
-        }
-    }
-
     // ------------------- Events ------------------- //
 
     /* Called when the nematode dies
@@ -398,6 +380,10 @@ class Nematode {
 
         // Spawn food at the nematode's position
         Food.SpawnNematodeDeathFood(this.sprite.position, this.size);
+
+        // If we are training, add the nematode to the training data
+        if (NematodeTrainer.isTraining)
+            NematodeTrainer.AddNematode(this.toJson());
     }
 
     /* Called when the Nematode touches a food object
@@ -417,6 +403,23 @@ class Nematode {
             new Nematode(this);                                                             // Create a new Nematode child
         }
     }
+    
+    /* Bites another Nematode (Called from EyeRaycast)
+     *  @param {Nematode} nematode - The nematode to bite
+     */
+    OnBite(nematode){
+        // If the nematode is on cooldown or does not want to bite, don't bite
+        if (this.biteCooldown > 0 || this.nn.GetOutput(2) < 0) return;
+        
+        // Lose energy for biting
+        this.energy -= Nematode.ENERGY_LOST_WHEN_BITING;
+
+        // Call the OnBite function of the nematode
+        nematode.OnGetBitten(this.GetPosition(), this.size);
+
+        // Start the cooldown timer
+        this.biteCooldown = Nematode.BITE_COOLDOWN;
+    }
 
     /* Called when the Nematode is bitten by another Nematode
     *  pos -- The position of the attacking Nematode 
@@ -433,6 +436,18 @@ class Nematode {
         // Set a knockback direction (to be used in KnockBackAnimation())
         this.knockbackDirection = new PIXI.Point(this.GetX() - pos.x, this.GetY() - pos.y)
                                           .normalize().MultiplyConstant(Nematode.KNOCKBACK_POWER * sizeRatio);
+    }
+
+    /* Destroy this nematode */
+    Destroy() {
+        world.destroy(this);
+
+        // Set the nematode to not exist
+        this.exists = false;
+
+        // Clean un the neural network
+        this.nn.Destroy();
+        this.nn = null;
     }
 
     // ------------------- Animations ------------------- //
@@ -471,20 +486,6 @@ class Nematode {
 
         // Remove the nematode from the world after 14 seconds
         if (this.timeSinceDeath > 14) this.Destroy()
-    }
-
-    /*
-    Destroy this nematode
-    */
-    Destroy() {
-        world.destroy(this);
-
-        // Set the nematode to not exist
-        this.exists = false;
-
-        // Clean un the neural network
-        this.nn.Destroy();
-        this.nn = null;
     }
 
     /* Called in Update() when the nematode is bitten */
@@ -532,6 +533,19 @@ class Nematode {
         NematodeStatsMenu.statsText.text += "Time for next child: " + (this.childTime).toFixed(2) + "s\n";
     }
 
+    /* Draws the nematodes smell range to the given graphics object */
+    DrawSmellRange(graphics) {
+
+        // Set a border to green with a width of 1 pixel and an alpha
+        graphics.lineStyle(1, 0x00FF00, .2);
+
+        // set the fill color to red and the alpha
+        graphics.beginFill(0xff0000, .1);
+
+        // Draw a circle with the given radius
+        graphics.drawCircle(this.GetX(), this.GetY(), Nematode.MAX_SMELL_DISTANCE);
+    }
+
     // ------------------- OTHER ------------------- //
 
     // Will be replaced with a call to a function that creates a sprite (hopefully in a separate file)
@@ -573,7 +587,15 @@ class Nematode {
         }
     }
 
+    toString() {
+        return "Nematode(" + "Age: " + this.age.toFixed(2) + ") ";
+    }
+
     // ------------------- GETTERS AND SETTERS ------------------- //
+
+    GetAge(){
+        return this.age;
+    }
 
     GetX() {
         return this.sprite.position.x;
@@ -594,7 +616,4 @@ class Nematode {
     SetPos(x, y) {
         this.sprite.position.set(x,y)
     }
-
-    Eat(){}
 }
-

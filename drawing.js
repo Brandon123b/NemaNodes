@@ -43,8 +43,20 @@ class Canvas {
     this.screenGraphics = new PIXI.Graphics();
     app.stage.addChild(this.screenGraphics);
 
+    // add a highlight circle to easily identify the location of the selected nematode
+    this.highlightCircle = new PIXI.Graphics()
+    this.highlightCircle.beginFill(0xff0000, 0.5)
+    this.highlightCircle.drawCircle(0,0,10,10)
+    this.highlightCircle.endFill()
+    this.highlightCircle.visible = false
+    addBlur(this.highlightCircle, 5)
+    this.container.addChild(this.highlightCircle)
+
     // Create the nematode stats menu
     this.nematodeStatsMenuObj = new NematodeStatsMenu(this.screenGraphics);
+
+    // Create the NN display
+    this.nnDisplayObj = new NNDisplay(app.stage);
 
     // Create the fps counter
     this.CreateFpsCounter();
@@ -72,6 +84,11 @@ class Canvas {
       let returnPivot = this.container.toLocal(mousePos)
       this.container.scale = this.initialScale.multiplyScalar(this.camera.zoomLevel)
       this.container.pivot = this.container.pivot.subtract(this.container.toLocal(mousePos).subtract(returnPivot))
+      
+      // scale the highlight circle based on zoom level to easily find selected nematode
+      let hCircleMult = 1/this.camera.zoomLevel
+      let bounds = [1, 10]
+      this.highlightCircle.scale.multiplyScalar(hCircleMult, this.highlightCircle.scale).clamp(bounds, bounds)
     }
 
     this.backGround.onwheel = onScroll
@@ -180,12 +197,23 @@ class Canvas {
       if (world.selectedNematode.exists) {
         this.nematodeStatsMenuObj.DrawBackground(this.screenGraphics);
         world.selectedNematode.DrawStats(this.nematodeStatsMenuObj);
-        world.selectedNematode.nn.DrawNN(this.screenGraphics);
+
+        // Update the neural network display and draw it (TODO: only update when the nn changes)
+        world.selectedNematode.nn.UpdateDisplay(this.nnDisplayObj);
+        this.nnDisplayObj.Draw(this.screenGraphics);
+
+        // move the highlightcircle to the selected nematode
+        this.highlightCircle.visible = true
+        this.highlightCircle.position = world.selectedNematode.GetPosition()
+
+        if (world.drawSmell)
+          world.selectedNematode.DrawSmellRange(this.worldGraphics);
       }
       // If the selected nematode no longer exists, deselect it
       else {
         this.nematodeStatsMenuObj.MakeInvisible();
         world.selectedNematode = null;
+        this.highlightCircle.visible = false
       }
     }
 
@@ -219,6 +247,10 @@ class NematodeStatsMenu {
     this.statsText = new PIXI.Text("", {fontFamily : 'Arial', fontSize: 16, fill : 0xffffff, align : 'left', lineHeight: 20});
     this.statsText.position.set(NematodeStatsMenu.xPos + 30, NematodeStatsMenu.yPos + 50);
     graphics.addChild(this.statsText);
+
+    // Make the text invisible
+    this.headerText.visible = false;
+    this.statsText.visible = false;
   }
 
   /* Draws the background of the stats menu 
