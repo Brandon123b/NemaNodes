@@ -40,10 +40,10 @@ function main(){
     NematodeTrainer.Initialize().then(() => {
 
         // Add some "Smart" nematodes
-        world.SpawnSmartNematodes(2000);
+        world.SpawnSmartNematodes(5000);
 
         // Add some food
-        world.SpawnFood(2000);
+        world.SpawnFood(5000);
         
         setInterval(mainLoop, 1000/60)
     });
@@ -66,7 +66,7 @@ function CreateUI(){
         .addText("Nematodes")
         .addSlider(x => NeatNN.MUTATION_MULTIPLIER = x, 0, 5, NeatNN.MUTATION_MULTIPLIER, .1, "Nematode NN mutation multiplier")
         .addToggle(enabled => NNDisplay.DRAW_LABELS = enabled, "Draw NN Labels", NNDisplay.DRAW_LABELS)
-        .addToggle(x => NematodeTrainer.Download(), "Download Training Data", false)
+        .addButton(x => NematodeTrainer.Download(), "Download Training Data")
         .addText("")
         .addText("Environment")
         .addSlider(x => world.maxNumFood = x, 0, world.maxNumFood*2, world.maxNumFood, 5, "max food number")
