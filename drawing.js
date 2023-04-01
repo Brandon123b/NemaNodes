@@ -86,9 +86,9 @@ class Canvas {
       this.container.pivot = this.container.pivot.subtract(this.container.toLocal(mousePos).subtract(returnPivot))
       
       // scale the highlight circle based on zoom level to easily find selected nematode
-      let hCircleMult = 1/this.camera.zoomLevel
+      let hCircleMult = 2/this.camera.zoomLevel
       let bounds = [1, 10]
-      this.highlightCircle.scale.multiplyScalar(hCircleMult, this.highlightCircle.scale).clamp(bounds, bounds)
+      this.highlightCircle.scale.set(hCircleMult).clamp(bounds, bounds)
     }
 
     this.backGround.onwheel = onScroll
