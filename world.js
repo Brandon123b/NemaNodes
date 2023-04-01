@@ -31,9 +31,7 @@ class World {
     return this.#zone2hashkey(zoneX,zoneY)
   })
 
-  // set the size of the world in the x-direction (width)
-  // set the size of the world in the y-direction (height)
-  // give the size of a world zone
+
   constructor() {
     // The currently selected nematode
     this.selectedNematode = null
