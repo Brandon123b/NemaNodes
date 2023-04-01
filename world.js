@@ -1,7 +1,7 @@
 /**
  * Structure to hold information about the world and objects in the world
  * 
- * Objects to be placed in the world need to have a worldPos field containing a Vector2
+ * Objects to be placed in the world must implement GetX(), GetY(), GetPosition()
  */
 
 class World {
@@ -33,18 +33,23 @@ class World {
 
 
   constructor() {
+
+    // the canvas holds a container that we draw the objects on
+    this.canvas = new Canvas()
+
     // The currently selected nematode
     this.selectedNematode = null
 
+    // Food settings
     this.maxNumFood = 2000
     this.foodReplenishRate = 25 // food added per second
     this.maxReplenishRate = 100
     
-    // the canvas holds a container that we draw the objects on
-    this.canvas = new Canvas()
-
+    // Debug Settings (Boolean)
     this.drawZones = false
     this.drawEyeRays = false
+    this.drawSmell = false
+
     this.draggableObjects = true // flag for enabled ability to drag world objects
 
     // Debug slider vars
@@ -103,9 +108,9 @@ class World {
    */
   forEach(f, type) {
     if (type === Nematode)
-      for (const nematode of this.#nematodeZones.items()) f(nematode)
+      this.#nematodeZones.items().forEach(f)
     else if (type === Food)
-      for (const food of this.#foodZones.items()) f(food)
+      this.#foodZones.items().forEach(f)
     else if (type === undefined) {
       this.forEach(f, Nematode)
       this.forEach(f, Food)
@@ -281,13 +286,33 @@ class World {
   // ----------------- Spawn Functions -----------------
   
 
-  /** Spawn a number of nematodes
-   * 
-   * @param {*} number The number of nematodes to spawn
+  /* Spawn a number of nematodes
+   * number: the number of nematodes to spawn
    */
   SpawnNematodes(number){
     for (let i = 0; i < number; i++) {
-        world.selectedNematode = new Nematode()
+      world.selectedNematode = new Nematode()
+    }
+  }
+
+  /* Spawn a number of "Smart" nematodes
+   * number: the number of nematodes to spawn
+   */
+  SpawnSmartNematodes(number){
+
+    for (let i = 0; i < number; i++) {
+
+      // Load a random nematode from the training data
+      const nematodeData = NematodeTrainer.GetRandomNematode();
+
+      // Create a new nematode with the loaded data
+      const parent = new Nematode(nematodeData);
+
+      // Create a new nematode with the loaded data as a parent
+      new Nematode(parent);
+
+      // Destroy the parent
+      parent.Destroy();
     }
   }
 
