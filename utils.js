@@ -224,3 +224,81 @@ function transition(obj, to, duration, opts = {}) {
     .onComplete(opts.onComplete)
     .start()
 }
+
+
+/**
+ * Color converter to produce color values that PIXI can read.
+ * It is really annoying that our PIXI doesn't work according to these docs:
+ * https://pixijs.download/dev/docs/PIXI.html#ColorSource
+ */
+class Color {
+  /**
+   * 
+   * @param {number} h 0-360 
+   * @param {number} s 0-100 
+   * @param {number} v 0-100
+   * @returns {number} hex rgb color number
+   */
+  static fromHSV(h,s,v) {
+    let r, g, b, i, f, p, q, t;
+    h /= 360;
+    s /= 100;
+    v /= 100;
+    i = Math.floor(h * 6);
+    f = h * 6 - i;
+    p = v * (1 - s);
+    q = v * (1 - f * s);
+    t = v * (1 - (1 - f) * s);
+  
+    switch (i % 6) {
+      case 0:
+        r = v;
+        g = t;
+        b = p;
+        break;
+      case 1:
+        r = q;
+        g = v;
+        b = p;
+        break;
+      case 2:
+        r = p;
+        g = v;
+        b = t;
+        break;
+      case 3:
+        r = p;
+        g = q;
+        b = v;
+        break;
+      case 4:
+        r = t;
+        g = p;
+        b = v;
+        break;
+      case 5:
+        r = v;
+        g = p;
+        b = q;
+        break;
+    }
+
+    return Color.fromRGB(r*255,g*255,b*255)
+  }
+
+  /**
+   * 
+   * @param {number} r 0-255 
+   * @param {number} g 0-255
+   * @param {number} b 0-255
+   * @return {number} hex color number
+   */
+  static fromRGB(r,g,b) {
+    let val = r
+    val = val << 8
+    val += g
+    val = val << 8
+    val += b
+    return val
+  }
+}
