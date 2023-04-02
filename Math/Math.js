@@ -37,11 +37,11 @@ function Raycast(raycastResult, pos, dir, maxLength, circleList) {
         gGraphics.moveTo(pos.x, pos.y);
 
         if (hasHit){
-            gGraphics.lineStyle(1, "0x00FF00", 1);
+            gGraphics.lineStyle(1, "0xff0000", .5);
             gGraphics.lineTo(raycastResult.GetX(), raycastResult.GetY());
         }
         else{
-            gGraphics.lineStyle(1, "0x0000FF", 1);
+            gGraphics.lineStyle(1, "0x00ffff", .25);
             gGraphics.lineTo(pos.x + dir.x * maxLength, pos.y + dir.y * maxLength);
         }
     }

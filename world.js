@@ -35,18 +35,23 @@ class World {
   // set the size of the world in the y-direction (height)
   // give the size of a world zone
   constructor() {
+
+    // the canvas holds a container that we draw the objects on
+    this.canvas = new Canvas()
+
     // The currently selected nematode
     this.selectedNematode = null
 
+    // Food settings
     this.maxNumFood = 2000
     this.foodReplenishRate = 25 // food added per second
     this.maxReplenishRate = 100
     
-    // the canvas holds a container that we draw the objects on
-    this.canvas = new Canvas()
-
+    // Debug Settings (Boolean)
     this.drawZones = false
     this.drawEyeRays = false
+    this.drawSmell = false
+
     this.draggableObjects = true // flag for enabled ability to drag world objects
 
     // Debug slider vars
@@ -286,13 +291,33 @@ class World {
   // ----------------- Spawn Functions -----------------
   
 
-  /** Spawn a number of nematodes
-   * 
-   * @param {*} number The number of nematodes to spawn
+  /* Spawn a number of nematodes
+   * number: the number of nematodes to spawn
    */
   SpawnNematodes(number){
     for (let i = 0; i < number; i++) {
-        world.selectedNematode = new Nematode()
+      world.selectedNematode = new Nematode()
+    }
+  }
+
+  /* Spawn a number of "Smart" nematodes
+   * number: the number of nematodes to spawn
+   */
+  SpawnSmartNematodes(number){
+
+    for (let i = 0; i < number; i++) {
+
+      // Load a random nematode from the training data
+      const nematodeData = NematodeTrainer.GetRandomNematode();
+
+      // Create a new nematode with the loaded data
+      const parent = new Nematode(nematodeData);
+
+      // Create a new nematode with the loaded data as a parent
+      new Nematode(parent);
+
+      // Destroy the parent
+      parent.Destroy();
     }
   }
 
