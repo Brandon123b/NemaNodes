@@ -40,10 +40,10 @@ function main(){
     NematodeTrainer.Initialize().then(() => {
 
         // Add some "Smart" nematodes
-        world.SpawnSmartNematodes(5000);
+        world.SpawnSmartNematodes(500);
 
         // Add some food
-        world.SpawnFood(5000);
+        world.SpawnFood(1000);
         
         setInterval(mainLoop, 1000/60)
     });
@@ -53,7 +53,7 @@ function main(){
 function CreateUI(){
     let container = new PIXI.Container()
 
-    let ui = new UICard(385, 290)
+    let ui = Monitor.newWindow()
         .addText("User tools")
         .startToggleGroup()
         .addToggle(enabled => world.draggableObjects = enabled, "drag tool", true)
@@ -65,7 +65,6 @@ function CreateUI(){
         .addText("")
         .addText("Nematodes")
         .addSlider(x => NeatNN.MUTATION_MULTIPLIER = x, 0, 5, NeatNN.MUTATION_MULTIPLIER, .1, "Nematode NN mutation multiplier")
-        .addToggle(enabled => NNDisplay.DRAW_LABELS = enabled, "Draw NN Labels", NNDisplay.DRAW_LABELS)
         .addButton(x => NematodeTrainer.Download(), "Download Training Data")
         .addText("")
         .addText("Environment")
@@ -91,84 +90,9 @@ function CreateUI(){
         .addSlider(x => gameSpeedMult = x, minGameSpeedMult, maxGameSpeedMult, gameSpeedMult, 1, "game speed")
         .make(false) // set false to not round corners
 
-    let monitor = PIXI.Sprite.from("monitor-nobg.png")
-    monitor.scale.set(0.25)
-    // hardcode monitor position to place well on left side of screen
-    monitor.position.x = -80
-    // hardcode position of UI to fit on monitor screen
-    ui.position.set(78,108)
-    // create monitor screen filters
-    let crt = new PIXI.filters.CRTFilter({
-        vignetting: 0,
-        lineWidth: 3,
-        curvature: 2,
-        noise: 0.2,
-        noiseSize: 3
-    })
-    let glitch = new PIXI.filters.GlitchFilter({
-        fillMode: PIXI.filters.GlitchFilter.CLAMP,
-        offset: 2,
-        red: [-3,3],
-        blue: [1,2],
-        green: [-5,5]
-    })
-
-    ui.filters = [crt,glitch]
-    // animate the filters
-    app.ticker.add(() => {
-        crt.time += 0.5
-        if (crt.time > 1000) crt.time = 0
-        let jitter = Math.random()
-        if (jitter < 0.5) glitch.seed = jitter
-        if (jitter < 0.2) glitch.slices = Math.random()*10
-    })
-
-    container.addChild(monitor)
-    container.addChild(ui)
-
-    // set the container's position to be the bottom left corner of the monitor
-    container.pivot.set(15,460)
-    let topPos = app.screen.height - container.height*0.1       // min y value for container position
-    let bottomPos = app.screen.height + container.height*0.8    // max y value for container position
-    // initialize monitor position to bottom
-    container.y = bottomPos
-    container.x = 30
-
-    monitor.interactive = true
-
-    // pull up the monitor
-    let pullup = () => transition(container.position, {y: topPos}, 400)
-    // move the monitor down out of sight
-    let putaway = () => transition(container.position, {y: bottomPos}, 400)
-    // blow up the monitor
-    let blowup = () => transition(container.scale, {x:2, y:2}, 400, {
-        onComplete: () => scalingMonitor = false
-    })
-    // shrink monitor to normal size
-    let shrink = () => transition(container.scale, {x:1, y:1}, 400, {
-        onComplete: () => scalingMonitor = false
-    })
-
-    let blownup = false
-    let scalingMonitor = false
-    container.onmouseover = () => {blownup || scalingMonitor || pullup()}
-    container.onmouseout = () => {blownup || scalingMonitor || putaway()}
-    monitor.onmousedown = () => {
-        scalingMonitor = true
-        if (blownup) {
-            shrink()
-            putaway()
-        } else {
-            blowup()
-            pullup()
-        }
-        blownup = !blownup
-    }
-
-    // hardcode hit area for the monitor sprite
-    monitor.hitArea = new PIXI.Rectangle(350,150,2100,2000)
-
-    app.stage.addChild(container)
+    Monitor.initialize()
+    Monitor.assignScreen("options", ui)
+    Monitor.switchTo("options")
 }
 
 /**
@@ -217,8 +141,8 @@ function GameLoop(delta) {
 
     // If there is an extinction event
     if (world.numNematodes() == 0){
-        console.log("Extinction event at " + timeSinceStart.toFixed(1) + " seconds. Spawned 2000 nematodes.");
-        world.SpawnNematodes(2000);
+        console.log("Extinction event at " + timeSinceStart.toFixed(1) + " seconds. Spawned 500 nematodes.");
+        world.SpawnSmartNematodes(500);
     }
 
 }
@@ -246,3 +170,4 @@ function mainLoop() {
 
 // Very easy to miss this line
 main();
+

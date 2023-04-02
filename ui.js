@@ -472,4 +472,275 @@ class UICard {
     this.#addElement(sliderContainer, 0)
     return this
   }
+
+  /**
+   * Add an arbitrary displayObject to this UI card
+   * @param {PIXI.DisplayObject} displayObject 
+   */
+  addElement(displayObject) {
+    // TODO scale down the displayObject if needed
+    let container = new PIXI.Container()
+    container.addChild(displayObject)
+
+    const ratio = (this.width - this.margin*2) / container.width
+    container.scale.multiplyScalar(ratio, container.scale)
+
+    this.#addElement(container)
+    return this
+  }
 }
+
+/**
+ * Create a display object for a nematode
+ * 
+ * Call .updateNematodeDisplay() to redraw the NN node activations
+ * and nematode stats
+ * @param {Nematode} nematode 
+ * @returns nematode display object to be placed in UI monitor
+ */
+function mkNematodeDisplay(nematode) {
+  let container = new PIXI.Container()
+  let sprite = PIXI.Sprite.from(nematode.sprite.texture)
+  sprite.anchor.set(0.5)
+  sprite.tint = nematode.sprite.tint
+
+  let brain = NNDisplay.mkNNDisplay(nematode.nn)
+  container.addChild(sprite)
+  container.addChild(brain)
+
+  // change sprite scale to match the NN display
+  sprite.scale.multiplyScalar(brain.height / sprite.height, sprite.scale)
+  sprite.position.set(sprite.width/2, sprite.height/2)
+  brain.x = sprite.x + sprite.width/2 + 10
+
+  // refresh the display by redrawing the NN
+  container.updateNematodeDisplay = () => {
+    brain.updateNNDisplay()
+    sprite.angle = nematode.sprite.angle
+  }
+
+  return container
+}
+
+/**
+ * The UI Monitor that resembles old computer
+ * 
+ * The monitor uses UICards as windows
+ */
+class Monitor {
+
+  static screens = {}               // screens keyed by string identifiers
+  static currentScreen = undefined  // name of the current screen
+  static container = undefined      // container to add UICards to
+  static scalingMonitor = false     // flag set to true while monitor scale is changing during animation
+
+  // temporary controls for monitor UI
+  // use arrow keys to switch between screens
+  static {
+    const changeScreen = right => {
+      const screenNames = Object.keys(Monitor.screens)
+      const i = screenNames.indexOf(Monitor.currentScreen)
+      let next = (right ? i+1:i-1)
+      next = next < 0 ? screenNames.length-1 : next
+      next %= screenNames.length
+      Monitor.switchTo(screenNames[next])
+    }
+    Keys.addAction("ArrowRight", _ => changeScreen(true))
+    Keys.addAction("ArrowLeft", _ => changeScreen(false))
+  }
+
+  // filters placed on the monitor screen
+  static filters = [
+    new PIXI.filters.CRTFilter({
+      vignetting: 0,
+      lineWidth: 3,
+      curvature: 2,
+      noise: 0.2,
+      noiseSize: 3
+    }),
+    new PIXI.filters.GlitchFilter({
+      fillMode: PIXI.filters.GlitchFilter.CLAMP,
+      offset: 2,
+      red: [-3,3],
+      blue: [1,2],
+      green: [-5,5]
+    })
+  ]
+    
+  // min y value for container position
+  static topPos() {
+    return app.screen.height - 20
+  }
+
+  // max y value for container position
+  static bottomPos() {
+    return app.screen.height + 300
+  }
+
+  // move monitor position up
+  static pullup() {
+    transition(this.container.position, {y: this.topPos()}, 400)
+  }
+
+  // move monitor position down
+  static putaway() {
+    transition(this.container.position, {y: this.bottomPos()}, 400)
+  }
+
+  // scale up the monitor
+  static blowup() {
+    this.scalingMonitor = true
+    transition(this.container.scale, {x:2, y:2}, 400, {
+      onComplete: () => this.scalingMonitor = false
+    })
+  }
+
+  // scale down the monitor
+  static shrink() {
+    this.scalingMonitor = true
+    transition(this.container.scale, {x:1, y:1}, 400, {
+      onComplete: () => this.scalingMonitor = false
+    })
+  }
+
+  // create display object for the monitor
+  static mkMonitor() {
+    let monitor = PIXI.Sprite.from("monitor-nobg.png")
+    monitor.scale.set(0.25)
+    // hardcode monitor position to place well on left side of screen
+    monitor.position.x = -80
+
+    let container = new PIXI.Container()
+    container.addChild(monitor)
+
+    // set the container's position to be the bottom left corner of the monitor
+    container.pivot.set(15,460)
+    
+    // initialize monitor position to bottom
+    container.y = this.bottomPos()
+    container.x = 30
+
+    monitor.interactive = true
+
+    // create mouse interactions
+    // click to scale up the monitor
+    // hover to pull it up
+    let blownup = false
+    container.onmouseover = () => {blownup || this.scalingMonitor || this.pullup()}
+    container.onmouseout = () => {blownup || this.scalingMonitor || this.putaway()}
+    monitor.onmousedown = () => {
+        if (blownup) {
+            this.shrink()
+            this.putaway()
+        } else {
+            this.blowup()
+            this.pullup()
+        }
+        blownup = !blownup
+    }
+
+    // hardcode hit area for the monitor sprite
+    monitor.hitArea = new PIXI.Rectangle(350,150,2100,2000)
+
+    return container
+  }
+
+  static initialize() {
+    // animate the filters
+    let [crt,glitch] = Monitor.filters
+    app.ticker.add(() => {
+      crt.time += 0.5
+      if (crt.time > 1000) crt.time = 0
+      let jitter = Math.random()
+      if (jitter < 0.5) glitch.seed = jitter
+      if (jitter < 0.2) glitch.slices = Math.random()*10
+    })
+
+    Monitor.container = Monitor.mkMonitor()
+    app.stage.addChild(Monitor.container)
+  }
+
+  /**
+   * Give the monitor a screen to display keyed by the given name
+   * @param {string} name
+   * @param {UICard} uicard 
+   */
+  static assignScreen(name, uicard) {
+    let window = uicard
+
+    Monitor.screens[name] = window
+
+    // hardcode position of UI to fit on monitor screen
+    window.position.set(78,108)
+
+    window.filters = Monitor.filters
+
+    this.container.addChild(window)
+  }
+
+  /**
+   * Display the window keyed to the given name
+   * @param {string} name 
+   */
+  static switchTo(name) {
+    if (Monitor.screens[name] === undefined) throw `There is no screen for ${name}`
+    for (const window in Monitor.screens) Monitor.screens[window].visible = false
+    Monitor.screens[name].visible = true
+    Monitor.currentScreen = name
+  }
+
+  // return a UICard fit for the monitor screen
+  static newWindow() {
+    return new UICard(385,290)
+  }
+
+}
+
+
+let nematodeDisplayUI = undefined
+let nematodeDisplayStats = undefined
+let startedDisplayUpdate = false
+/**
+ * call when a nematode becomes selected to update the UI
+ */ 
+function displaySelectedNematode() {
+  // destroy the previous nematode display
+  if (nematodeDisplayUI) {
+    Monitor.screens["nematode"].destroy({children:true}) // TODO make destroying a screen a method on Monitor
+  }
+
+  // create text for nematode stats
+  nematodeDisplayStats = new PIXI.Text(world.selectedNematode.mkStatString(), new PIXI.TextStyle({
+    fontSize: 18,
+    fontFamily: "Courier New",
+    fontVariant: "small-caps",
+    fontWeight: "bold",
+    letterSpacing: 2,
+    fill: 0x00cc00,
+    fontSize: 28
+  }))
+
+  // assign new display
+  nematodeDisplayUI = mkNematodeDisplay(world.selectedNematode)
+  Monitor.assignScreen("nematode",
+    Monitor.newWindow()
+      .addElement(nematodeDisplayUI)
+      .addButton(() => console.log("store"), "store nematode")
+      .addButton(() => console.log("export"), "export nematode")
+      .addElement(nematodeDisplayStats)
+      .make(false)
+  )
+  Monitor.switchTo("nematode")
+  Monitor.pullup()
+
+  if (!startedDisplayUpdate)
+  app.ticker.add(() => {
+    if (nematodeDisplayUI && world.selectedNematode.exists) {
+      nematodeDisplayUI.updateNematodeDisplay()
+      nematodeDisplayStats.text = world.selectedNematode.mkStatString()
+    }
+  })
+  startedDisplayUpdate = true
+}
+
+
