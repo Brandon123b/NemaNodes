@@ -38,6 +38,28 @@ class Nematode {
     // Mutation rates (as +/- up to this constant)
     static BASE_SIZE_THRESHOLD = 0.02;
     static GROW_RATE_THRESHOLD = 0.01;
+
+    // all possible input neurons
+    static INPUT_LABELS = [
+        "left food eye",
+        "mid food eye",
+        "right food eye",
+        "left nematode eye",
+        "mid nematode eye",
+        "right rematode eye",
+        "food smell",
+        "nematode smell",
+        "age",
+        "energy",
+        "dist from center"
+    ]
+
+    // all possible output neurons
+    static OUTPUT_LABELS = [
+        "turn speed",
+        "move speed",
+        "bite"
+    ]
     
     // ------------------------- Constructors ------------------------- //
 
@@ -69,6 +91,8 @@ class Nematode {
             this.UpdateStats(0, 0);
             this.biteCooldown = 0;          // The time until the nematode can bite again (in seconds)
             world.add(this);
+
+            NeatNN.attachLabels(this.nn,Nematode.INPUT_LABELS,Nematode.OUTPUT_LABELS)
             return;
         }
 
@@ -82,7 +106,9 @@ class Nematode {
         this.biteCooldown = 0;          // The time until the nematode can bite again (in seconds)
 
         // Tell the world that this bibite exists
-        world.add(this)         
+        world.add(this)
+
+        NeatNN.attachLabels(this.nn,Nematode.INPUT_LABELS,Nematode.OUTPUT_LABELS)
     }
 
     /* Creates a random nematode (with random stats and position)
@@ -506,31 +532,32 @@ class Nematode {
 
     // ------------------- Drawing ------------------- //
 
-    /* Draws the nematodes stats to the given graphics object
-    *  @param {PIXI.Graphics} graphics - The graphics object to draw to
+    /* Return a strinig description of this nematode's stats
     */
-    DrawStats(NematodeStatsMenu) {
+    mkStatString() {
 
-        NematodeStatsMenu.statsText.text  = "Age: " + this.age.toFixed(2) + "s\n";
-        NematodeStatsMenu.statsText.text += "Energy: " + this.energy.toFixed(2) + " / " + this.maxEnergy.toFixed(2) + "\n";
-        NematodeStatsMenu.statsText.text += "\n";
-        NematodeStatsMenu.statsText.text += "Max Speed: " + this.maxSpeed.toFixed(2) + " pixels/s\n";
-        NematodeStatsMenu.statsText.text += "Turn Speed: " + this.maxTurnSpeed.toFixed(2) + "\n";
-        NematodeStatsMenu.statsText.text += "\n";
-        NematodeStatsMenu.statsText.text += "Size: " + this.size.toFixed(2) + " pixels\n";
-        NematodeStatsMenu.statsText.text += "Base Size: " + this.baseSize.toFixed(2) + " pixels\n";
-        NematodeStatsMenu.statsText.text += "Grow Rate: " + this.growRate.toFixed(2) + " pixels/s\n";
-        NematodeStatsMenu.statsText.text += "\n";
-        NematodeStatsMenu.statsText.text += "Bite Cooldown: " + this.biteCooldown.toFixed(2) + "s\n";
-        NematodeStatsMenu.statsText.text += "\n";
-        NematodeStatsMenu.statsText.text += "Energy Consumption: \n";
-        NematodeStatsMenu.statsText.text += "  Existence: " + 1 + " energy/s\n";
-        NematodeStatsMenu.statsText.text += "  Movement: " + (Math.abs(this.speed ) / this.maxSpeed).toFixed(3) + " energy/s\n";
-        NematodeStatsMenu.statsText.text += "  NN Penalty: " + this.nn.GetPenalty().toFixed(3) + " energy/s\n";
-        NematodeStatsMenu.statsText.text += "  Age: " + (1 + this.age / 300).toFixed(3) + " times the normal rate\n";
-        NematodeStatsMenu.statsText.text += "\n";
-        NematodeStatsMenu.statsText.text += "Tint: " + this.sprite.tint.toString(16) + "\n";
-        NematodeStatsMenu.statsText.text += "Time for next child: " + (this.childTime).toFixed(2) + "s\n";
+        let statString  = "Age: " + this.age.toFixed(2) + "s\n";
+        statString += "Energy: " + this.energy.toFixed(2) + " / " + this.maxEnergy.toFixed(2) + "\n";
+        statString += "\n";
+        statString += "Max Speed: " + this.maxSpeed.toFixed(2) + " pixels/s\n";
+        statString += "Turn Speed: " + this.maxTurnSpeed.toFixed(2) + "\n";
+        statString += "\n";
+        statString += "Size: " + this.size.toFixed(2) + " pixels\n";
+        statString += "Base Size: " + this.baseSize.toFixed(2) + " pixels\n";
+        statString += "Grow Rate: " + this.growRate.toFixed(2) + " pixels/s\n";
+        statString += "\n";
+        statString += "Bite Cooldown: " + this.biteCooldown.toFixed(2) + "s\n";
+        statString += "\n";
+        statString += "Energy Consumption: \n";
+        statString += "  Existence: " + 1 + " energy/s\n";
+        statString += "  Movement: " + (Math.abs(this.speed ) / this.maxSpeed).toFixed(3) + " energy/s\n";
+        statString += "  NN Penalty: " + this.nn.GetPenalty().toFixed(3) + " energy/s\n";
+        statString += "  Age: " + (1 + this.age / 300).toFixed(3) + " times the normal rate\n";
+        statString += "\n";
+        statString += "Tint: " + this.sprite.tint.toString(16) + "\n";
+        statString += "Time for next child: " + (this.childTime).toFixed(2) + "s\n";
+
+        return statString
     }
 
     /* Draws the nematodes smell range to the given graphics object */
