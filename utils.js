@@ -225,6 +225,17 @@ function transition(obj, to, duration, opts = {}) {
     .start()
 }
 
+/**
+ * 
+ * @param {number} val 
+ * @param {number} min 
+ * @param {number} max 
+ * @returns {number} value clamped within the bounds
+ */
+function clamp(val,min,max) {
+  return Math.max(Math.min(val,max),min)
+}
+
 
 /**
  * Color converter to produce color values that PIXI can read.
@@ -294,11 +305,11 @@ class Color {
    * @return {number} hex color number
    */
   static fromRGB(r,g,b) {
-    let val = r
+    let val = Math.floor(clamp(r,0,255))
     val = val << 8
-    val += g
+    val += Math.floor(clamp(g,0,255))
     val = val << 8
-    val += b
+    val += Math.floor(clamp(b,0,255))
     return val
   }
 }
