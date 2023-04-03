@@ -472,8 +472,9 @@ class Nematode {
         this.exists = false;
 
         // Clean un the neural network
-        this.nn.Destroy();
-        this.nn = null;
+        // The NN was not the culprit of the memory leak
+        //this.nn.Destroy();
+        //this.nn = null;
     }
 
     // ------------------- Animations ------------------- //
