@@ -4,6 +4,14 @@
  * mkButton and mkSlider for creating individual UI elements
  * 
  * UICard is a constructor for a UI dash
+ * 
+ * Monitor class for displaying UICards on the virtual monitor
+ * 
+ * Public facing classes: UICard, Monitor
+ * 
+ * Public facing functions:
+ *  displaySelectedNematode
+ * 
  */
 
 
@@ -200,10 +208,10 @@ function mkButton(opts) {
   // toggle button state
   let toggle = (enabled) => {
     toggled = enabled
-    for (action of actions)
-      action(toggled)
     btn.setFillColor(fill())
     btn.setFillAlpha(alpha())
+    for (action of actions)
+      action(toggled)
   }
 
   // on mouse down, darken and shrink inner circle
@@ -217,11 +225,10 @@ function mkButton(opts) {
   // on mouse up, perform toggle action
   let onUp = function() {
     btnfilter.brightness(1, false)
-    if (!(opts.required && toggled)) toggle(!toggled)
     btn.setBorderPct(0.25)
     app.stage.off("pointerup", onUp)
     app.stage.off("pointerupoutside", onUp)
-  
+    if (!(opts.required && toggled)) toggle(!toggled)
   }
 
   btn.on("pointerdown", onPress)
@@ -675,6 +682,8 @@ class Monitor {
 
     window.filters = Monitor.filters
 
+    window.visible = false
+
     this.container.addChild(window)
   }
 
@@ -694,6 +703,15 @@ class Monitor {
     return new UICard(385,290)
   }
 
+  // destroy the display object of the window
+  static destroyWindow(name) {
+    const window = Monitor.screens[name]
+    if (window) {
+      window.destroy({children:true})
+      delete Monitor.screens[name]
+    }
+  }
+
 }
 
 
@@ -705,9 +723,7 @@ let startedDisplayUpdate = false
  */ 
 function displaySelectedNematode() {
   // destroy the previous nematode display
-  if (nematodeDisplayUI) {
-    Monitor.screens["nematode"].destroy({children:true}) // TODO make destroying a screen a method on Monitor
-  }
+  Monitor.destroyWindow("nematode")
 
   // create text for nematode stats
   nematodeDisplayStats = new PIXI.Text(world.selectedNematode.mkStatString(), new PIXI.TextStyle({
@@ -725,8 +741,8 @@ function displaySelectedNematode() {
   Monitor.assignScreen("nematode",
     Monitor.newWindow()
       .addElement(nematodeDisplayUI)
-      .addButton(() => console.log("store"), "store nematode")
-      .addButton(() => console.log("export"), "export nematode")
+      .addButton(() => storeNematode(world.selectedNematode), "store nematode")
+      .addButton(() => downloadJSON(world.selectedNematode.toJson(), "nematode.json"), "export nematode")
       .addElement(nematodeDisplayStats)
       .make(false)
   )
@@ -743,4 +759,34 @@ function displaySelectedNematode() {
   startedDisplayUpdate = true
 }
 
+// list of nematodes to store
+let storeNematodes = []
+function storeNematode(nematode) {
+  if (storeNematodes.includes(nematode)) return
+  storeNematodes.push(nematode)
+  updateNematodeStore()
+}
 
+function removeNematodeFromStore(nematode) {
+  const i = storeNematodes.indexOf(nematode)
+  if (i==-1) throw `Nematode cannot be removed from store because it isn't in the store`
+  storeNematodes.splice(i,1)
+  console.log(storeNematodes)
+  updateNematodeStore()
+}
+
+// update the nematode store window with the current nematode list
+function updateNematodeStore() {
+  console.log(storeNematodes.length)
+  Monitor.destroyWindow("store")
+
+  let storeListWindow = Monitor.newWindow()
+
+  for (const nema of storeNematodes)
+    storeListWindow.addElement(mkNematodeDisplay(nema))
+      .addButton(() => downloadJSON(nema.toJson(), "nematode.json"), "export")
+      .addButton(() => removeNematodeFromStore(nema), "remove")
+  
+  Monitor.assignScreen("store", storeListWindow.make(false))
+  if (Monitor.currentScreen === "store") Monitor.switchTo("store")
+}
