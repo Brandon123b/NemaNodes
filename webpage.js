@@ -64,9 +64,10 @@ function CreateUI(){
         .endToggleGroup()
         .addText("")
         .addText("Nematodes")
-        .addSlider(x => NeatNN.MUTATION_MULTIPLIER = x, 0, 5, NeatNN.MUTATION_MULTIPLIER, .1, "Nematode NN mutation multiplier")
         .addToggle(enabled => NNDisplay.DRAW_LABELS = enabled, "Draw NN Labels", NNDisplay.DRAW_LABELS)
+        .addToggle(enabled => world.energyBarOn = enabled, "Show nematode energy levels", false)
         .addButton(x => NematodeTrainer.Download(), "Download Training Data")
+        .addSlider(x => NeatNN.MUTATION_MULTIPLIER = x, 0, 5, NeatNN.MUTATION_MULTIPLIER, .1, "Nematode NN mutation multiplier")
         .addText("")
         .addText("Environment")
         .addSlider(x => world.maxNumFood = x, 0, world.maxNumFood*2, world.maxNumFood, 5, "max food number")
@@ -89,7 +90,6 @@ function CreateUI(){
         .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)
         .addToggle(enabled => world.drawSmell = enabled, "draw nematode smell", world.drawSmell)
         .addSlider(x => gameSpeedMult = x, minGameSpeedMult, maxGameSpeedMult, gameSpeedMult, 1, "game speed")
-        .addToggle(enabled => world.energyBarOn = enabled, "show nematode energy levels", false)
         .make(false) // set false to not round corners
 
     let monitor = PIXI.Sprite.from("monitor-nobg.png")
