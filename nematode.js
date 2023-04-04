@@ -21,9 +21,9 @@ class Nematode {
     static TIME_BETEWEEN_CHILDREN = 10;                     // The time between reproductions (in seconds)
 
     // Movement constants
-    static FORWARD_ACCELERATION = 40;                       // The acceleration of the nematode when moving forward (in pixels per second per second)
+    static FORWARD_ACCELERATION = 100;                       // The acceleration of the nematode when moving forward (in pixels per second per second)
     static TURN_ACCELERATION = 10;                          // The acceleration of the nematode when rotating (in degrees per second per second)
-    static STATIC_DRAG = .98;                               // The drag of the nematode (multiplied by velocity)
+    static STATIC_DRAG = .97;                               // The drag of the nematode (multiplied by velocity)
     
     // Bite constants
     static ENERGY_LOST_WHEN_BITING = 5;                     // The amount of energy that the nematode loses when biting (in energy units)
@@ -210,7 +210,7 @@ class Nematode {
         this.nn.SetInput(7, this.SmellArea(nematodeList));                          // Range from -1 to 1
         this.nn.SetInput(8, this.age / 200 - 1);                                    // Range from -1 to 1 (400sec == 1)
         this.nn.SetInput(9, this.energy / this.maxEnergy);                          // Range from  0 to 1
-        this.nn.SetInput(10, DistFromOrigin(this.sprite.position) / World.radius);  // Range from  0 to 1
+        this.nn.SetInput(10, DistFromOrigin(this.GetPosition()) / World.radius);  // Range from  0 to 1
 
         // Run the neural network
         this.nn.RunNN();
@@ -233,20 +233,21 @@ class Nematode {
 
         // Prevent the Nematodes from moving if it is paralyzed
         if (!this.paralyzed) {
+            
+            // Apply drag (Before acceleration)
+            this.velocity.MultiplyConstant(Nematode.STATIC_DRAG);
 
+            // Apply acceleration
             const acc = this.nn.GetOutput(1) * Nematode.FORWARD_ACCELERATION * delta;
             this.velocity.addXY(
                 this.direction.x * acc,
                 this.direction.y * acc
             );
-            
-            // Apply drag
-            this.velocity.MultiplyConstant(Nematode.STATIC_DRAG);
-            
+
             // Limit the Nematodes's speed
-            if (this.velocity.length > this.maxSpeed){
-                this.velocity.normalize();
-                this.velocity.scale(this.maxSpeed);
+            if (this.velocity.magnitude() > this.maxSpeed){
+                this.velocity.Normal();
+                this.velocity.MultiplyConstant(this.maxSpeed);
             }
 
             // Update the Nematodes's rotation
@@ -523,9 +524,9 @@ class Nematode {
         NematodeStatsMenu.statsText.text  = "Age: " + this.age.toFixed(2) + "s\n";
         NematodeStatsMenu.statsText.text += "Energy: " + this.energy.toFixed(2) + " / " + this.maxEnergy.toFixed(2) + "\n";
         NematodeStatsMenu.statsText.text += "\n";
+        NematodeStatsMenu.statsText.text += "Current Velocity: " + this.velocity.magnitude().toFixed(2) + "\n";
         NematodeStatsMenu.statsText.text += "Max Velocity: " + this.maxSpeed.toFixed(2) + " pixels/s\n";
-        NematodeStatsMenu.statsText.text += "Max Rotate Velocity: " + this.maxTurnSpeed.toFixed(2) + "\n";
-        NematodeStatsMenu.statsText.text += "Current Velocity: (" + this.velocity.x.toFixed(2) + ", " + this.velocity.y.toFixed(2) + ")\n";
+        NematodeStatsMenu.statsText.text += "Max Rotate: " + this.maxTurnSpeed.toFixed(2) + "\n";
         NematodeStatsMenu.statsText.text += "\n";
         NematodeStatsMenu.statsText.text += "Size: " + this.size.toFixed(2) + " pixels\n";
         NematodeStatsMenu.statsText.text += "Base Size: " + this.baseSize.toFixed(2) + " pixels\n";

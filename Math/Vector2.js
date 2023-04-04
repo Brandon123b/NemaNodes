@@ -81,6 +81,21 @@ PIXI.Point.prototype.Dist = function(other) {
 }
 PIXI.ObservablePoint.prototype.Dist = PIXI.Point.prototype.Dist
 
+/* Gets a good string of this object */
+PIXI.Point.prototype.String = function(other) {
+    return "(" + this.x + ", " + this.y + ")"
+}
+PIXI.ObservablePoint.prototype.String = PIXI.Point.prototype.String
+
+/* Gets a good string of this object */
+PIXI.Point.prototype.Normal = function(other) {
+    const mag = Math.sqrt(this.x * this.x + this.y * this.y);
+    this.x /= mag;
+    this.y /= mag;
+    return this;
+}
+PIXI.ObservablePoint.prototype.Normal = PIXI.Point.prototype.Normal
+
 /* Multiplies this vector by a scalar */
 PIXI.Point.prototype.MultiplyConstant = function(scalar) {
     this.x *= scalar;
