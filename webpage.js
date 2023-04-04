@@ -40,8 +40,7 @@ function main(){
     NematodeTrainer.Initialize().then(() => {
 
         // Add some "Smart" nematodes
-        world.SpawnSmartNematodes(1000);
-        world.SpawnNematodes(1000);
+        world.SpawnNematodes(2000);
 
         // Add some food
         world.SpawnFood(2000);
