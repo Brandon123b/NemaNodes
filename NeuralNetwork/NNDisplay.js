@@ -47,11 +47,9 @@ class NNDisplay {
     * loc: The location to draw the node
     */
     static DrawNodeCircle(graphics, node, loc) {
-        const activation = node.activation || node.bias
-        const intensity = Math.min(1,Math.abs(activation))
-        // use hsv color scheme to map 0 activation to white
-        const r = activation < 0 ? intensity*255 : 0
-        const g = activation > 0 ? intensity*255 : 0
+        const activation = clamp((node.activation+1)/2,0,1)
+        const r = activation < 0.5 ? 255 : Math.round(255 - (activation - 0.5) * 2 * 255);
+        const g = activation > 0.5 ? 255 : Math.round(activation * 2 * 255);
         const color = Color.fromRGB(r,g,0)
         
         // Set the fill color
@@ -77,6 +75,10 @@ class NNDisplay {
         let g = new PIXI.Graphics()
         // mapping of nodes to their positions in this display
         let nodeLocations = calculateNodeLocations(nn)
+        let textLabels = []
+
+        // get the string for a node's label
+        let mkLabel = node => (node.label ? node.label + "\n" : "") + node.activation.toFixed(5)
         
         // draw the node circles and edge lines 
         let draw = () => {
@@ -87,6 +89,12 @@ class NNDisplay {
 
             for(let i = 0; i < nodeLocations.length; i++)
             this.DrawNodeCircle(g, nn.nodes[i], nodeLocations[i])
+
+            // update text labels
+            nn.nodes.forEach((node, i) => {
+                textLabels[i].text = mkLabel(node)
+            })
+
         }
         
         let container = new PIXI.Container()
@@ -94,26 +102,28 @@ class NNDisplay {
 
         // create hit circles to display node labels on mouse over
         nodeLocations.forEach((pos,i) => {
-            let type = nn.nodes[i].nodeType
-            if (type === NodeType.Hidden) return
+            let node = nn.nodes[i]
+            let type = node.nodeType
 
+            // make an object to detect mouse for each node
             let hitCircle = new PIXI.Container()
             hitCircle.position = pos
 
             // create labels for input/output neurons
-            let nodeLabelText = new PIXI.Text(nn.nodes[i].label,NNDisplay.textStyle)
+            let nodeLabelText = new PIXI.Text(mkLabel(node),NNDisplay.textStyle)
             nodeLabelText.position = pos
-            if (type === NodeType.Input)
-                nodeLabelText.x += NNDisplay.nodeSize/2
-            else // output neuron labels placed to left of node
+            if (type === NodeType.Input || type === NodeType.Hidden)
+                nodeLabelText.x += NNDisplay.nodeSize
+            else if (type === NodeType.Output) // output neuron labels placed to left of node
                 nodeLabelText.x -= nodeLabelText.width
             nodeLabelText.y -= nodeLabelText.height/2
             nodeLabelText.visible = false
+            textLabels.push(nodeLabelText)
 
             // background for text so it is readable
             let textbg = new PIXI.Graphics(0)
             textbg.beginFill(0)
-            textbg.drawRect(nodeLabelText.x, nodeLabelText.y, nodeLabelText.width,nodeLabelText.height)
+            textbg.drawRect(nodeLabelText.x-5, nodeLabelText.y-5, nodeLabelText.width+10,nodeLabelText.height+10)
             textbg.endFill(0)
             textbg.visible = false
 
