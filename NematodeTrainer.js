@@ -9,6 +9,9 @@ class NematodeTrainer {
     // Only store new nematodes if we are training
     static isTraining = true;
 
+    // Will disable loading data from a file on start
+    static disableLoad = true;
+
     // The maximum number of nematodes to store
     static maxNematodes = 2000;
 
@@ -23,6 +26,10 @@ class NematodeTrainer {
 
         // Create the priority queue
         NematodeTrainer.priorityQueue = new PriorityQueue(compare, NematodeTrainer.maxNematodes);
+
+        // Don't load data if we are only storing new data
+        if (NematodeTrainer.disableLoad)
+            return;
 
         // Load all data from the stored smart nematode data
         await NematodeTrainer.LoadData();
