@@ -611,7 +611,7 @@ class Nematode {
             generation: this.generation,
             alive: this.alive,
             nn: this.nn.toJson(),
-            pos: {x: this.GetX(), y: this.GetY()},
+            pos: this.exists ? {x: this.GetX(), y: this.GetY()} : {x:0,y:0},
             dir: {x: this.direction.x, y: this.direction.y},
             size: this.size,
             baseSize: this.baseSize,
