@@ -264,10 +264,10 @@ function mkButton(opts) {
  * 
  */
 class UICard {
-  constructor(width, maxHeight = 500) {
+  constructor(width, height = 500) {
     this.container = new PIXI.Container()
     this.width = width
-    this.maxHeight = maxHeight
+    this.height = height
     this.margin = 15
     this.padding = 5
     // track the next y-position for the next UI element in this card to be added
@@ -299,6 +299,16 @@ class UICard {
       fill: this.trim
     })
 
+    // make a scroll bar for the content
+    let scrollBarWidth = 5
+    this.scrollBarHeight = 10 // minimum scroll bar height
+    this.scrollBar = new PIXI.Graphics()
+    this.scrollBar.beginFill(this.trim)
+    this.scrollBar.drawRect(0,0,scrollBarWidth,this.scrollBarHeight)
+    this.scrollBar.endFill(this.trim)
+    this.scrollBar.x = this.width-scrollBarWidth
+    this.container.addChild(this.scrollBar)
+
     // scroll contents with the mousewheel
     this.container.onwheel = e => {
       const scroll = e.deltaY
@@ -307,21 +317,21 @@ class UICard {
       else
         this.content.y += 15
       
+      let topY = this.container.height - this.nextPos - this.margin
       this.content.position.clamp([0,0], [Math.min(this.container.height - this.nextPos - this.margin,0),0])
+      // slide scroll bar
+      this.scrollBar.height = clamp(this.height*this.height/this.content.height,this.scrollBarHeight,this.height)
+      this.scrollBar.y = (this.content.y/topY)*(this.height-this.scrollBar.height)
     }
   }
 
   // return the container for this UI card
   make(rounded = true) {
     let cornerRadius = rounded ? 10 : 0
-    let height = Math.min(this.nextPos + this.margin, this.maxHeight)
     // transparent bluish background to mimic glass
     this.card.beginFill(this.color,this.opacity)
-    this.card.drawRoundedRect(0,0,this.width,height,cornerRadius)
+    this.card.drawRoundedRect(0,0,this.width,this.height,cornerRadius)
     this.card.endFill()
-    // border
-    // this.card.lineStyle(2,this.trim,this.trimOpacity)
-    // this.card.drawRoundedRect(0,0,this.width,height,cornerRadius)
     
     this.card.interactive = true
 
@@ -330,10 +340,13 @@ class UICard {
     // create a mask to hide contents that overflow due to scrolling
     let rect = new PIXI.Graphics()
     rect.beginFill()
-    rect.drawRect(0,0,this.width,this.maxHeight)
+    rect.drawRect(0,0,this.width,this.height)
     rect.endFill()
     this.content.mask = rect
     this.container.addChild(rect)
+
+    // initialize scroll bar height
+    this.scrollBar.height = clamp(this.height*this.height/this.content.height,this.scrollBarHeight,this.height)
 
     return this.container
   }
