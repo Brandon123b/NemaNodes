@@ -584,7 +584,7 @@ class Monitor {
       fillMode: PIXI.filters.GlitchFilter.CLAMP,
       offset: 2,
       red: [0,1],
-      blue: [1,2],
+      blue: [-1,1],
       green: [1,-1]
     })
   ]

@@ -34,7 +34,8 @@ class NNDisplay {
         const color = Color.fromHSV(hue,sat,90)
 
         // Set the line style
-        graphics.lineStyle(lineWidth, color);
+        const alpha = Math.abs(clamped)
+        graphics.lineStyle(lineWidth, color, alpha);
 
         // Draw the line
         graphics.moveTo(nodeLocations[nodes.indexOf(connection.from)].x, nodeLocations[nodes.indexOf(connection.from)].y);
