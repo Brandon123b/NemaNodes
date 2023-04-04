@@ -104,7 +104,7 @@ class Nematode {
         this.alive = true;              // Nematodes are (hopefully) alive by default
         this.paralyzed = false;         // set flag to true to prevent nematode from moving
 
-        this.nn = new NeatNN(11, 3)      // The brain of the Nematode
+        this.nn = new NeatNN(12, 3)      // The brain of the Nematode
 
         this.CreateSpriteTemp();        // Create the sprite for the bibite
 
@@ -211,7 +211,8 @@ class Nematode {
         this.nn.SetInput(7, this.SmellArea(nematodeList));                          // Range from -1 to 1
         this.nn.SetInput(8, this.age / 200 - 1);                                    // Range from -1 to 1 (400sec == 1)
         this.nn.SetInput(9, this.energy / this.maxEnergy);                          // Range from  0 to 1
-        this.nn.SetInput(10, DistFromOrigin(this.GetPosition()) / World.radius);  // Range from  0 to 1
+        this.nn.SetInput(10, DistFromOrigin(this.GetPosition()) / World.radius);    // Range from  0 to 1
+        this.nn.SetInput(11, this.velocity.magnitude() / this.maxSpeed);            // Range from  0 to 1
 
         // Run the neural network
         this.nn.RunNN();

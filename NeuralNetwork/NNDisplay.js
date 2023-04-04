@@ -23,7 +23,7 @@ class NNDisplay {
             fontFamily: 'Arial',
             fontSize: 13,
             fill: 'white',
-            lineHeight: 19
+            lineHeight: 17
         });
 
         // The text style for the labels
@@ -46,7 +46,8 @@ Food Smell
 Nematode Smell
 Age
 Energy
-Distance from middle`
+Distance from middle
+Veclocity`
 
         // The text for the output nodes
         const rightText =
