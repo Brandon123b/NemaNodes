@@ -32,18 +32,24 @@ class NeatNN {
 
         this.penalty = 0;       // The penalty of the network (increases for larger networks)
 
+        // Default inputs
+        for(let i = 0; i < this.inputCount; i++)
+            this.inputs.push(0);
+        
+        // Default outputs
+        for(let i = 0; i < this.outputCount; i++)
+            this.outputs.push(0);
+
         // If the network is not being cloned or loaded, create the network
         if (dontRandomize)
             return;
 
         // Create the input nodes
-        for(let i = 0; i < this.inputCount; i++){
+        for(let i = 0; i < this.inputCount; i++)
             this.nodes.push(new Node(NodeType.Input));
-            this.inputs.push(0);
-        }
         
         // Create the output nodes
-        for(let i = 0; i < this.outputCount; i++)
+        for(let i = 0; i < this.outputCount; i++) 
             this.nodes.push(new Node(NodeType.Output));
         
         // Create the connections between the input and output nodes
@@ -615,8 +621,6 @@ class NeatNN {
             var fromNode = nn.nodes[json.connectionsJson[i].from];
             var toNode = nn.nodes[json.connectionsJson[i].to];
             var weight = json.connectionsJson[i].weight;
-
-            //console.log("From: " + fromNode + " To: " + toNode + " Weight: " + weight);
 
             nn.connect(fromNode, toNode, weight)
         }

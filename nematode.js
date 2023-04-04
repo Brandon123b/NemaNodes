@@ -19,6 +19,11 @@ class Nematode {
     static PERCENTAGE_ENERGY_TO_REPRODUCE = 0.75;           // The percentage of energy that the nematode must have to reproduce
     static PERCENT_ENERGY_LOST_WHEN_REPRODUCING = 0.25;     // The percentage of energy that the nematode loses when reproducing
     static TIME_BETEWEEN_CHILDREN = 10;                     // The time between reproductions (in seconds)
+
+    // Movement constants
+    static FORWARD_ACCELERATION = 10;                       // The acceleration of the nematode when moving forward (in pixels per second per second)
+    static TURN_ACCELERATION = 10;                          // The acceleration of the nematode when rotating (in degrees per second per second)
+    static STATIC_DRAG = .95;                               // The drag of the nematode (multiplied by velocity)
     
     // Bite constants
     static ENERGY_LOST_WHEN_BITING = 5;                     // The amount of energy that the nematode loses when biting (in energy units)
@@ -112,8 +117,8 @@ class Nematode {
         this.childTime = Nematode.MATURITY_RANGE.min + Math.random() * (Nematode.MATURITY_RANGE.max - Nematode.MATURITY_RANGE.min);    // The age at which the Nematode can reproduce (in seconds)
 
         this.energy = -1;              // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
-        this.speed = 0;                // The speed of the Nematode (Set in SlowUpdate)
-        this.rotate = 0;               // The rotation of the Nematode (Set in SlowUpdate)
+        this.forwardVelocity = 0;       // The forward velocity of the Nematode (in pixels per second)
+        this.turnVelocity = 0;          // The turn velocity of the Nematode (in radians per second)
     }
 
     /* Creates a child nematode from a parent
@@ -147,8 +152,8 @@ class Nematode {
         this.childTime = Nematode.MATURITY_RANGE.min + Math.random() * (Nematode.MATURITY_RANGE.max - Nematode.MATURITY_RANGE.min);  // The age at which the Nematode can reproduce (in seconds)
 
         this.energy = -1;              // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
-        this.speed = 0;                // The speed of the Nematode (Set in SlowUpdate)
-        this.rotate = 0;               // The rotation of the Nematode (Set in SlowUpdate)
+        this.forwardVelocity = 0;       // The forward velocity of the Nematode (in pixels per second)
+        this.turnVelocity = 0;          // The turn velocity of the Nematode (in radians per second)
     }
 
     /* Creates a nematode from a json object
@@ -179,8 +184,8 @@ class Nematode {
         this.childTime = json.childTime;// The age at which the Nematode can reproduce (in seconds)
 
         this.energy = json.energy;      // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
-        this.speed = json.speed;        // The speed of the Nematode (Set in SlowUpdate)
-        this.rotate = json.rotate;      // The rotation of the Nematode (Set in SlowUpdate)
+        this.forwardVelocity = 0;       // The forward velocity of the Nematode (in pixels per second)
+        this.turnVelocity = 0;          // The turn velocity of the Nematode (in radians per second)
     }
 
     // ------------------------------------ Update Functions ------------------------------------ //
@@ -208,18 +213,10 @@ class Nematode {
         this.nn.SetInput(7, this.SmellArea(nematodeList));                          // Range from -1 to 1
         this.nn.SetInput(8, this.age / 200 - 1);                                    // Range from -1 to 1 (400sec == 1)
         this.nn.SetInput(9, this.energy / this.maxEnergy);                          // Range from  0 to 1
-        this.nn.SetInput(10, DistFromOrigin(this.sprite.position) / World.radius);  // Range from  0 to 1
+        this.nn.SetInput(10, 0); //DistFromOrigin(this.sprite.position) / World.radius);  // Range from  0 to 1
 
         // Run the neural network
         this.nn.RunNN();
-        
-        // Set the rotate and speed variables from the neural network outputs
-        this.rotate = this.nn.GetOutput(0) * this.maxTurnSpeed;
-        this.speed  = this.nn.GetOutput(1) * this.maxSpeed;
-        // Output 2 is used for Biting in OnBite (Called from EyeRaycast)
-
-        // If speed is negative, halve it (Make backwards movement slower to encourage forward movement)
-        this.speed = (this.speed < 0) ? this.speed * 0.5 : this.speed;
     }
 
     /* Update the Nematodes
@@ -240,12 +237,23 @@ class Nematode {
         // Prevent the Nematodes from moving if it is paralyzed
         if (!this.paralyzed) {
 
+            // Increase the Nematodes's forward velocity
+            this.forwardVelocity += this.nn.GetOutput(1) * Nematode.FORWARD_ACCELERATION * Nematode.STATIC_DRAG * delta;
+            this.forwardVelocity = Math.min(this.forwardVelocity, this.maxSpeed);
+
+            // Increase the Nematodes's rotation velocity
+            this.turnVelocity += this.nn.GetOutput(0) * Nematode.TURN_ACCELERATION * Nematode.STATIC_DRAG * delta;
+            this.turnVelocity = Math.min(this.turnVelocity, this.maxTurnSpeed);
+
             // Update the Nematodes's rotation
-            this.direction.rotate(this.rotate * delta);
+            this.direction.rotate(this.turnVelocity * delta);
+
+            // Velicity is halved when moving backwards
+            const fVelocity = this.forwardVelocity * ((this.forwardVelocity > 0) ? 1 : 0.5) * delta;
 
             // Update the Nematodes's position
-            world.updatePosition(this,  this.GetX() + this.direction.x * this.speed * delta, 
-                                this.GetY() + this.direction.y * this.speed * delta);
+            world.updatePosition(this,  this.GetX() + this.direction.x * fVelocity, 
+                                        this.GetY() + this.direction.y * fVelocity);
 
             // If the nematode has knockback, apply it
             if (this.knockbackDirection != undefined)
@@ -279,7 +287,7 @@ class Nematode {
 
         // Decrease the energy of the bibite
         let energyLoss = 1;                                     // Initial energy loss is 1 per second
-        energyLoss += Math.abs(this.speed) / this.maxSpeed;     // Multiply energy loss by the ratio of the speed to the max speed
+        energyLoss += Math.abs(this.forwardVelocity) / this.maxSpeed; // Multiply energy loss by the ratio of the speed to the max speed
         energyLoss *= 1 + this.age / 300;                       // Multiply energy loss by the ratio of the age to a constant
         this.energy -= energyLoss * delta;                      // Decrease the energy by the energy loss
         
@@ -514,8 +522,11 @@ class Nematode {
         NematodeStatsMenu.statsText.text  = "Age: " + this.age.toFixed(2) + "s\n";
         NematodeStatsMenu.statsText.text += "Energy: " + this.energy.toFixed(2) + " / " + this.maxEnergy.toFixed(2) + "\n";
         NematodeStatsMenu.statsText.text += "\n";
-        NematodeStatsMenu.statsText.text += "Max Speed: " + this.maxSpeed.toFixed(2) + " pixels/s\n";
-        NematodeStatsMenu.statsText.text += "Turn Speed: " + this.maxTurnSpeed.toFixed(2) + "\n";
+        NematodeStatsMenu.statsText.text += "Current Velocity: " + this.forwardVelocity.toFixed(2) + " pixels/s\n";
+        NematodeStatsMenu.statsText.text += "Current Rotate Velocity: " + this.turnVelocity.toFixed(2) + " degrees/s\n";
+        NematodeStatsMenu.statsText.text += "Max Velocity: " + this.maxSpeed.toFixed(2) + " pixels/s\n";
+        NematodeStatsMenu.statsText.text += "Turn Rotate Velocity: " + this.maxTurnSpeed.toFixed(2) + "\n";
+        NematodeStatsMenu.statsText.text += "Current Position: (" + this.GetX().toFixed(2) + ", " + this.GetY().toFixed(2) + ")\n";
         NematodeStatsMenu.statsText.text += "\n";
         NematodeStatsMenu.statsText.text += "Size: " + this.size.toFixed(2) + " pixels\n";
         NematodeStatsMenu.statsText.text += "Base Size: " + this.baseSize.toFixed(2) + " pixels\n";
