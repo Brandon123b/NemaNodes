@@ -153,6 +153,9 @@ class Nematode {
 
         this.energy = -1;              // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
         this.velocity = new PIXI.Point();   // The velocity of the Nematode (in pixels per second)
+
+        // Add bite cooldown to prevent the child from biting immediately
+        this.biteCooldown = Nematode.BITE_COOLDOWN * 5;
     }
 
     /* Creates a nematode from a json object
@@ -216,6 +219,9 @@ class Nematode {
 
         // Run the neural network
         this.nn.RunNN();
+
+        // Set vars from output
+        this.willBite = this.nn.GetOutput(2) > 0;
     }
 
     /* Update the Nematodes
@@ -239,14 +245,14 @@ class Nematode {
             // Apply drag (Before acceleration)
             this.velocity.MultiplyConstant(Nematode.STATIC_DRAG);
 
-            // Apply acceleration
+            // Apply acceleration (Slows the nematode down and smooths out the movement/turning)
             const acc = this.nn.GetOutput(1) * Nematode.FORWARD_ACCELERATION * delta;
             this.velocity.addXY(
                 this.direction.x * acc,
                 this.direction.y * acc
             );
 
-            // Limit the Nematodes's speed
+            // Clamp the Nematodes's speed
             if (this.velocity.magnitude() > this.maxSpeed){
                 this.velocity.Normal();
                 this.velocity.MultiplyConstant(this.maxSpeed);
@@ -333,8 +339,8 @@ class Nematode {
             if (isFood && raycastResult.GetDistance() < this.size / 2)
                 this.OnEat(raycastResult.GetHitObject());
             
-            // If the raycast is close enough to the nematode, bite it
-            else if (!isFood && raycastResult.GetDistance() < this.size / 2 + Nematode.MAX_BITE_DISTANCE)
+            // If the raycast is close enough to the nematode, bite it (Only if the nematode wants to bite)
+            else if (!isFood && this.willBite && raycastResult.GetDistance() < this.size / 2 + Nematode.MAX_BITE_DISTANCE)
                 this.OnBite(raycastResult.GetHitObject());
 
             // Return the ratio of the distance to the closest food to the max distance
@@ -416,7 +422,7 @@ class Nematode {
 
         // If the bibite is old enough and has enough energy, have a child (give it the parent to copy the stats from)
         if (this.childTime <= 0 && this.energy > this.maxEnergy * Nematode.PERCENTAGE_ENERGY_TO_REPRODUCE){
-            this.childTime = Nematode.TIME_BETEWEEN_CHILDREN;                                // Reset the child time
+            this.childTime = Nematode.TIME_BETEWEEN_CHILDREN;                               // Reset the child time
             this.energy -= this.maxEnergy * Nematode.PERCENT_ENERGY_LOST_WHEN_REPRODUCING;  // Lose energy when reproducing
             new Nematode(this);                                                             // Create a new Nematode child
         }
