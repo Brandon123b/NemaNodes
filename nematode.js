@@ -24,6 +24,7 @@ class Nematode {
     static FORWARD_ACCELERATION = 100;                       // The acceleration of the nematode when moving forward (in pixels per second per second)
     static TURN_ACCELERATION = 10;                          // The acceleration of the nematode when rotating (in degrees per second per second)
     static STATIC_DRAG = .97;                               // The drag of the nematode (multiplied by velocity)
+    static BACKWARD_DRAG = .9;                              // The drag of the nematode when moving backwards (multiplied by velocity)
     
     // Bite constants
     static ENERGY_LOST_WHEN_BITING = 5;                     // The amount of energy that the nematode loses when biting (in energy units)
@@ -248,6 +249,12 @@ class Nematode {
             if (this.velocity.magnitude() > this.maxSpeed){
                 this.velocity.Normal();
                 this.velocity.MultiplyConstant(this.maxSpeed);
+            }
+
+            // Reduce speed if the Nematode is moving backwards
+            const dotProduct = this.velocity.x * this.direction.x + this.velocity.y * this.direction.y;
+            if (dotProduct < 0) {
+                this.velocity.MultiplyConstant(Nematode.BACKWARD_DRAG);
             }
 
             // Update the Nematodes's rotation
