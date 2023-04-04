@@ -47,10 +47,11 @@ class NNDisplay {
     * loc: The location to draw the node
     */
     static DrawNodeCircle(graphics, node, loc) {
-        const activation = Math.min(1,Math.abs(node.activation))
+        const activation = node.activation || node.bias
+        const intensity = Math.min(1,Math.abs(activation))
         // use hsv color scheme to map 0 activation to white
-        const r = node.activation < 0 ? activation*255 : 0
-        const g = node.activation > 0 ? activation*255 : 0
+        const r = activation < 0 ? intensity*255 : 0
+        const g = activation > 0 ? intensity*255 : 0
         const color = Color.fromRGB(r,g,0)
         
         // Set the fill color

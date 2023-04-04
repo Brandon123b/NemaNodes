@@ -502,12 +502,14 @@ class UICard {
  * 
  * Call .updateNematodeDisplay() to redraw the NN node activations
  * and nematode stats
- * @param {Nematode} nematode 
+ * @param {Nematode} nematode
  * @returns nematode display object to be placed in UI monitor
+ * 
+ * TODO possibly change this so it works on a nematode that is destroyed
  */
 function mkNematodeDisplay(nematode) {
   let container = new PIXI.Container()
-  let sprite = PIXI.Sprite.from(nematode.sprite.texture)
+  let sprite = PIXI.Sprite.from("Bibite.png") // TODO change this to get the correct sprite
   sprite.anchor.set(0.5)
   sprite.tint = nematode.sprite.tint
 
@@ -570,7 +572,7 @@ class Monitor {
       offset: 2,
       red: [-3,3],
       blue: [1,2],
-      green: [-5,5]
+      green: [1,-1]
     })
   ]
     
@@ -760,13 +762,24 @@ function displaySelectedNematode() {
 }
 
 // list of nematodes to store
+// TODO allow sortby functions in nematode store
 let storeNematodes = []
-function storeNematode(nematode) {
-  if (storeNematodes.includes(nematode)) return
-  storeNematodes.push(nematode)
+
+/**
+ * Add the given nematodes to the store list and update display
+ * @param  {...Nematode} nematodes 
+ */
+function storeNematode(...nematodes) {
+  for (const nema of nematodes)
+    if (storeNematodes.includes(nema)) continue
+    else storeNematodes.push(nema)
   updateNematodeStore()
 }
 
+/**
+ * Pull a nematode off the store list and update display
+ * @param {Nematode} nematode 
+ */
 function removeNematodeFromStore(nematode) {
   const i = storeNematodes.indexOf(nematode)
   if (i==-1) throw `Nematode cannot be removed from store because it isn't in the store`
@@ -775,15 +788,45 @@ function removeNematodeFromStore(nematode) {
   updateNematodeStore()
 }
 
-// update the nematode store window with the current nematode list
+/**
+ * Prompt the user to select nematode json files to insert in the store
+ */
+function importNematodes() {
+  // TODO error check that uploaded file is valid
+  upload()
+    .then(filelist => {
+      let texts = []
+      for (let i = 0; i < filelist.length; i++)
+        texts.push(filelist.item(i).text())
+      return Promise.all(texts)
+    })
+    .then(jsonStrings => {
+      // create a new nematode from each imported file
+      const nematodes = jsonStrings.map(JSON.parse).map(obj => new Nematode(obj))
+      storeNematode(...nematodes) // add them to the store display
+      nematodes.forEach(n => n.Destroy()) // remove them from the world
+      // TODO might want to allow Nematodes to be constructed without immediately placing them in the world
+    })
+}
+
+/**
+ * remake the store list screen
+ * 
+ * TODO add sortby function as argument
+ */
 function updateNematodeStore() {
-  console.log(storeNematodes.length)
+  // clear the store window
   Monitor.destroyWindow("store")
 
   let storeListWindow = Monitor.newWindow()
+    .addText("Nematode Store")
+    .addButton(importNematodes, "import nematode")
+
 
   for (const nema of storeNematodes)
-    storeListWindow.addElement(mkNematodeDisplay(nema))
+    storeListWindow
+      .addText("")
+      .addElement(mkNematodeDisplay(nema))
       .addButton(() => downloadJSON(nema.toJson(), "nematode.json"), "export")
       .addButton(() => removeNematodeFromStore(nema), "remove")
   

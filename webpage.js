@@ -51,8 +51,6 @@ function main(){
 
 // create a UI card
 function CreateUI(){
-    let container = new PIXI.Container()
-
     let ui = Monitor.newWindow()
         .addText("User tools")
         .startToggleGroup()
@@ -95,6 +93,7 @@ function CreateUI(){
     Monitor.initialize()
     Monitor.assignScreen("options", ui)
     Monitor.switchTo("options")
+    updateNematodeStore()
 }
 
 /**
@@ -170,6 +169,7 @@ function mainLoop() {
     DrawLoop(delta)
 }
 
-// Very easy to miss this line
-main();
+// Load our assets first, then run main
+PIXI.Assets.load("Bibite.png").then(main)
+
 
