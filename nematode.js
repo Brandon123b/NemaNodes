@@ -452,7 +452,6 @@ class Nematode {
     *  size -- The size of the attacking Nematode (used to calculate the knockback and damage)
     */
     OnGetBitten(pos, attackingSize){
-
         // The ratio of the attacking Nematode's size to the size of this Nematode
         var sizeRatio = attackingSize / this.size;   
 
@@ -462,6 +461,17 @@ class Nematode {
         // Set a knockback direction (to be used in KnockBackAnimation())
         this.knockbackDirection = new PIXI.Point(this.GetX() - pos.x, this.GetY() - pos.y)
                                           .normalize().MultiplyConstant(Nematode.KNOCKBACK_POWER * sizeRatio);
+
+        // give red tint to nematode
+        let tint = new PIXI.ColorMatrixFilter()
+        tint.tint(0xff0000)
+        let filters = this.sprite.filters || []
+        filters.push(tint)
+        this.sprite.filters = filters
+        // remove the red tint after 1/3 seconds
+        setTimeout(() => {
+            if (!this.sprite.destroyed) this.sprite.filters = this.sprite.filters.filter(f => f != tint)
+        }, 300)
     }
 
     /* Destroy this nematode */
