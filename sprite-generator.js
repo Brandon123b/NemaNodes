@@ -10,11 +10,29 @@ class SpriteGenerator {
     static chunk_y = 0;
     static bodyPartWidth = 32;
     static bodyPartHeight = 32;
+
+    //Constructor loads all sprite parts into arrays
+    constructor() {
+
+        this.heads = [];
+        this.tails = [];
+        this.mids = [];
+        this.eyes = [];
+
+        this.eyes.push(PIXI.Sprite.from('art/eyes01.png'));
+        this.tails.push(PIXI.Sprite.from('art/tails01.png'));
+        this.heads.push(PIXI.Sprite.from('art/head01.png'));
+        this.mids.push(PIXI.Sprite.from('art/mids01.png'));
+
+
+    }
+
+
     
     //Generate a texture that can then be either used as a sprite or attached to a rope
     //input: nematode to generate sprite for (currently doesn't matter)
     //output: a PIXI texture object
-    static GenerateNematodeTexture(nematode) {
+    GenerateNematodeTexture(nematode) {
         
         //Calculate where to place each chunk sprite
         let points = [];
@@ -26,28 +44,35 @@ class SpriteGenerator {
             x += this.chunk_distance;
         }
 
-        //Place chunks
-        for(let i=0;i<this.n_chunks; i++) {
-            let chunk = PIXI.Sprite.from('Bibite.png');
-            chunk.x = points[i][0];
-            chunk.y = points[i][1];
-            chunk.height = this.bodyPartHeight;
-            chunk.width = this.bodyPartWidth;
-            chunk.anchor.set(0.5);
-            chunk.tint = Math.round(Math.random() * 0xFFFFFF);
-            spriteCont.addChild(chunk);
-        }
+        //tint
+        this.heads[0].tint = Math.round(Math.random() * 0xFFFFFF);
+        //tint
+        this.eyes[0].tint = Math.round(Math.random() * 0xFFFFFF);
+        //tint
+        this.tails[0].tint = Math.round(Math.random() * 0xFFFFFF);
+        //tint
+        this.mids[0].tint = Math.round(Math.random() * 0xFFFFFF);
+
+
+        //add head to container
+        spriteCont.addChild(this.heads[0]);
+        //add eyes
+        spriteCont.addChild(this.eyes[0]);
+        //add some midsections 
+        spriteCont.addChild(this.mids[0]);
+        //add a tail
+        spriteCont.addChild(this.tails[0]);
 
         //convert to a texture
         const image = app.renderer.extract.image(spriteCont, "image/png");
 
         //view the image in console (testing only)
-        /*
+        
         image.then(res => {
             console.log(res)
             document.body.appendChild(res)
         }, console.log)
-        */
+        
         return image;
     }
 
