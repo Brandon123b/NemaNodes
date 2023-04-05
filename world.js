@@ -57,6 +57,9 @@ class World {
     // Debug slider vars
     this.SlowUpdateInterval = 5;
 
+    // create a button to display nematode energy
+    this.energyBarOn = false;
+
     this.#setUpBrushes()
   }
 

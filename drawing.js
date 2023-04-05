@@ -96,6 +96,17 @@ class Canvas {
 
 
     this.CreatePauseAction()
+
+
+    //Settings for drawing energy levels above nematodes
+    this.ebar_offset_y = 30;
+    this.ebar_height = 0.001;
+    this.ebar_max_length = 30;
+
+    //colors for the energy bars
+    this.ebarcolor_low = 0xbd1111;
+    this.ebarcolor_mid = 0xfcd303;
+    this.ebarcolor_high = 0x0339fc;
   }
 
   // take a world point and convert it to a point on the screen
@@ -190,6 +201,12 @@ class Canvas {
       this.worldGraphics.drawRect(world.zoneSize()*x, world.zoneSize()*y, world.zoneSize(), world.zoneSize())
     }
 
+    //draw energy level bars above nematodes
+    if(world.energyBarOn) {
+      world.forEachNematode(n => this.DrawEnergyLevel(n));
+
+    }
+
     // draw the selected nematode's neural network and stats
     if (world.selectedNematode != null){
 
@@ -219,6 +236,31 @@ class Canvas {
 
     // Update the fps counter
     this.UpdateFpsCounter(delta);
+  }
+
+  //Draw a bar above a nematode's head that shows its energy level
+  DrawEnergyLevel(nematode) {
+
+    //Scale bar as a ratio of nematode's energy
+    let ebar_ratio = nematode.energy / nematode.maxEnergy;
+    //Set color based on nematode's energy percentage
+    let barcolor = this.ebarcolor_high;
+    if(ebar_ratio < 0.33) {
+      barcolor = this.ebarcolor_low;
+    }
+    else if (ebar_ratio < 0.66) {
+      barcolor = this.ebarcolor_mid;
+    }
+
+    //Draw the energy bar
+    this.worldGraphics.beginFill(barcolor);
+    this.worldGraphics.lineStyle(5, barcolor);
+    this.worldGraphics.drawRect(
+      nematode.sprite.x - (this.ebar_max_length * ebar_ratio/2),
+      nematode.sprite.y - this.ebar_offset_y,
+      this.ebar_max_length * ebar_ratio,
+      this.ebar_height);   
+    
   }
 }
 
@@ -273,4 +315,6 @@ class NematodeStatsMenu {
     this.headerText.visible = false;
     this.statsText.visible = false;
   }
+
+  
 }
