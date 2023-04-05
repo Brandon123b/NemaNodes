@@ -48,7 +48,10 @@ class NNDisplay {
     * loc: The location to draw the node
     */
     static DrawNodeCircle(graphics, node, loc) {
-        const activation = clamp((node.activation+1)/2,0,1)
+        // if the NN is living use its node activiation for color
+        // otherwise use its node bias
+        const nactivation = node.activation || node.bias
+        const activation = clamp((nactivation+1)/2,0,1)
         const r = activation < 0.5 ? 255 : Math.round(255 - (activation - 0.5) * 2 * 255);
         const g = activation > 0.5 ? 255 : Math.round(activation * 2 * 255);
         const color = Color.fromRGB(r,g,0)
@@ -79,7 +82,7 @@ class NNDisplay {
         let textLabels = []
 
         // get the string for a node's label
-        let mkLabel = node => (node.label ? node.label + "\n" : "") + node.activation.toFixed(5)
+        let mkLabel = node => (node.label ? node.label + "\n" : "") + (node.activation || node.bias).toFixed(5)
         
         // draw the node circles and edge lines 
         let draw = () => {
