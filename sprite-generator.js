@@ -11,13 +11,15 @@ class SpriteGenerator {
     static bodyPartWidth = 32;
     static bodyPartHeight = 32;
 
-    //Constructor loads all sprite parts into arrays
-    constructor() {
+    static heads = [];
+    static tails = [];
+    static mids = [];
+    static eyes = [];
 
-        this.heads = [];
-        this.tails = [];
-        this.mids = [];
-        this.eyes = [];
+    //load all sprite parts into arrays
+    static LoadspriteChunks() {
+
+        
 
         this.eyes.push(PIXI.Sprite.from('art/eyes01.png'));
         this.tails.push(PIXI.Sprite.from('art/tails01.png'));
@@ -32,7 +34,7 @@ class SpriteGenerator {
     //Generate a texture that can then be either used as a sprite or attached to a rope
     //input: nematode to generate sprite for (currently doesn't matter)
     //output: a PIXI texture object
-    GenerateNematodeTexture(nematode) {
+    static GenerateNematodeTexture(nematode) {
         
         //Calculate where to place each chunk sprite
         let points = [];
@@ -67,13 +69,15 @@ class SpriteGenerator {
         const image = app.renderer.extract.image(spriteCont, "image/png");
 
         //view the image in console (testing only)
-        
+        /*
         image.then(res => {
             console.log(res)
             document.body.appendChild(res)
         }, console.log)
-        
-        return image;
+        */
+        image.defaultAnchor = 0.5;
+        sprite = new PIXI.Sprite(image);
+        return sprite;
     }
 
     //Generate the rope given a sprite

@@ -551,13 +551,13 @@ class Nematode {
     // Will be replaced with a call to a function that creates a sprite (hopefully in a separate file)
     CreateSpriteTemp() {
         // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
-        this.sprite = PIXI.Sprite.from('Bibite.png');
+        this.sprite = SpriteGenerator.GenerateNematodeTexture(this);
         // Set the pivot point to the center of the bibite
         this.sprite.anchor.set(0.5);
 
         // random color tint for sprite
-        this.baseColor = Math.round(Math.random() * 0xFFFFFF)
-        this.sprite.tint = this.baseColor
+        //this.baseColor = Math.round(Math.random() * 0xFFFFFF)
+        //this.sprite.tint = this.baseColor
 
         // make nematodes draggable
         createDragAction(this.sprite, this.sprite,

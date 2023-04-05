@@ -61,6 +61,9 @@ class World {
     this.energyBarOn = false;
 
     this.#setUpBrushes()
+
+    //load images for sprite generator
+    SpriteGenerator.LoadspriteChunks();
   }
 
   /**
