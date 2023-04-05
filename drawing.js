@@ -178,8 +178,17 @@ class Canvas {
     // Update the moving fps (Uses the last 20 frames)
     this.movingFps = this.movingFps * 0.95 + 1 / delta * 0.05;
 
+    // Get the hours, minutes, and seconds since the start of the simulation
+    const hour = Math.floor(timeSinceStart / 3600);
+    const minute = Math.floor((timeSinceStart % 3600) / 60);
+    const second = Math.floor(timeSinceStart % 60);
+
+    // Format the time string
+    const timeString = hour.toFixed(0) + ":" + minute.toFixed(0).padStart(2, '0') + ":" + second.toFixed(0).padStart(2, '0');
+    
+    // Update the fps counter
     this.fpsCounter.text =  "FPS: " + (this.movingFps).toFixed(1) +
-                            " | Time: " + timeSinceStart.toFixed(1) +
+                            " | Time: " + timeString +
                             " | Nematodes: " + world.numNematodes() +
                             " | Food: " + world.numFood();
   }
