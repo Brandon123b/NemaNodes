@@ -22,7 +22,7 @@ class NNDisplay {
     * connection: The connection to draw
     * nodeLocations: The locations of the nodes
     */
-    static DrawConnectionLine(graphics, connection, nodeLocations, nodes) {
+    DrawConnectionLine(connection) {
         // The width of the line
         const lineWidth = 3;
 
@@ -35,11 +35,12 @@ class NNDisplay {
 
         // Set the line style
         const alpha = Math.abs(clamped)
-        graphics.lineStyle(lineWidth, color, alpha);
+        this.graphics.lineStyle(lineWidth, color, alpha);
 
         // Draw the line
-        graphics.moveTo(nodeLocations[nodes.indexOf(connection.from)].x, nodeLocations[nodes.indexOf(connection.from)].y);
-        graphics.lineTo(nodeLocations[nodes.indexOf(connection.to)].x, nodeLocations[nodes.indexOf(connection.to)].y);
+        let nodes = this.nn.nodes
+        this.graphics.moveTo(this.nodeLocations[nodes.indexOf(connection.from)].x, this.nodeLocations[nodes.indexOf(connection.from)].y);
+        this.graphics.lineTo(this.nodeLocations[nodes.indexOf(connection.to)].x, this.nodeLocations[nodes.indexOf(connection.to)].y);
     }
 
     /* Draws a node
@@ -47,7 +48,7 @@ class NNDisplay {
     * node: The node to draw
     * loc: The location to draw the node
     */
-    static DrawNodeCircle(graphics, node, loc) {
+    DrawNodeCircle(node, loc) {
         // if the NN is living use its node activiation for color
         // otherwise use its node bias
         const nactivation = node.activation || node.bias
@@ -57,13 +58,37 @@ class NNDisplay {
         const color = Color.fromRGB(r,g,0)
         
         // Set the fill color
-        graphics.beginFill(color);
+        this.graphics.beginFill(color);
 
         // Add a blue border
-        graphics.lineStyle(2, 0x0000ff);
+        this.graphics.lineStyle(2, 0x0000ff);
 
         // Draw the circle
-        graphics.drawCircle(loc.x, loc.y, NNDisplay.nodeSize);
+        this.graphics.drawCircle(loc.x, loc.y, NNDisplay.nodeSize);
+    }
+
+    // return the string to be used as a label for a node
+    // contains the node's input/output label, and its bias (or activation if the neural network is alive)
+    mkLabel(node) {
+        return (node.label ? node.label + "\n" : "") + (node.activation || node.bias).toFixed(5)
+    }
+
+    /**
+     * Redraw the NN display
+     */
+    update() {
+        this.graphics.clear()
+
+        for(let i = 0; i < this.nn.connections.length; i++)
+        this.DrawConnectionLine(this.nn.connections[i])
+
+        for(let i = 0; i < this.nodeLocations.length; i++)
+        this.DrawNodeCircle(this.nn.nodes[i], this.nodeLocations[i])
+
+        // update text labels
+        this.nn.nodes.forEach((node, i) => {
+            this.textLabels[i].text = this.mkLabel(node)
+        })
     }
 
     /**
@@ -75,37 +100,20 @@ class NNDisplay {
      * @param {NeatNN} nn 
      * @returns {PIXI.Container}
      */
-    static mkNNDisplay(nn) {
-        let g = new PIXI.Graphics()
+    constructor(nn) {
+        this.nn = nn
+
+        this.graphics = new PIXI.Graphics()
         // mapping of nodes to their positions in this display
-        let nodeLocations = calculateNodeLocations(nn)
-        let textLabels = []
-
-        // get the string for a node's label
-        let mkLabel = node => (node.label ? node.label + "\n" : "") + (node.activation || node.bias).toFixed(5)
+        this.nodeLocations = this.calculateNodeLocations()
+        // mapping of nodes to the text objects for their labels
+        this.textLabels = []
         
-        // draw the node circles and edge lines 
-        let draw = () => {
-            g.clear()
-
-            for(let i = 0; i < nn.connections.length; i++)
-            this.DrawConnectionLine(g, nn.connections[i], nodeLocations, nn.nodes)
-
-            for(let i = 0; i < nodeLocations.length; i++)
-            this.DrawNodeCircle(g, nn.nodes[i], nodeLocations[i])
-
-            // update text labels
-            nn.nodes.forEach((node, i) => {
-                textLabels[i].text = mkLabel(node)
-            })
-
-        }
-        
-        let container = new PIXI.Container()
-        container.addChild(g)
+        this.container = new PIXI.Container()
+        this.container.addChild(this.graphics)
 
         // create hit circles to display node labels on mouse over
-        nodeLocations.forEach((pos,i) => {
+        this.nodeLocations.forEach((pos,i) => {
             let node = nn.nodes[i]
             let type = node.nodeType
 
@@ -114,7 +122,7 @@ class NNDisplay {
             hitCircle.position = pos
 
             // create labels for input/output neurons
-            let nodeLabelText = new PIXI.Text(mkLabel(node),NNDisplay.textStyle)
+            let nodeLabelText = new PIXI.Text(this.mkLabel(node),NNDisplay.textStyle)
             nodeLabelText.position = pos
             if (type === NodeType.Input || type === NodeType.Hidden)
                 nodeLabelText.x += NNDisplay.nodeSize
@@ -122,7 +130,7 @@ class NNDisplay {
                 nodeLabelText.x -= nodeLabelText.width
             nodeLabelText.y -= nodeLabelText.height/2
             nodeLabelText.visible = false
-            textLabels.push(nodeLabelText)
+            this.textLabels.push(nodeLabelText)
 
             // background for text so it is readable
             let textbg = new PIXI.Graphics(0)
@@ -131,9 +139,9 @@ class NNDisplay {
             textbg.endFill(0)
             textbg.visible = false
 
-            container.addChild(hitCircle)
-            container.addChild(textbg)
-            container.addChild(nodeLabelText)
+            this.container.addChild(hitCircle)
+            this.container.addChild(textbg)
+            this.container.addChild(nodeLabelText)
 
             hitCircle.hitArea = new PIXI.Circle(0,0,NNDisplay.nodeSize)
             hitCircle.interactive = true
@@ -141,60 +149,57 @@ class NNDisplay {
             hitCircle.onmouseout = () => nodeLabelText.visible = textbg.visible = false
         })
 
-        container.updateNNDisplay = draw
-        draw()
-        return container
+        this.update()
     }
 
 
+    /**
+     * Map each node from the neural network to a position in its display
+     * @returns locations for each node
+     */
+    calculateNodeLocations() {
+        var nodeLocations = [];                      // The x,y locations of the nodes
+        var nodeDepths = this.nn.FindDepths();          // The depth of each node
+        var maxDepth = Math.max(...nodeDepths) + 1;  // The max depth of the network
+        var nodeDepthsCount = [];                    // The number of nodes at each depth
+        var yPositionsUsed = [];                     // The y positions that are already used
+
+        // Set the depths of the output nodes to the max depth
+        for (let i = 0; i < this.nn.outputCount; i++) {
+            nodeDepths.push(maxDepth);
+        }
+
+        // Initialize the count of nodes at each depth to 0
+        for (let i = 0; i < maxDepth + 1; i++) {
+            nodeDepthsCount[i] = 0;
+        }
+
+        // Count the number of nodes at each depth
+        for (let i = 0; i < nodeDepths.length; i++) {
+            nodeDepthsCount[nodeDepths[i]]++;
+        }
+
+        // Initialize the y positions used to 0
+        for (let i = 0; i < maxDepth + 1; i++) {
+            yPositionsUsed[i] = 0;
+        }
+
+        // Calculate the x,y locations of the nodes
+        for (let i = 0; i < this.nn.nodes.length; i++) {
+
+            // Set the x location to the x padding plus the max x size divided by the number of layers
+            var xLoc = nodeDepths[i] * (NNDisplay.xSize) / (maxDepth-1)
+
+            // Center the nodes at the y location
+            var yLoc = (NNDisplay.ySize) * (yPositionsUsed[nodeDepths[i]]) / nodeDepthsCount[nodeDepths[i]];
+            yLoc += NNDisplay.ySize / (2*nodeDepthsCount[nodeDepths[i]]) // set nodes to the center of their column section
+            yPositionsUsed[nodeDepths[i]]++;
+
+            // Add the location to the list of locations
+            nodeLocations.push(new PIXI.Point(xLoc + NNDisplay.xPadding, yLoc + NNDisplay.yPadding));
+        }
+
+        return nodeLocations
+    }
 }
 
-/**
- * Map each node from the neural network to a position in its display
- * @param {NeatNN} nn 
- * @returns locations for each node
- */
-function calculateNodeLocations(nn) {
-    var nodeLocations = [];                      // The x,y locations of the nodes
-    var nodeDepths = nn.FindDepths();          // The depth of each node
-    var maxDepth = Math.max(...nodeDepths) + 1;  // The max depth of the network
-    var nodeDepthsCount = [];                    // The number of nodes at each depth
-    var yPositionsUsed = [];                     // The y positions that are already used
-
-    // Set the depths of the output nodes to the max depth
-    for (let i = 0; i < nn.outputCount; i++) {
-        nodeDepths.push(maxDepth);
-    }
-
-    // Initialize the count of nodes at each depth to 0
-    for (let i = 0; i < maxDepth + 1; i++) {
-        nodeDepthsCount[i] = 0;
-    }
-
-    // Count the number of nodes at each depth
-    for (let i = 0; i < nodeDepths.length; i++) {
-        nodeDepthsCount[nodeDepths[i]]++;
-    }
-
-    // Initialize the y positions used to 0
-    for (let i = 0; i < maxDepth + 1; i++) {
-        yPositionsUsed[i] = 0;
-    }
-
-    // Calculate the x,y locations of the nodes
-    for (let i = 0; i < nn.nodes.length; i++) {
-
-        // Set the x location to the x padding plus the max x size divided by the number of layers
-        var xLoc = nodeDepths[i] * (NNDisplay.xSize) / (maxDepth-1)
-
-        // Center the nodes at the y location
-        var yLoc = (NNDisplay.ySize) * (yPositionsUsed[nodeDepths[i]]) / nodeDepthsCount[nodeDepths[i]];
-        yLoc += NNDisplay.ySize / (2*nodeDepthsCount[nodeDepths[i]]) // set nodes to the center of their column section
-        yPositionsUsed[nodeDepths[i]]++;
-
-        // Add the location to the list of locations
-        nodeLocations.push(new PIXI.Point(xLoc + NNDisplay.xPadding, yLoc + NNDisplay.yPadding));
-    }
-
-    return nodeLocations
-}

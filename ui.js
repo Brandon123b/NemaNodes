@@ -550,18 +550,18 @@ function mkNematodeDisplay(nematode) {
   sprite.anchor.set(0.5)
   sprite.tint = nematode.sprite.tint
 
-  let brain = NNDisplay.mkNNDisplay(nematode.nn)
+  let brain = new NNDisplay(nematode.nn)
   container.addChild(sprite)
-  container.addChild(brain)
+  container.addChild(brain.container)
 
   // change sprite scale to match the NN display
-  sprite.scale.multiplyScalar(brain.height / sprite.height, sprite.scale)
+  sprite.scale.multiplyScalar(brain.container.height / sprite.height, sprite.scale)
   sprite.position.set(sprite.width/2, sprite.height/2)
-  brain.x = sprite.x + sprite.width/2 + 10
+  brain.container.x = sprite.x + sprite.width/2 + 10
 
   // refresh the display by redrawing the NN
   container.updateNematodeDisplay = () => {
-    brain.updateNNDisplay()
+    brain.update()
     sprite.angle = nematode.sprite.angle
   }
 
