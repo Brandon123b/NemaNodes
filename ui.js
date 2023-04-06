@@ -347,13 +347,7 @@ class UICard {
    * @param {number} transitionDuration ms 
    */
   scaleContentSize(scaleVal, transitionDuration) {
-    console.log("height before scale:", this.content.height)
-    transition(this.content.scale, {x:scaleVal,y:scaleVal}, transitionDuration, {
-      onComplete: () => console.log("height after scale:", this.content.height)
-    })
-
-    let newContentHeight = this.content.height*scaleVal/this.content.scale
-    console.log("currentscale:",this.content.scale, "scaling by:",scaleVal)
+    transition(this.content.scale, {x:scaleVal,y:scaleVal}, transitionDuration)
   }
 
   // set the positions of this UICard's content elements
