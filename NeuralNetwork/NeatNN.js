@@ -17,19 +17,6 @@
 
 
 class NeatNN {
-    // TODO better way to map nodes to labels (easier UI and more generic)
-    // possibly change NeatNN constructor to take list of input labels and list of output labels
-    // instead of just node counts
-    static attachLabels(nn, inputLabels, outputLabels) {
-        let ils = [...inputLabels]
-        let ols = [...outputLabels]
-        nn.nodes.forEach(n => {
-            if (n.nodeType === NodeType.Input) n.label = ils.shift()
-            if (n.nodeType === NodeType.Output) n.label = ols.shift()
-            if (n.nodeType != NodeType.Hidden && n.label === undefined) throw `Node label could not be set`
-        })
-    }
-
     static MUTATION_MULTIPLIER = 1;       // The mutation multiplier of the neural network
 
     constructor(_inputCount, _outputCount, dontRandomize = false) {

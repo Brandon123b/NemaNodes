@@ -69,8 +69,14 @@ class NNDisplay {
 
     // return the string to be used as a label for a node
     // contains the node's input/output label, and its bias (or activation if the neural network is alive)
-    mkLabel(node) {
-        return (node.label ? node.label + "\n" : "") + (node.activation || node.bias).toFixed(5)
+    mkLabel(i) {
+        let node = this.nn.nodes[i]
+        let label = undefined
+        if (node.nodeType === NodeType.Input)
+            label = Nematode.INPUT_LABELS[i]
+        else if (node.nodeType === NodeType.Output)
+            label = Nematode.OUTPUT_LABELS[i-(this.nn.nodes.length-this.nn.outputs.length)]
+        return (label ? label + "\n" : "") + (node.activation || node.bias).toFixed(5)
     }
 
     /**
@@ -86,8 +92,8 @@ class NNDisplay {
         this.DrawNodeCircle(this.nn.nodes[i], this.nodeLocations[i])
 
         // update text labels
-        this.nn.nodes.forEach((node, i) => {
-            this.textLabels[i].text = this.mkLabel(node)
+        this.nn.nodes.forEach((_, i) => {
+            this.textLabels[i].text = this.mkLabel(i)
         })
     }
 
@@ -122,7 +128,7 @@ class NNDisplay {
             hitCircle.position = pos
 
             // create labels for input/output neurons
-            let nodeLabelText = new PIXI.Text(this.mkLabel(node),NNDisplay.textStyle)
+            let nodeLabelText = new PIXI.Text(this.mkLabel(i), NNDisplay.textStyle)
             nodeLabelText.position = pos
             if (type === NodeType.Input || type === NodeType.Hidden)
                 nodeLabelText.x += NNDisplay.nodeSize

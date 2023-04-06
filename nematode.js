@@ -92,7 +92,6 @@ class Nematode {
             this.biteCooldown = 0;          // The time until the nematode can bite again (in seconds)
             world.add(this);
 
-            NeatNN.attachLabels(this.nn,Nematode.INPUT_LABELS,Nematode.OUTPUT_LABELS)
             return;
         }
 
@@ -107,8 +106,6 @@ class Nematode {
 
         // Tell the world that this bibite exists
         world.add(this)
-
-        NeatNN.attachLabels(this.nn,Nematode.INPUT_LABELS,Nematode.OUTPUT_LABELS)
     }
 
     /* Creates a random nematode (with random stats and position)
