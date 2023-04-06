@@ -62,7 +62,6 @@ function CreateUI(){
         .endToggleGroup()
         .addText("")
         .addText("Nematodes")
-        .addToggle(enabled => NNDisplay.DRAW_LABELS = enabled, "Draw NN Labels", NNDisplay.DRAW_LABELS)
         .addToggle(enabled => world.energyBarOn = enabled, "Show nematode energy levels", false)
         .addButton(x => NematodeTrainer.Download(), "Download Training Data")
         .addSlider(x => NeatNN.MUTATION_MULTIPLIER = x, 0, 5, NeatNN.MUTATION_MULTIPLIER, .1, "Nematode NN mutation multiplier")
@@ -88,7 +87,6 @@ function CreateUI(){
         .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)
         .addToggle(enabled => world.drawSmell = enabled, "draw nematode smell", world.drawSmell)
         .addSlider(x => gameSpeedMult = x, minGameSpeedMult, maxGameSpeedMult, gameSpeedMult, 1, "game speed")
-        .make(false) // set false to not round corners
 
     Monitor.initialize()
     Monitor.assignScreen("options", ui)

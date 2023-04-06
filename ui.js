@@ -348,6 +348,7 @@ class UICard {
    */
   scaleContentSize(scaleVal, transitionDuration) {
     transition(this.content.scale, {x:scaleVal,y:scaleVal}, transitionDuration)
+    // TODO transition the content y position so that screen position doesn't change 
   }
 
   // set the positions of this UICard's content elements
@@ -529,37 +530,59 @@ class UICard {
 }
 
 /**
+ * Create a DisplayObject for a given nematode
+ * 
+ */
+class NematodeDisplay{
+  /**
  * Create a display object for a nematode
  * 
- * Call .updateNematodeDisplay() to redraw the NN node activations
- * and nematode stats
  * @param {Nematode} nematode
- * @returns nematode display object to be placed in UI monitor
- * 
- * TODO possibly change this so it works on a nematode that is destroyed
  */
-function mkNematodeDisplay(nematode) {
-  let container = new PIXI.Container()
-  let sprite = PIXI.Sprite.from("Bibite.png") // TODO change this to get the correct sprite
-  sprite.anchor.set(0.5)
-  sprite.tint = nematode.sprite.tint
+  constructor(nematode, displayStats = false) {
+    this.nematode = nematode
+    this.container = new PIXI.Container()
+    this.margin = 15
 
-  let brain = new NNDisplay(nematode.nn)
-  container.addChild(sprite)
-  container.addChild(brain.container)
+    this.sprite = PIXI.Sprite.from("Bibite.png") // TODO change this to get the correct sprite
+    this.sprite.anchor.set(0.5)
+    this.sprite.tint = nematode.sprite.tint
 
-  // change sprite scale to match the NN display
-  sprite.scale.multiplyScalar(brain.container.height / sprite.height, sprite.scale)
-  sprite.position.set(sprite.width/2, sprite.height/2)
-  brain.container.x = sprite.x + sprite.width/2 + 10
+    this.brain = new NNDisplay(nematode.nn)
+    this.container.addChild(this.sprite)
+    this.container.addChild(this.brain.container)
 
-  // refresh the display by redrawing the NN
-  container.updateNematodeDisplay = () => {
-    brain.update()
-    sprite.angle = nematode.sprite.angle
+    // change sprite scale to match the NN display
+    this.sprite.scale.multiplyScalar(this.brain.container.height / this.sprite.height, this.sprite.scale)
+    this.sprite.position.set(this.sprite.width/2, this.sprite.height/2)
+    this.brain.container.x = this.sprite.x + this.sprite.width/2 + this.margin
+
+    if (displayStats) {
+      this.statsText = new PIXI.Text(nematode.mkStatString(), new PIXI.TextStyle({
+        // TODO cleanup the textstyle objects everywhere and make a top-level style for ui
+        wordWrap: true,
+        wordWrapWidth: this.sprite.width + this.brain.container.width,
+        fontFamily: "Courier New",
+        fontVariant: "small-caps",
+        fontWeight: "bold",
+        letterSpacing: 2,
+        fill: 0x00cc00
+      }))
+
+      this.statsText.y = this.brain.container.y + this.brain.container.height + this.margin
+      this.container.addChild(this.statsText)
+
+    }
+
   }
 
-  return container
+  // refresh the display by redrawing the NN
+  update() {
+    this.brain.update()
+    if (!this.nematode.sprite.destroyed) this.sprite.angle = this.nematode.sprite.angle // TODO add GetAngle() method to nematode.js
+    if (this.statsText) this.statsText.text = this.nematode.mkStatString()
+  }
+
 }
 
 /**
@@ -754,12 +777,10 @@ class Monitor {
 
 }
 
+// TODO move this top-level code to Monitor class
+
 // display object to be placed in the Monitor for the currently selected nematode
 let nematodeDisplayUI = undefined
-
-// text object associated with the currently selected nematode
-let nematodeDisplayStats = undefined
-
 
 let startedDisplayUpdate = false
 /**
@@ -769,25 +790,13 @@ function displaySelectedNematode() {
   // destroy the previous nematode display
   Monitor.destroyWindow("nematode")
 
-  // create text for nematode stats
-  nematodeDisplayStats = new PIXI.Text(world.selectedNematode.mkStatString(), new PIXI.TextStyle({
-    fontSize: 18,
-    fontFamily: "Courier New",
-    fontVariant: "small-caps",
-    fontWeight: "bold",
-    letterSpacing: 2,
-    fill: 0x00cc00,
-    fontSize: 12
-  }))
-
   // assign new display
-  nematodeDisplayUI = mkNematodeDisplay(world.selectedNematode)
+  nematodeDisplayUI = new NematodeDisplay(world.selectedNematode, displayStats=true)
   Monitor.assignScreen("nematode",
     Monitor.newWindow()
-      .addElement(nematodeDisplayUI)
+      .addElement(nematodeDisplayUI.container)
       .addButton(() => storeNematode(world.selectedNematode), "store nematode")
       .addButton(() => downloadJSON(world.selectedNematode.toJson(), "nematode.json"), "export nematode")
-      .addElement(nematodeDisplayStats)
   )
   Monitor.switchTo("nematode")
   Monitor.pullup()
@@ -796,8 +805,7 @@ function displaySelectedNematode() {
   if (!startedDisplayUpdate)
   app.ticker.add(() => {
     if (nematodeDisplayUI && world.selectedNematode.exists) {
-      nematodeDisplayUI.updateNematodeDisplay()
-      nematodeDisplayStats.text = world.selectedNematode.mkStatString()
+      nematodeDisplayUI.update()
     }
   })
   startedDisplayUpdate = true
@@ -805,6 +813,7 @@ function displaySelectedNematode() {
 
 // list of nematodes to store
 // TODO allow sortby functions in nematode store
+// to sort species by most populous, oldest species, newest species
 let storeNematodes = []
 
 /**
@@ -826,7 +835,6 @@ function removeNematodeFromStore(nematode) {
   const i = storeNematodes.indexOf(nematode)
   if (i==-1) throw `Nematode cannot be removed from store because it isn't in the store`
   storeNematodes.splice(i,1)
-  console.log(storeNematodes)
   updateNematodeStore()
 }
 
@@ -863,13 +871,13 @@ function updateNematodeStore() {
   Monitor.destroyWindow("store")
 
   let storeListWindow = Monitor.newWindow()
-    .addText("Nematode Store")
+    .addText("Nematode Database")
     .addButton(importNematodes, "import nematode")
 
   for (const nema of storeNematodes)
     storeListWindow
       .addText("")
-      .addElement(mkNematodeDisplay(nema))
+      .addElement((new NematodeDisplay(nema)).container)
       .addButton(() => downloadJSON(nema.toJson(), "nematode.json"), "export")
       .addButton(() => removeNematodeFromStore(nema), "remove")
   
