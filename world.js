@@ -233,7 +233,7 @@ class World {
     return results
   }
 
-////// Nematode stuff ///////
+  // ----------------- Nematode Stuff ----------------- //
 
   /**
    * 

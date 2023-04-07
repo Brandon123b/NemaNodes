@@ -6,7 +6,7 @@ class NNDisplay {
     static xPos = 10;
     static yPos = 30;
     static xSize = 300;
-    static ySize = 250;
+    static ySize = 320;
     static nodeSize = 10;
 
     // The amount of padding needed for the labels

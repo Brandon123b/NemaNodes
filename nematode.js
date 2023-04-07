@@ -38,6 +38,11 @@ class Nematode {
     // Mutation rates (as +/- up to this constant)
     static BASE_SIZE_THRESHOLD = 0.02;
     static GROW_RATE_THRESHOLD = 0.01;
+
+    // Genome statics
+    static NEMATODE_ID = 0;                                  // The id of the next nematode to be created
+    static NEMATODE_SID = 0;                                 // The id of the next nematode species to be created
+    static SPECIES_THRESHOLD = 4;                            // The number of differences required to create a new species
     
     // ------------------------- Constructors ------------------------- //
 
@@ -114,6 +119,12 @@ class Nematode {
         this.energy = -1;              // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
         this.speed = 0;                // The speed of the Nematode (Set in SlowUpdate)
         this.rotate = 0;               // The rotation of the Nematode (Set in SlowUpdate)
+
+        // Create a new genome for the Nematode
+        this.genome = this.CreateGenome(16);                // The genome of the Nematode
+        this.name = "Nem " + Nematode.NEMATODE_ID++;        // The name of the Nematode
+        this.species = "Spe " + Nematode.NEMATODE_SID++;    // The species of the Nematode
+        this.speciesGenome = this.genome;                   // The genome of the species
     }
 
     /* Creates a child nematode from a parent
@@ -149,6 +160,18 @@ class Nematode {
         this.energy = -1;              // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
         this.speed = 0;                // The speed of the Nematode (Set in SlowUpdate)
         this.rotate = 0;               // The rotation of the Nematode (Set in SlowUpdate)
+        
+        // Mutate the genome from the parent
+        this.genome = this.MutateGenome(parent.genome);     // The genome of the Nematode
+        this.name = "Nem " + Nematode.NEMATODE_ID++;        // The name of the Nematode
+        this.species = parent.species;                      // The species of the Nematode
+        this.speciesGenome = parent.speciesGenome;          // The genome of the species
+
+        // Create a new species if the genome is too different from the parent's
+        if (this.CompareGenome(this.genome, this.speciesGenome) > Nematode.SPECIES_THRESHOLD) {
+            this.species = "Spe " + Nematode.NEMATODE_SID++;
+            this.speciesGenome = this.genome;
+        }
     }
 
     /* Creates a nematode from a json object
@@ -181,6 +204,20 @@ class Nematode {
         this.energy = json.energy;      // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
         this.speed = json.speed;        // The speed of the Nematode (Set in SlowUpdate)
         this.rotate = json.rotate;      // The rotation of the Nematode (Set in SlowUpdate)
+
+        // Temp fix for old genomes
+        if (json.genome != undefined){
+            this.genome = json.genome;      // The genome of the Nematode
+            this.name = "Nem " + Nematode.NEMATODE_ID++;
+            this.species = "Nem " + Nematode.NEMATODE_SID++;
+            this.speciesGenome = json.speciesGenome;
+        }
+        else {
+            this.genome = this.CreateGenome(16);
+            this.name = "Nem " + Nematode.NEMATODE_ID++;
+            this.species = "Spe " + Nematode.NEMATODE_SID++;
+            this.speciesGenome = this.genome;
+        }
     }
 
     // ------------------------------------ Update Functions ------------------------------------ //
@@ -530,7 +567,11 @@ class Nematode {
         NematodeStatsMenu.statsText.text += "  Age: " + (1 + this.age / 300).toFixed(3) + " times the normal rate\n";
         NematodeStatsMenu.statsText.text += "\n";
         NematodeStatsMenu.statsText.text += "Tint: " + this.sprite.tint.toString(16) + "\n";
-        NematodeStatsMenu.statsText.text += "Time for next child: " + (this.childTime).toFixed(2) + "s\n";
+        NematodeStatsMenu.statsText.text += "Time for next child: " + (this.childTime).toFixed(2) + "s\n"
+        NematodeStatsMenu.statsText.text += "\n";
+        NematodeStatsMenu.statsText.text += "Name: " + this.name + "\n"
+        NematodeStatsMenu.statsText.text += "Species: " + this.species + "\n"
+        NematodeStatsMenu.statsText.text += "Genome: " + this.genome + "\n";
     }
 
     /* Draws the nematodes smell range to the given graphics object */
@@ -546,6 +587,55 @@ class Nematode {
         graphics.drawCircle(this.GetX(), this.GetY(), Nematode.MAX_SMELL_DISTANCE);
     }
 
+    // ------------------- Genome ------------------- //
+
+    /* Creates a genome of the given length (Both upper and lower case letters)
+     *  @param {number} length - The length of the genome
+     *  @returns {string} - The genome
+     */
+    CreateGenome(length) {
+        let genome = '';
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+        
+        for (let i = 0; i < length; i++) {
+          const randomIndex = Math.floor(Math.random() * alphabet.length);
+          genome += alphabet[randomIndex];
+        }
+        return genome;
+    }
+
+    /* Mutates the given genome by replacing a random character with a random character 
+     * @param {string} genome - The genome to mutate
+     * @returns {string} - The mutated genome
+     */
+    MutateGenome(genome) {
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+        const indexToMutate = Math.floor(Math.random() * genome.length);
+        const newChar = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+        const mutatedGenome = genome.slice(0, indexToMutate) + newChar + genome.slice(indexToMutate + 1);
+        return mutatedGenome;
+    }
+
+    /* Compares two genomes and returns the number of differences between them
+     * Assumes that the genomes are the same length
+     * @param {string} g1 - The first genome
+     * @param {string} g2 - The second genome
+     * @returns {number} - The number of differences between the two genomes
+     */
+    CompareGenome(g1, g2) {
+        let differences = 0;
+        
+        // Compare genomes character by character
+        for (let i = 0; i < g1.length; i++) {
+          if (g1.charAt(i) !== g2.charAt(i)) {
+            differences++;
+          }
+        }
+        
+        return differences;
+    }
+      
+      
     // ------------------- OTHER ------------------- //
 
     // Will be replaced with a call to a function that creates a sprite (hopefully in a separate file)
@@ -583,7 +673,11 @@ class Nematode {
             energy: this.energy,
             speed: this.speed,
             rotate: this.rotate,
-            maxEnergy: this.maxEnergy
+            maxEnergy: this.maxEnergy,
+            genome: this.genome,
+            name: this.name,
+            species: this.species,
+            speciesGenome: this.speciesGenome
         }
     }
 
