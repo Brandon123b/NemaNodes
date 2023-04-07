@@ -142,7 +142,8 @@ class Nematode {
         this.paralyzed = false;         // set flag to true to prevent nematode from moving
 
         // Clone the parent's neural network and mutate it
-        this.nn = parent.nn.Clone().Mutate();
+        this.nn = parent.nn.Clone();
+        this.nn.Mutate();
 
         // Create the sprite for the bibite (Currently uses the same image as the parent)
         this.CreateSpriteTemp();        
