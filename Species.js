@@ -17,7 +17,7 @@ class Species {
      */
     static generateSpeciesName(attempts=50) {
       if (attempts == 0) throw `Failed to generate species` // TODO just pick randomly from list
-      return Species.speciesGenerator.generateName(5,16,'','','','') || this.generateGenusName(attempts-1)
+      return Species.speciesGenerator.generateName(5,16,'','','','') || this.generateSpeciesName(attempts-1)
     }
   
     /**
