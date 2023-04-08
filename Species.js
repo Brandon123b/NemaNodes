@@ -6,8 +6,8 @@ class Species {
     /** 
      * @returns {string} genus name 
      */
-    static generateGenusName(attempts=10) {
-      if (attempts == 0) return "Failure"; //throw `Failed to generate genus` // TODO just pick randomly from list
+    static generateGenusName(attempts=100) {
+      if (attempts == 0) return "Failure" // throw `Failed to generate genus` // TODO just pick randomly from list
       return Species.genusGenerator.generateName(5,18,'','','','') || this.generateGenusName(attempts-1)
     }
   
@@ -15,7 +15,7 @@ class Species {
      * 
      * @returns {string} species name
      */
-    static generateSpeciesName(attempts=10) {
+    static generateSpeciesName(attempts=50) {
       if (attempts == 0) throw `Failed to generate species` // TODO just pick randomly from list
       return Species.speciesGenerator.generateName(5,16,'','','','') || this.generateGenusName(attempts-1)
     }

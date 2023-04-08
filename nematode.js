@@ -40,7 +40,7 @@ class Nematode {
     static GROW_RATE_THRESHOLD = 0.01;
 
     // Genus and species constants
-    static GENUS_SEP_THRESHOLD = 5;                         // The threshold for the genus name to change
+    static GENUS_SEP_THRESHOLD = 10;                         // The threshold for the genus name to change
     static SPECIES_SEP_THRESHOLD = 5;                       // The threshold for the species name to change
 
     // all possible input neurons
@@ -189,16 +189,23 @@ class Nematode {
 
         // If the nematode is far enough from its genus/species, create a new genus/species
         if (this.genusSeparation > Nematode.GENUS_SEP_THRESHOLD) {
-            this.genusName = "NEW"  //Species.generateGenusName(); // The genus name of the Nematode
-            this.speciesName = "NEW2" // Species.generateSpeciesName(); // The species name of the Nematode
+            this.genusName = Species.generateGenusName(); // The genus name of the Nematode
+            this.speciesName = Species.generateSpeciesName(); // The species name of the Nematode
             this.genusSeparation = 0;
             this.speciesSeparation = 0;
         }
         
         // C branches away from parent's species, but keeps the genus
         else if (this.speciesSeparation > Nematode.SPECIES_SEP_THRESHOLD) {
-            this.speciesName = "NEW SPECIES" //Species.generateSpeciesName(); // The species name of the Nematode
+            this.genusName = parent.genusName;
+            this.speciesName = Species.generateSpeciesName(); // The species name of the Nematode
             this.speciesSeparation = 0;
+        }
+
+        // Take the parent's genus/species
+        else {
+            this.genusName = parent.genusName;
+            this.speciesName = parent.speciesName;
         }
     }
 
@@ -232,6 +239,11 @@ class Nematode {
         this.energy = json.energy;      // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
         this.speed = json.speed;        // The speed of the Nematode (Set in SlowUpdate)
         this.rotate = json.rotate;      // The rotation of the Nematode (Set in SlowUpdate)
+        
+        this.genusName = json.genusName;        // The genus name of the Nematode
+        this.speciesName = json.speciesName;    // The species name of the Nematode
+        this.genusSeparation = json.genusSeparation;
+        this.speciesSeparation = json.speciesSeparation;
     }
 
     // ------------------------------------ Update Functions ------------------------------------ //
@@ -572,8 +584,8 @@ class Nematode {
     */
     mkStatString() {
 
-        let statString = "Genus name: " + this.genusName + "\n";
-        statString += "Species name: " + this.speciesName + "\n";
+        let statString = "Genus: " + this.genusName + "\n";
+        statString += "Species: " + this.speciesName + "\n";
         statString += "\n";
         statString += "Age: " + this.age.toFixed(2) + "s\n";
         statString += "Energy: " + this.energy.toFixed(2) + " / " + this.maxEnergy.toFixed(2) + "\n";
@@ -652,7 +664,11 @@ class Nematode {
             energy: this.energy,
             speed: this.speed,
             rotate: this.rotate,
-            maxEnergy: this.maxEnergy
+            maxEnergy: this.maxEnergy,
+            genusName: this.genusName,
+            speciesName: this.speciesName,
+            genusSeparation: this.genusSeparation,
+            speciesSeparation: this.speciesSeparation
         }
     }
 
