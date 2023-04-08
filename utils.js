@@ -1,4 +1,10 @@
 /**
+ * compose functions
+ */
+const compose = (...functions) => args => functions.reduceRight((arg, fn) => fn(arg), args)
+
+
+/**
  * Register mouse drag events for some object
  * 
  * @param {PIXI.DisplayObject} registerDisplayObject object to register initial mouse click on 
@@ -59,19 +65,23 @@ function createDragAction(registerDisplayObject, dragTarget, dragStartAction, dr
     .on('pointerupoutside', onDragEnd)
 }
 
-
+class Required{}
 /**
  * Fill the undefined attributes of the given object according to the default object
  * 
  * useful for objects used to pass parameters
  * 
  * @param {object} obj 
- * @param {object} defaults 
+ * @param {object} defaults default values to insert into obj if obj.key is undefined.
+ *     Set defaults.key to Required if obj must specify its value
  */
 function fillDefaults(obj, defaults) {
   for (prop in defaults)
-  if (obj[prop] === undefined)
+  if (obj[prop] === undefined) {
+    if (defaults[prop] === Required)
+      throw `Object ${obj} must supply value for ${prop}`
     obj[prop] = defaults[prop]
+  }
 
   return obj
 }
@@ -176,4 +186,130 @@ async function upload() {
     a.onchange = () => resolve(a.files)
   })
   return files
+}
+
+
+/**
+ * start animation loop for transitions. not meant to be called again
+ */
+function animateWithTween(time) {
+  requestAnimationFrame(animateWithTween)
+  TWEEN.update(time)
+}
+requestAnimationFrame(animateWithTween)
+
+
+/**
+ * 
+ * @param {*} obj object to tween
+ * @param {*} to object properties to tween toward
+ * @param {*} duration duration of animation
+ * @param {*} opts {
+ * easing: easing function to use
+ * onUpdate: action to perform for each update
+ * onComplete: action to perform when transition succeeds
+ * }
+ */
+function transition(obj, to, duration, opts = {}) {
+  fillDefaults(opts, {
+    easing: TWEEN.Easing.Quadratic.Out,
+    onUpdate: () => {},
+    onComplete: () => {}
+  })
+
+  new TWEEN.Tween(obj)
+    .to(to, duration)
+    .easing(opts.easing)
+    .onUpdate(opts.onUpdate)
+    .onComplete(opts.onComplete)
+    .start()
+}
+
+/**
+ * 
+ * @param {number} val 
+ * @param {number} min 
+ * @param {number} max 
+ * @returns {number} value clamped within the bounds
+ */
+function clamp(val,min,max) {
+  return Math.max(Math.min(val,max),min)
+}
+
+
+/**
+ * Color converter to produce color values that PIXI can read.
+ * It is really annoying that our PIXI doesn't work according to these docs:
+ * https://pixijs.download/dev/docs/PIXI.html#ColorSource
+ */
+class Color {
+  /**
+   * 
+   * @param {number} h 0-360 
+   * @param {number} s 0-100 
+   * @param {number} v 0-100
+   * @returns {number} hex rgb color number
+   */
+  static fromHSV(h,s,v) {
+    let r, g, b, i, f, p, q, t;
+    h /= 360;
+    s /= 100;
+    v /= 100;
+    i = Math.floor(h * 6);
+    f = h * 6 - i;
+    p = v * (1 - s);
+    q = v * (1 - f * s);
+    t = v * (1 - (1 - f) * s);
+  
+    switch (i % 6) {
+      case 0:
+        r = v;
+        g = t;
+        b = p;
+        break;
+      case 1:
+        r = q;
+        g = v;
+        b = p;
+        break;
+      case 2:
+        r = p;
+        g = v;
+        b = t;
+        break;
+      case 3:
+        r = p;
+        g = q;
+        b = v;
+        break;
+      case 4:
+        r = t;
+        g = p;
+        b = v;
+        break;
+      case 5:
+        r = v;
+        g = p;
+        b = q;
+        break;
+    }
+
+    return Color.fromRGB(r*255,g*255,b*255)
+  }
+
+  /**
+   * 
+   * @param {number} r 0-255 
+   * @param {number} g 0-255
+   * @param {number} b 0-255
+   * @return {number} hex color number
+   */
+  static fromRGB(r,g,b) {
+    let val = Math.floor(clamp(r,0,255))
+    val = val << 8
+    val += Math.floor(clamp(g,0,255))
+    val = val << 8
+    val += Math.floor(clamp(b,0,255))
+    return val
+  }
 }

@@ -4,6 +4,14 @@
  * mkButton and mkSlider for creating individual UI elements
  * 
  * UICard is a constructor for a UI dash
+ * 
+ * Monitor class for displaying UICards on the virtual monitor
+ * 
+ * Public facing classes: UICard, Monitor
+ * 
+ * Public facing functions:
+ *  displaySelectedNematode
+ * 
  */
 
 
@@ -200,10 +208,10 @@ function mkButton(opts) {
   // toggle button state
   let toggle = (enabled) => {
     toggled = enabled
-    for (action of actions)
-      action(toggled)
     btn.setFillColor(fill())
     btn.setFillAlpha(alpha())
+    for (action of actions)
+      action(toggled)
   }
 
   // on mouse down, darken and shrink inner circle
@@ -217,11 +225,10 @@ function mkButton(opts) {
   // on mouse up, perform toggle action
   let onUp = function() {
     btnfilter.brightness(1, false)
-    if (!(opts.required && toggled)) toggle(!toggled)
     btn.setBorderPct(0.25)
     app.stage.off("pointerup", onUp)
     app.stage.off("pointerupoutside", onUp)
-  
+    if (!(opts.required && toggled)) toggle(!toggled)
   }
 
   btn.on("pointerdown", onPress)
@@ -257,14 +264,15 @@ function mkButton(opts) {
  * 
  */
 class UICard {
-  constructor(width, maxHeight = 500) {
+  constructor(width, height = 500) {
     this.container = new PIXI.Container()
     this.width = width
-    this.maxHeight = maxHeight
+    this.height = height
     this.margin = 15
     this.padding = 5
-    // track the next y-position for the next UI element in this card to be added
-    this.nextPos = this.margin
+    
+    // list of display objects for the UI card content
+    this.elements = []
 
     // TODO make these fields as arguments if this is class is used anywhere else
     this.opacity = 0.6
@@ -275,7 +283,7 @@ class UICard {
     // graphics object for background
     this.card = new PIXI.Graphics()
 
-    // content container for the actual content
+    // container for the content elements
     this.content = new PIXI.Container()
 
     this.container.addChild(this.card)
@@ -292,6 +300,16 @@ class UICard {
       fill: this.trim
     })
 
+    // make a scroll bar for the content
+    let scrollBarWidth = 5
+    this.scrollBarHeight = 10 // minimum scroll bar height
+    this.scrollBar = new PIXI.Graphics()
+    this.scrollBar.beginFill(this.trim)
+    this.scrollBar.drawRect(0,0,scrollBarWidth,this.scrollBarHeight)
+    this.scrollBar.endFill(this.trim)
+    this.scrollBar.x = this.width-scrollBarWidth
+    this.container.addChild(this.scrollBar)
+
     // scroll contents with the mousewheel
     this.container.onwheel = e => {
       const scroll = e.deltaY
@@ -300,35 +318,51 @@ class UICard {
       else
         this.content.y += 15
       
-      this.content.position.clamp([0,0], [Math.min(this.container.height - this.nextPos - this.margin,0),0])
+      let topY = this.container.height - this.content.height - this.margin*2
+      this.content.position.clamp([0,0], [Math.min(topY,0),0])
+      // slide scroll bar
+      this.scrollBar.y = (this.content.y/topY)*(this.height-this.scrollBar.height)
     }
-  }
 
-  // return the container for this UI card
-  make(rounded = true) {
-    let cornerRadius = rounded ? 10 : 0
-    let height = Math.min(this.nextPos + this.margin, this.maxHeight)
-    // transparent bluish background to mimic glass
+    // draw the background
     this.card.beginFill(this.color,this.opacity)
-    this.card.drawRoundedRect(0,0,this.width,height,cornerRadius)
+    this.card.drawRoundedRect(0,0,this.width,this.height,0)
     this.card.endFill()
-    // border
-    // this.card.lineStyle(2,this.trim,this.trimOpacity)
-    // this.card.drawRoundedRect(0,0,this.width,height,cornerRadius)
-    
     this.card.interactive = true
-
     addBlur(this.card, 0.5)
 
     // create a mask to hide contents that overflow due to scrolling
     let rect = new PIXI.Graphics()
     rect.beginFill()
-    rect.drawRect(0,0,this.width,this.maxHeight)
+    rect.drawRect(0,0,this.width,this.height)
     rect.endFill()
     this.content.mask = rect
     this.container.addChild(rect)
 
-    return this.container
+  }
+
+  /**
+   * Blowup/shrink the content of this UICard
+   * @param {number} scaleVal value to set the scale of the content to
+   * @param {number} transitionDuration ms 
+   */
+  scaleContentSize(scaleVal, transitionDuration) {
+    transition(this.content.scale, {x:scaleVal,y:scaleVal}, transitionDuration)
+    // TODO transition the content y position so that screen position doesn't change 
+  }
+
+  // set the positions of this UICard's content elements
+  setElements() {
+    let nextPos = this.margin
+    for (const el of this.elements) {
+      el.y = nextPos
+      el.x = this.margin
+      // update starting y position for next element
+      nextPos = el.y + el.height + this.padding
+    }
+
+    // set the height of the scroll bar based on the content size
+    this.scrollBar.height = clamp(this.height*this.height/this.content.height,this.scrollBarHeight,this.height)
   }
 
   // create a new TextStyle object using the this.textStyle for defaults
@@ -343,10 +377,8 @@ class UICard {
   // add the given UI element to the next row on the card
   #addElement(element) {
     this.content.addChild(element)
-    element.y = this.nextPos
-    element.x = this.margin
-    // update starting y position for next element
-    this.nextPos = element.y + element.height + this.padding
+    this.elements.push(element)
+    this.setElements()
   }
 
   // call this to start adding a mutually exclusive group of toggle buttons
@@ -472,4 +504,383 @@ class UICard {
     this.#addElement(sliderContainer, 0)
     return this
   }
+
+  /**
+   * Add an arbitrary displayObject to this UI card
+   * @param {PIXI.DisplayObject} displayObject 
+   */
+  addElement(displayObject) {
+    let container = new PIXI.Container()
+    container.addChild(displayObject)
+
+    // scale down the displayObject if needed
+    const ratio = (this.width - this.margin*2) / container.width
+    container.scale.multiplyScalar(ratio, container.scale)
+
+    this.#addElement(container)
+    return this
+  }
+
+  /**
+   * Destroy the display object for this UICard
+   */
+  destroy() {
+    this.container.destroy({children:true})
+  }
+}
+
+/**
+ * Create a DisplayObject for a given nematode
+ * 
+ */
+class NematodeDisplay{
+  /**
+ * Create a display object for a nematode
+ * 
+ * @param {Nematode} nematode
+ */
+  constructor(nematode, displayStats = false) {
+    this.nematode = nematode
+    this.container = new PIXI.Container()
+    this.margin = 15
+
+    this.sprite = PIXI.Sprite.from("Bibite.png") // TODO change this to get the correct sprite
+    this.sprite.anchor.set(0.5)
+    this.sprite.tint = nematode.sprite.tint
+
+    this.brain = new NNDisplay(nematode.nn)
+    this.container.addChild(this.sprite)
+    this.container.addChild(this.brain.container)
+
+    // change sprite scale to match the NN display
+    this.sprite.scale.multiplyScalar(this.brain.container.height / this.sprite.height, this.sprite.scale)
+    this.sprite.position.set(this.sprite.width/2, this.sprite.height/2)
+    this.brain.container.x = this.sprite.x + this.sprite.width/2 + this.margin
+
+    if (displayStats) {
+      this.statsText = new PIXI.Text(nematode.mkStatString(), new PIXI.TextStyle({
+        // TODO cleanup the textstyle objects everywhere and make a top-level style for ui
+        wordWrap: true,
+        wordWrapWidth: this.sprite.width + this.brain.container.width,
+        fontFamily: "Courier New",
+        fontVariant: "small-caps",
+        fontWeight: "bold",
+        letterSpacing: 2,
+        fill: 0x00cc00
+      }))
+
+      this.statsText.y = this.brain.container.y + this.brain.container.height + this.margin
+      this.container.addChild(this.statsText)
+
+    }
+
+  }
+
+  // refresh the display by redrawing the NN
+  update() {
+    this.brain.update()
+    if (!this.nematode.sprite.destroyed) this.sprite.angle = this.nematode.sprite.angle // TODO add GetAngle() method to nematode.js
+    if (this.statsText) this.statsText.text = this.nematode.mkStatString()
+  }
+
+}
+
+/**
+ * The UI Monitor that resembles old computer
+ * 
+ * The monitor uses UICards as windows
+ */
+class Monitor {
+
+  static screens = {}               // screens keyed by string identifiers
+  static currentScreen = undefined  // name of the current screen
+  static container = undefined      // container to add UICards to
+  static scalingMonitor = false     // flag set to true while monitor scale is changing during animation
+  static contentScale = 1           // scale of the screen's content. will be scaled down when whole monitor scales up
+
+  // temporary controls for monitor UI
+  // use arrow keys to switch between screens
+  static {
+    const changeScreen = right => {
+      const screenNames = Object.keys(Monitor.screens)
+      const i = screenNames.indexOf(Monitor.currentScreen)
+      let next = (right ? i+1:i-1)
+      next = next < 0 ? screenNames.length-1 : next
+      next %= screenNames.length
+      Monitor.switchTo(screenNames[next])
+    }
+    Keys.addAction("ArrowRight", _ => changeScreen(true))
+    Keys.addAction("ArrowLeft", _ => changeScreen(false))
+  }
+
+  // filters placed on the monitor screen
+  static filters = [
+    new PIXI.filters.CRTFilter({
+      vignetting: 0,
+      lineWidth: 3,
+      curvature: 2,
+      noise: 0.2,
+      noiseSize: 3
+    }),
+    new PIXI.filters.GlitchFilter({
+      fillMode: PIXI.filters.GlitchFilter.CLAMP,
+      offset: 2,
+      red: [0,1],
+      blue: [-1,1],
+      green: [1,-1]
+    })
+  ]
+    
+  // min y value for container position
+  static topPos() {
+    return app.screen.height - 20
+  }
+
+  // max y value for container position
+  static bottomPos() {
+    return app.screen.height + 300
+  }
+
+  // move monitor position up
+  static pullup() {
+    transition(this.container.position, {y: this.topPos()}, 400)
+  }
+
+  // move monitor position down
+  static putaway() {
+    transition(this.container.position, {y: this.bottomPos()}, 400)
+  }
+
+  // scale up the monitor
+  static blowup() {
+    this.scalingMonitor = true
+    transition(this.container.scale, {x:2, y:2}, 400, {
+      onComplete: () => this.scalingMonitor = false
+    })
+    this.scaleContent(0.5, 400)
+  }
+
+  // scale down the monitor
+  static shrink() {
+    this.scalingMonitor = true
+    transition(this.container.scale, {x:1, y:1}, 400, {
+      onComplete: () => this.scalingMonitor = false
+    })
+    this.scaleContent(1,400)
+  }
+
+  static scaleContent(scaleVal, transitionDuration) {
+    this.contentScale = scaleVal
+    for (const screen in this.screens)
+      this.screens[screen].scaleContentSize(scaleVal, transitionDuration)
+  }
+
+  // create display object for the monitor
+  static mkMonitor() {
+    let monitor = PIXI.Sprite.from("monitor-nobg.png")
+    monitor.scale.set(0.25)
+    // hardcode monitor position to place well on left side of screen
+    monitor.position.x = -80
+
+    let container = new PIXI.Container()
+    container.addChild(monitor)
+
+    // set the container's position to be the bottom left corner of the monitor
+    container.pivot.set(15,460)
+    
+    // initialize monitor position to bottom
+    container.y = this.bottomPos()
+    container.x = 30
+
+    monitor.interactive = true
+
+    // create mouse interactions
+    // click to scale up the monitor
+    // hover to pull it up
+    let blownup = false
+    container.onmouseover = () => {blownup || this.scalingMonitor || this.pullup()}
+    container.onmouseout = () => {blownup || this.scalingMonitor || this.putaway()}
+    monitor.onmousedown = () => {
+        if (blownup) {
+            this.shrink()
+            this.putaway()
+        } else {
+            this.blowup()
+            this.pullup()
+        }
+        blownup = !blownup
+    }
+
+    // hardcode hit area for the monitor sprite
+    monitor.hitArea = new PIXI.Rectangle(350,150,2100,2000)
+
+    return container
+  }
+
+  static initialize() {
+    // animate the filters
+    let [crt,glitch] = Monitor.filters
+    app.ticker.add(() => {
+      crt.time += 0.5
+      if (crt.time > 1000) crt.time = 0
+      let jitter = Math.random()
+      if (jitter < 0.5) glitch.seed = jitter
+      if (jitter < 0.2) glitch.slices = Math.random()*10
+    })
+
+    // place the monitor in the scene
+    Monitor.container = Monitor.mkMonitor()
+    app.stage.addChild(Monitor.container)
+  }
+
+  /**
+   * Give the monitor a screen to display keyed by the given name
+   * @param {string} name
+   * @param {UICard} uicard 
+   */
+  static assignScreen(name, uicard) {
+    Monitor.screens[name] = uicard
+    let window = uicard.container
+    // hardcode position of UI to fit on monitor screen
+    window.position.set(78,108)
+    window.filters = Monitor.filters
+    window.visible = false
+    this.container.addChild(window)
+    
+    uicard.scaleContentSize(this.contentScale,0)
+  }
+
+  /**
+   * Display the window keyed to the given name
+   * @param {string} name 
+   */
+  static switchTo(name) {
+    if (Monitor.screens[name] === undefined) throw `There is no screen for ${name}`
+    for (const window in Monitor.screens) Monitor.screens[window].container.visible = false
+    Monitor.screens[name].container.visible = true
+    Monitor.currentScreen = name
+  }
+
+  // return a UICard fit for the monitor screen
+  static newWindow() {
+    return new UICard(385,290)
+  }
+
+  // destroy the display object of the window
+  static destroyWindow(name) {
+    const window = Monitor.screens[name]
+    if (window) {
+      window.destroy()
+      delete Monitor.screens[name]
+    }
+  }
+
+}
+
+// TODO move this top-level code to Monitor class
+
+// display object to be placed in the Monitor for the currently selected nematode
+let nematodeDisplayUI = undefined
+
+let startedDisplayUpdate = false
+/**
+ * call when a nematode becomes selected to update the UI
+ */ 
+function displaySelectedNematode() {
+  // destroy the previous nematode display
+  Monitor.destroyWindow("nematode")
+
+  // assign new display
+  nematodeDisplayUI = new NematodeDisplay(world.selectedNematode, displayStats=true)
+  Monitor.assignScreen("nematode",
+    Monitor.newWindow()
+      .addElement(nematodeDisplayUI.container)
+      .addButton(() => storeNematode(world.selectedNematode), "store nematode")
+      .addButton(() => downloadJSON(world.selectedNematode.toJson(), "nematode.json"), "export nematode")
+  )
+  Monitor.switchTo("nematode")
+  Monitor.pullup()
+
+  // begin loop for updating the selected nematode display
+  if (!startedDisplayUpdate)
+  app.ticker.add(() => {
+    if (nematodeDisplayUI && world.selectedNematode.exists) {
+      nematodeDisplayUI.update()
+    }
+  })
+  startedDisplayUpdate = true
+}
+
+// list of nematodes to store
+// TODO allow sortby functions in nematode store
+// to sort species by most populous, oldest species, newest species
+let storeNematodes = []
+
+/**
+ * Add the given nematodes to the store list and update display
+ * @param  {...Nematode} nematodes 
+ */
+function storeNematode(...nematodes) {
+  for (const nema of nematodes)
+    if (storeNematodes.includes(nema)) continue
+    else storeNematodes.push(nema)
+  updateNematodeStore()
+}
+
+/**
+ * Pull a nematode off the store list and update display
+ * @param {Nematode} nematode 
+ */
+function removeNematodeFromStore(nematode) {
+  const i = storeNematodes.indexOf(nematode)
+  if (i==-1) throw `Nematode cannot be removed from store because it isn't in the store`
+  storeNematodes.splice(i,1)
+  updateNematodeStore()
+}
+
+/**
+ * Prompt the user to select nematode json files to insert in the store
+ */
+function importNematodes() {
+  // TODO error check that uploaded file is valid
+  upload()
+    .then(filelist => {
+      let texts = []
+      for (let i = 0; i < filelist.length; i++)
+        texts.push(filelist.item(i).text())
+      return Promise.all(texts)
+    })
+    .then(jsonStrings => {
+      // create a new nematode from each imported file
+      const nematodes = jsonStrings.map(JSON.parse).map(obj => new Nematode(obj))
+      storeNematode(...nematodes) // add them to the store display
+      nematodes.forEach(n => n.Destroy()) // remove them from the world
+      // TODO might want to allow Nematodes to be constructed without immediately placing them in the world
+    })
+}
+
+/**
+ * remake the store list screen
+ * 
+ * TODO add sortby function as argument
+ * 
+ * TODO move this functionality to the Monitor class
+ */
+function updateNematodeStore() {
+  // clear the store window
+  Monitor.destroyWindow("store")
+
+  let storeListWindow = Monitor.newWindow()
+    .addText("Nematode Database")
+    .addButton(importNematodes, "import nematode")
+
+  for (const nema of storeNematodes)
+    storeListWindow
+      .addText("")
+      .addElement((new NematodeDisplay(nema)).container)
+      .addButton(() => downloadJSON(nema.toJson(), "nematode.json"), "export")
+      .addButton(() => removeNematodeFromStore(nema), "remove")
+  
+  Monitor.assignScreen("store", storeListWindow)
+  if (Monitor.currentScreen === "store") Monitor.switchTo("store")
 }

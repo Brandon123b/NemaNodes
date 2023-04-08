@@ -51,12 +51,15 @@ class Canvas {
     this.highlightCircle.visible = false
     addBlur(this.highlightCircle, 5)
     this.container.addChild(this.highlightCircle)
-
-    // Create the nematode stats menu
-    this.nematodeStatsMenuObj = new NematodeStatsMenu(this.screenGraphics);
-
-    // Create the NN display
-    this.nnDisplayObj = new NNDisplay(app.stage);
+    // start ticker action that updates the highlight circle
+    app.ticker.add(() => {
+      if (world.selectedNematode && world.selectedNematode.exists) {
+        this.highlightCircle.visible = true
+        this.highlightCircle.position = world.selectedNematode.GetPosition()
+      } else {
+        this.highlightCircle.visible = false
+      }
+    })
 
     // Create the fps counter
     this.CreateFpsCounter();
@@ -86,9 +89,9 @@ class Canvas {
       this.container.pivot = this.container.pivot.subtract(this.container.toLocal(mousePos).subtract(returnPivot))
       
       // scale the highlight circle based on zoom level to easily find selected nematode
-      let hCircleMult = 1/this.camera.zoomLevel
+      let hCircleMult = 2/this.camera.zoomLevel
       let bounds = [1, 10]
-      this.highlightCircle.scale.multiplyScalar(hCircleMult, this.highlightCircle.scale).clamp(bounds, bounds)
+      this.highlightCircle.scale.set(hCircleMult).clamp(bounds, bounds)
     }
 
     this.backGround.onwheel = onScroll
@@ -204,33 +207,12 @@ class Canvas {
     //draw energy level bars above nematodes
     if(world.energyBarOn) {
       world.forEachNematode(n => this.DrawEnergyLevel(n));
-
     }
 
-    // draw the selected nematode's neural network and stats
     if (world.selectedNematode != null){
-
-      // If the selected nematode still exists, draw its stats and neural network
       if (world.selectedNematode.exists) {
-        this.nematodeStatsMenuObj.DrawBackground(this.screenGraphics);
-        world.selectedNematode.DrawStats(this.nematodeStatsMenuObj);
-
-        // Update the neural network display and draw it (TODO: only update when the nn changes)
-        world.selectedNematode.nn.UpdateDisplay(this.nnDisplayObj);
-        this.nnDisplayObj.Draw(this.screenGraphics);
-
-        // move the highlightcircle to the selected nematode
-        this.highlightCircle.visible = true
-        this.highlightCircle.position = world.selectedNematode.GetPosition()
-
         if (world.drawSmell)
           world.selectedNematode.DrawSmellRange(this.worldGraphics);
-      }
-      // If the selected nematode no longer exists, deselect it
-      else {
-        this.nematodeStatsMenuObj.MakeInvisible();
-        world.selectedNematode = null;
-        this.highlightCircle.visible = false
       }
     }
 
@@ -264,57 +246,3 @@ class Canvas {
   }
 }
 
-/* Represents the nematode stats menu 
- * This is the menu that shows the stats of the selected nematode
- * The menu can be made invisible by calling MakeInvisible() and will reappear on DrawBackground()
- */
-class NematodeStatsMenu {
-
-  static width = 300;
-  static height = 460;
-  static xPos = -1;                                  // Left padding
-  static yPos = 250;                                 // Top padding
-
-  constructor(graphics){
-
-    // Set based on the screen size
-    NematodeStatsMenu.xPos = app.screen.width - NematodeStatsMenu.width - 10;
-
-    // Create a text object for the header
-    this.headerText = new PIXI.Text("Nematode Stats", {fontFamily : 'Arial', fontSize: 20, fontWeight: 'bold', fill : 0xffffff, align : 'left'});
-    this.headerText.position.set(NematodeStatsMenu.xPos + 25, NematodeStatsMenu.yPos + 10);
-    graphics.addChild(this.headerText);
-
-    // Create a text object for the stats
-    this.statsText = new PIXI.Text("", {fontFamily : 'Arial', fontSize: 16, fill : 0xffffff, align : 'left', lineHeight: 20});
-    this.statsText.position.set(NematodeStatsMenu.xPos + 30, NematodeStatsMenu.yPos + 50);
-    graphics.addChild(this.statsText);
-
-    // Make the text invisible
-    this.headerText.visible = false;
-    this.statsText.visible = false;
-  }
-
-  /* Draws the background of the stats menu 
-  * @param {PIXI.Graphics} graphics - The graphics object to draw to
-  */
-  DrawBackground(graphics) {
-
-    // Draw the background
-    graphics.beginFill(0x000000, 0.5);
-    graphics.drawRoundedRect(NematodeStatsMenu.xPos, NematodeStatsMenu.yPos, NematodeStatsMenu.width, NematodeStatsMenu.height);
-    graphics.endFill();
-
-    // Make the text visible
-    this.headerText.visible = true;
-    this.statsText.visible = true;
-  }
-
-  /* Makes the stats menu invisible */
-  MakeInvisible() {
-    this.headerText.visible = false;
-    this.statsText.visible = false;
-  }
-
-  
-}

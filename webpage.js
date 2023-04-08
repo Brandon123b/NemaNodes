@@ -40,10 +40,10 @@ function main(){
     NematodeTrainer.Initialize().then(() => {
 
         // Add some "Smart" nematodes
-        world.SpawnSmartNematodes(5000);
+        world.SpawnSmartNematodes(500);
 
         // Add some food
-        world.SpawnFood(5000);
+        world.SpawnFood(1000);
         
         setInterval(mainLoop, 1000/60)
     });
@@ -51,9 +51,7 @@ function main(){
 
 // create a UI card
 function CreateUI(){
-    let container = new PIXI.Container()
-
-    let ui = new UICard(385, 290)
+    let ui = Monitor.newWindow()
         .addText("User tools")
         .startToggleGroup()
         .addToggle(enabled => world.draggableObjects = enabled, "drag tool", true)
@@ -64,7 +62,6 @@ function CreateUI(){
         .endToggleGroup()
         .addText("")
         .addText("Nematodes")
-        .addToggle(enabled => NNDisplay.DRAW_LABELS = enabled, "Draw NN Labels", NNDisplay.DRAW_LABELS)
         .addToggle(enabled => world.energyBarOn = enabled, "Show nematode energy levels", false)
         .addButton(x => NematodeTrainer.Download(), "Download Training Data")
         .addSlider(x => NeatNN.MUTATION_MULTIPLIER = x, 0, 5, NeatNN.MUTATION_MULTIPLIER, .1, "Nematode NN mutation multiplier")
@@ -90,36 +87,11 @@ function CreateUI(){
         .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)
         .addToggle(enabled => world.drawSmell = enabled, "draw nematode smell", world.drawSmell)
         .addSlider(x => gameSpeedMult = x, minGameSpeedMult, maxGameSpeedMult, gameSpeedMult, 1, "game speed")
-        .make(false) // set false to not round corners
 
-    let monitor = PIXI.Sprite.from("monitor-nobg.png")
-    monitor.scale.set(0.25)
-    // hardcode monitor position to place well on left side of screen
-    monitor.position.x = -80
-    // hardcode position of UI to fit on monitor screen
-    ui.position.set(78,108)
-    container.addChild(monitor)
-    container.addChild(ui)
-
-    // initialize monitor position to bottom
-    container.y = app.screen.height-200
-
-    monitor.interactive = true
-    // scroll contents with the mousewheel
-    monitor.onwheel = e => {
-        const scroll = e.deltaY
-        if (scroll > 0)
-            container.y -= 50
-        else
-            container.y += 50
-        
-        container.position.clamp([0,0], [app.screen.height-monitor.height*0.6,app.screen.height-200])
-    }
-
-    // hardcode hit area for the monitor sprite
-    monitor.hitArea = new PIXI.Rectangle(350,150,2100,1700)
-
-    app.stage.addChild(container)
+    Monitor.initialize()
+    Monitor.assignScreen("options", ui)
+    Monitor.switchTo("options")
+    updateNematodeStore()
 }
 
 /**
@@ -168,8 +140,8 @@ function GameLoop(delta) {
 
     // If there is an extinction event
     if (world.numNematodes() == 0){
-        console.log("Extinction event at " + timeSinceStart.toFixed(1) + " seconds. Spawned 2000 nematodes.");
-        world.SpawnNematodes(2000);
+        console.log("Extinction event at " + timeSinceStart.toFixed(1) + " seconds. Spawned 500 nematodes.");
+        world.SpawnSmartNematodes(500);
     }
 
 }
@@ -195,5 +167,7 @@ function mainLoop() {
     DrawLoop(delta)
 }
 
-// Very easy to miss this line
-main();
+// Load our assets first, then run main
+PIXI.Assets.load("Bibite.png").then(main)
+
+
