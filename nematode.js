@@ -39,6 +39,10 @@ class Nematode {
     static BASE_SIZE_THRESHOLD = 0.02;
     static GROW_RATE_THRESHOLD = 0.01;
 
+    // Genus and species constants
+    static GENUS_SEP_THRESHOLD = 5;                         // The threshold for the genus name to change
+    static SPECIES_SEP_THRESHOLD = 5;                       // The threshold for the species name to change
+
     // all possible input neurons
     static INPUT_LABELS = [
         "left food eye",
@@ -134,9 +138,15 @@ class Nematode {
         this.growRate = Nematode.GROW_RATE_RANGE.min + Math.random() * (Nematode.GROW_RATE_RANGE.max - Nematode.GROW_RATE_RANGE.min);  // The rate at which the Nematode grows (in pixels per second)
         this.childTime = Nematode.MATURITY_RANGE.min + Math.random() * (Nematode.MATURITY_RANGE.max - Nematode.MATURITY_RANGE.min);    // The age at which the Nematode can reproduce (in seconds)
 
-        this.energy = -1;              // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
-        this.speed = 0;                // The speed of the Nematode (Set in SlowUpdate)
-        this.rotate = 0;               // The rotation of the Nematode (Set in SlowUpdate)
+        this.energy = -1;               // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
+        this.speed = 0;                 // The speed of the Nematode (Set in SlowUpdate)
+        this.rotate = 0;                // The rotation of the Nematode (Set in SlowUpdate)
+
+        this.genusSeparation = 0;       // The distance between the nematode and the first nematode of its genus
+        this.speciesSeparation = 0;     // The distance between the nematode and the first nematode of its species
+
+        this.genusName = Species.generateGenusName(); // The genus name of the Nematode
+        this.speciesName = Species.generateSpeciesName(); // The species name of the Nematode
     }
 
     /* Creates a child nematode from a parent
@@ -172,6 +182,24 @@ class Nematode {
         this.energy = -1;              // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
         this.speed = 0;                // The speed of the Nematode (Set in SlowUpdate)
         this.rotate = 0;               // The rotation of the Nematode (Set in SlowUpdate)
+
+        // The distance between the nematode and the first nematode of its genus/species
+        this.genusSeparation = parent.genusSeparation + this.nn.GetLastDiff();
+        this.speciesSeparation = parent.speciesSeparation + this.nn.GetLastDiff();
+
+        // If the nematode is far enough from its genus/species, create a new genus/species
+        if (this.genusSeparation > Nematode.GENUS_SEP_THRESHOLD) {
+            this.genusName = "NEW"  //Species.generateGenusName(); // The genus name of the Nematode
+            this.speciesName = "NEW2" // Species.generateSpeciesName(); // The species name of the Nematode
+            this.genusSeparation = 0;
+            this.speciesSeparation = 0;
+        }
+        
+        // C branches away from parent's species, but keeps the genus
+        else if (this.speciesSeparation > Nematode.SPECIES_SEP_THRESHOLD) {
+            this.speciesName = "NEW SPECIES" //Species.generateSpeciesName(); // The species name of the Nematode
+            this.speciesSeparation = 0;
+        }
     }
 
     /* Creates a nematode from a json object
@@ -544,7 +572,10 @@ class Nematode {
     */
     mkStatString() {
 
-        let statString  = "Age: " + this.age.toFixed(2) + "s\n";
+        let statString = "Genus name: " + this.genusName + "\n";
+        statString += "Species name: " + this.speciesName + "\n";
+        statString += "\n";
+        statString += "Age: " + this.age.toFixed(2) + "s\n";
         statString += "Energy: " + this.energy.toFixed(2) + " / " + this.maxEnergy.toFixed(2) + "\n";
         statString += "\n";
         statString += "Max Speed: " + this.maxSpeed.toFixed(2) + " pixels/s\n";
@@ -564,6 +595,9 @@ class Nematode {
         statString += "\n";
         statString += "Tint: " + this.sprite.tint.toString(16) + "\n";
         statString += "Time for next child: " + (this.childTime).toFixed(2) + "s\n";
+        statString += "\n";
+        statString += "Genus Seperation: " + this.genusSeparation.toFixed(2) + "\n";
+        statString += "Species Seperation: " + this.speciesSeparation.toFixed(2) + "\n";
 
         return statString
     }

@@ -10,6 +10,7 @@
 *   DrawNN(graphics, xSize, ySize, circleSize) - Draws the neural network
 *   Mutate() - Mutates the neural network
 *   GetPenalty() - Gets the penalty of the neural network
+*   GetLastDiff() - Gets the effect of the last mutation
 *   Clone() - Clones the neural network
 *   toJson() - Creates a JSON object from the neural network
 *   fromJson(json) - Creates a neural network from a JSON object
@@ -30,6 +31,7 @@ class NeatNN {
         this.outputs = [];
 
         this.penalty = 0;       // The penalty of the network (increases for larger networks)
+        this.lastDiff = 0;
 
         // If the network is not being cloned or loaded, create the network
         if (dontRandomize)
@@ -148,16 +150,20 @@ class NeatNN {
     // Mutate the network
     Mutate() {
 
+        // The amount of mutations that have been done (weighted)
+        this.lastDiff = 0;
+
         var mutateWeightChance =            0.6  * NeatNN.MUTATION_MULTIPLIER;
         var mutateBiasChance =              0.3  * NeatNN.MUTATION_MULTIPLIER;
         var mutateAddConnectionChance =     0.05 * NeatNN.MUTATION_MULTIPLIER;
         var mutateRemoveConnectionChance =  0.05 * NeatNN.MUTATION_MULTIPLIER;
         var mutateAddNodeChance =           0.03 * NeatNN.MUTATION_MULTIPLIER;
-        var mutateRemoveConnectionChance =  0.03 * NeatNN.MUTATION_MULTIPLIER;
+        var mutateRemoveNodeChance =        0.03 * NeatNN.MUTATION_MULTIPLIER;
 
         // Mutate the weight of a random connection
         while (mutateWeightChance > 0 && Math.random() < mutateWeightChance){
             mutateWeightChance -= 1;
+            this.lastDiff += .2;
 
             this.MutateModifyWeight();
         }
@@ -165,6 +171,7 @@ class NeatNN {
         // Mutate the bias of a random node
         while (mutateBiasChance > 0 && Math.random() < mutateBiasChance){
             mutateBiasChance -= 1;
+            this.lastDiff += .2;
 
             this.MutateModifyBias();
         }
@@ -172,6 +179,7 @@ class NeatNN {
         // Add a random connection to the network
         while (mutateAddConnectionChance > 0 && Math.random() < mutateAddConnectionChance){
             mutateAddConnectionChance -= 1;
+            this.lastDiff += .8;
 
             this.MutateAddConnection();
         }
@@ -179,6 +187,7 @@ class NeatNN {
         // Remove a random connection from the network
         while (mutateRemoveConnectionChance > 0 && Math.random() < mutateRemoveConnectionChance){
             mutateRemoveConnectionChance -= 1;
+            this.lastDiff += .8;
 
             this.MutateRemoveConnection();
         }
@@ -186,13 +195,15 @@ class NeatNN {
         // Add a random node to the network
         while (mutateAddNodeChance > 0 && Math.random() < mutateAddNodeChance){
             mutateAddNodeChance -= 1;
+            this.lastDiff += 2;
 
             this.MutateAddNode();
         }
 
         // Remove a random node from the network
-        while (mutateRemoveConnectionChance > 0 && Math.random() < mutateRemoveConnectionChance){
-            mutateRemoveConnectionChance -= 1;
+        while (mutateRemoveNodeChance > 0 && Math.random() < mutateRemoveNodeChance){
+            mutateRemoveNodeChance -= 1;
+            this.lastDiff += 2;
 
             this.MutateRemoveNode();
         }
@@ -473,6 +484,11 @@ class NeatNN {
     // Get the penalty
     GetPenalty() {
         return this.penalty;
+    }
+
+    // Gets the effect of the last mutation
+    GetLastDiff(){
+        return this.lastDiff;
     }
 
     // ---------------------------- Other Functions ------------------------------------
