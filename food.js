@@ -109,10 +109,15 @@ class Food {
      */
     Destroy() {
         world.destroy(this)
+        this.sprite.destroy()
     }
 
     toString() {
         return `{Food at (${this.GetX()}, ${this.GetY()})}`
+    }
+
+    GetDisplayObject() {
+        return this.sprite
     }
 
     // TODO: consider energy preservation?
