@@ -17,7 +17,6 @@
 
 
 class NeatNN {
-
     static MUTATION_MULTIPLIER = 1;       // The mutation multiplier of the neural network
 
     constructor(_inputCount, _outputCount, dontRandomize = false) {
@@ -371,67 +370,6 @@ class NeatNN {
 
     }
 
-    // ---------------------------- Draw Functions --------------------------------------
-
-    /* Updates the display of the network using the gicen NNDisplay
-     * @param {NNDisplay} diagram - The NNDisplay that will be used to draw the network
-     */
-    UpdateDisplay(diagram) {
-
-        // The padding between the outside of the box and the nodes
-        const xPadding = 35;
-        const yPadding = 20;
-
-        // The amount of space to the left to allow for the node labels
-        const leftPadding = (NNDisplay.DRAW_LABELS) ? NNDisplay.leftPadding : 0;
-
-        var nodeLocations = [];                      // The x,y locations of the nodes
-        var nodeDepths = this.FindDepths();          // The depth of each node
-        var maxDepth = Math.max(...nodeDepths) + 1;  // The max depth of the network
-        var nodeDepthsCount = [];                    // The number of nodes at each depth
-        var yPositionsUsed = [];                     // The y positions that are already used
-
-        // If the network has been destroyed, return
-        if (this.nodes === null)
-            return;
-
-        // Set the depths of the output nodes to the max depth
-        for (let i = 0; i < this.outputCount; i++) {
-            nodeDepths.push(maxDepth);
-        }
-
-        // Initialize the count of nodes at each depth to 0
-        for (let i = 0; i < maxDepth + 1; i++) {
-            nodeDepthsCount[i] = 0;
-        }
-
-        // Count the number of nodes at each depth
-        for (let i = 0; i < nodeDepths.length; i++) {
-            nodeDepthsCount[nodeDepths[i]]++;
-        }
-
-        // Initialize the y positions used to 0
-        for (let i = 0; i < maxDepth + 1; i++) {
-            yPositionsUsed[i] = 0;
-        }
-
-        // Calculate the x,y locations of the nodes
-        for (let i = 0; i < this.nodes.length; i++) {
-
-            // Set the x location to the x padding plus the max x size divided by the number of layers
-            var xLoc = xPadding + nodeDepths[i] * (NNDisplay.xSize - xPadding * 2) / (maxDepth-1) + leftPadding;
-    
-            // Center the nodes at the y location
-            var yLoc = yPadding + (NNDisplay.ySize - yPadding * 2) * (yPositionsUsed[nodeDepths[i]] + .5) / nodeDepthsCount[nodeDepths[i]];
-            yPositionsUsed[nodeDepths[i]]++;
-    
-            // Add the location to the list of locations
-            nodeLocations.push(new PIXI.Point(xLoc + NNDisplay.xPos, yLoc + NNDisplay.yPos));
-        }
-
-        // Sets the diagram to the given node locations
-        diagram.SetNN(nodeLocations, this.connections, this.nodes);
-    }
 
     /* Finds the depth of each node
     * Returns: An array of the depths of each node

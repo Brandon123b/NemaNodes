@@ -10,7 +10,7 @@ class World {
   static LARGE_ZONE_SIZE = 500
   static XL_ZONE_SIZE = 1000
 
-  static radius = 1500
+  static radius = 3000
   static #zoneSize = World.MED_ZONE_SIZE
 
   // brushes
@@ -31,9 +31,7 @@ class World {
     return this.#zone2hashkey(zoneX,zoneY)
   })
 
-  // set the size of the world in the x-direction (width)
-  // set the size of the world in the y-direction (height)
-  // give the size of a world zone
+
   constructor() {
 
     // the canvas holds a container that we draw the objects on
@@ -88,7 +86,10 @@ class World {
       // make the nematode clickable
       obj.sprite.interactive = true
       // when the nematode is clicked, select it
-      obj.sprite.onmousedown = () => { this.selectedNematode = obj }
+      obj.sprite.onmousedown = () => {
+        this.selectedNematode = obj
+        displaySelectedNematode() // in ui.js
+      }
     } else if (obj instanceof Food) {
       // nothing else
     } else throw `Unsupported: Can't add to world: ${obj}`
