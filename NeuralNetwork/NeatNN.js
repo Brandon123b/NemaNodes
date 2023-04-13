@@ -150,8 +150,12 @@ class NeatNN {
     // Mutate the network
     Mutate() {
 
-        // The amount of mutations that have been done (weighted)
-        this.lastDiff = 0;
+        // The amount of mutations that have been done
+        this.lastDiff = {
+            weight: 0,
+            connection: 0,
+            node: 0
+        };
 
         var mutateWeightChance =            0.6  * NeatNN.MUTATION_MULTIPLIER;
         var mutateBiasChance =              0.3  * NeatNN.MUTATION_MULTIPLIER;
@@ -163,7 +167,7 @@ class NeatNN {
         // Mutate the weight of a random connection
         while (mutateWeightChance > 0 && Math.random() < mutateWeightChance){
             mutateWeightChance -= 1;
-            this.lastDiff += .2;
+            this.lastDiff.weight += 1;
 
             this.MutateModifyWeight();
         }
@@ -171,7 +175,7 @@ class NeatNN {
         // Mutate the bias of a random node
         while (mutateBiasChance > 0 && Math.random() < mutateBiasChance){
             mutateBiasChance -= 1;
-            this.lastDiff += .2;
+            this.lastDiff.weight += 1;
 
             this.MutateModifyBias();
         }
@@ -179,7 +183,7 @@ class NeatNN {
         // Add a random connection to the network
         while (mutateAddConnectionChance > 0 && Math.random() < mutateAddConnectionChance){
             mutateAddConnectionChance -= 1;
-            this.lastDiff += .8;
+            this.lastDiff.connection += 1;
 
             this.MutateAddConnection();
         }
@@ -187,7 +191,7 @@ class NeatNN {
         // Remove a random connection from the network
         while (mutateRemoveConnectionChance > 0 && Math.random() < mutateRemoveConnectionChance){
             mutateRemoveConnectionChance -= 1;
-            this.lastDiff += .8;
+            this.lastDiff.connection += 1;
 
             this.MutateRemoveConnection();
         }
@@ -195,7 +199,7 @@ class NeatNN {
         // Add a random node to the network
         while (mutateAddNodeChance > 0 && Math.random() < mutateAddNodeChance){
             mutateAddNodeChance -= 1;
-            this.lastDiff += 2;
+            this.lastDiff.node += 1;
 
             this.MutateAddNode();
         }
@@ -203,7 +207,7 @@ class NeatNN {
         // Remove a random node from the network
         while (mutateRemoveNodeChance > 0 && Math.random() < mutateRemoveNodeChance){
             mutateRemoveNodeChance -= 1;
-            this.lastDiff += 2;
+            this.lastDiff.node += 1;
 
             this.MutateRemoveNode();
         }

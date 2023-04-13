@@ -40,8 +40,11 @@ class Nematode {
     static GROW_RATE_THRESHOLD = 0.01;
 
     // Genus and species constants
-    static GENUS_SEP_THRESHOLD = 10;                         // The threshold for the genus name to change
+    static GENUS_SEP_THRESHOLD = 10;                        // The threshold for the genus name to change
     static SPECIES_SEP_THRESHOLD = 5;                       // The threshold for the species name to change
+    static NN_WEIGHT_EFFECT = 0.2;                          // The effect that the NN weights have on the species separation
+    static NN_CONNECTION_EFFECT = 0.5;                      // The effect that the NN connections have on the species separation
+    static NN_NODE_EFFECT = 2;                              // The effect that the NN nodes have on the species separation
 
     // all possible input neurons
     static INPUT_LABELS = [
@@ -184,8 +187,14 @@ class Nematode {
         this.rotate = 0;               // The rotation of the Nematode (Set in SlowUpdate)
 
         // The distance between the nematode and the first nematode of its genus/species
-        this.genusSeparation = parent.genusSeparation + this.nn.GetLastDiff();
-        this.speciesSeparation = parent.speciesSeparation + this.nn.GetLastDiff();
+        const nnDiff = this.nn.GetLastDiff();
+        const genusDiff =   nnDiff.weight     * Nematode.NN_WEIGHT_EFFECT +     // TODO: add diff for stats?
+                            nnDiff.connection * Nematode.NN_CONNECTION_EFFECT + 
+                            nnDiff.node       * Nematode.NN_NODE_EFFECT;
+
+        // Increase the genus/species separation by the new change
+        this.genusSeparation = parent.genusSeparation + genusDiff;
+        this.speciesSeparation = parent.speciesSeparation + genusDiff;
 
         // If the nematode is far enough from its genus/species, create a new genus/species
         if (this.genusSeparation > Nematode.GENUS_SEP_THRESHOLD) {
