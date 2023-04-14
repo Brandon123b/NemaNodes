@@ -148,8 +148,7 @@ class Nematode {
         this.genusSeparation = 0;       // The distance between the nematode and the first nematode of its genus
         this.speciesSeparation = 0;     // The distance between the nematode and the first nematode of its species
 
-        this.genusName = Species.generateGenusName(); // The genus name of the Nematode
-        this.speciesName = Species.generateSpeciesName(); // The species name of the Nematode
+        this.species = Species.newGenus() // brand new genus+species for the nematode
     }
 
     /* Creates a child nematode from a parent
@@ -198,23 +197,20 @@ class Nematode {
 
         // If the nematode is far enough from its genus/species, create a new genus/species
         if (this.genusSeparation > Nematode.GENUS_SEP_THRESHOLD) {
-            this.genusName = Species.generateGenusName(); // The genus name of the Nematode
-            this.speciesName = Species.generateSpeciesName(); // The species name of the Nematode
+            this.species = Species.newGenus()
             this.genusSeparation = 0;
             this.speciesSeparation = 0;
         }
         
         // C branches away from parent's species, but keeps the genus
         else if (this.speciesSeparation > Nematode.SPECIES_SEP_THRESHOLD) {
-            this.genusName = parent.genusName;
-            this.speciesName = Species.generateSpeciesName(); // The species name of the Nematode
+            this.species = parent.species.branchSpecies()
             this.speciesSeparation = 0;
         }
 
         // Take the parent's genus/species
         else {
-            this.genusName = parent.genusName;
-            this.speciesName = parent.speciesName;
+            this.species = parent.species
         }
     }
 
@@ -249,8 +245,7 @@ class Nematode {
         this.speed = json.speed;        // The speed of the Nematode (Set in SlowUpdate)
         this.rotate = json.rotate;      // The rotation of the Nematode (Set in SlowUpdate)
         
-        this.genusName = json.genusName;        // The genus name of the Nematode
-        this.speciesName = json.speciesName;    // The species name of the Nematode
+        this.species = new Species(json.genusName, json.speciesName)
         this.genusSeparation = json.genusSeparation;
         this.speciesSeparation = json.speciesSeparation;
     }
@@ -595,8 +590,7 @@ class Nematode {
     */
     mkStatString() {
 
-        let statString = "Genus: " + this.genusName + "\n";
-        statString += "Species: " + this.speciesName + "\n";
+        let statString = this.species.name + "\n";
         statString += "\n";
         statString += "Age: " + this.age.toFixed(2) + "s\n";
         statString += "Energy: " + this.energy.toFixed(2) + " / " + this.maxEnergy.toFixed(2) + "\n";
@@ -666,8 +660,8 @@ class Nematode {
             speed: this.speed,
             rotate: this.rotate,
             maxEnergy: this.maxEnergy,
-            genusName: this.genusName,
-            speciesName: this.speciesName,
+            genusName: this.species.genus,
+            speciesName: this.species.species,
             genusSeparation: this.genusSeparation,
             speciesSeparation: this.speciesSeparation
         }

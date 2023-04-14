@@ -800,6 +800,7 @@ function displaySelectedNematode() {
   Monitor.pullup()
 
   // begin loop for updating the selected nematode display
+  // TODO clean this mess
   if (!startedDisplayUpdate)
   app.ticker.add(() => {
     if (nematodeDisplayUI && world.selectedNematode.exists) {
