@@ -520,10 +520,14 @@ class Nematode {
 
     /* Destroy this nematode */
     Destroy() {
+        // remove nematode from world structure
         world.destroy(this);
 
         // Set the nematode to not exist
         this.exists = false;
+
+        this.sprite.destroy()
+        // TODO set flag to destroy texture as well if it is uniquely generated
 
         // Clean un the neural network
         // The NN was not the culprit of the memory leak
@@ -626,7 +630,10 @@ class Nematode {
     // Will be replaced with a call to a function that creates a sprite (hopefully in a separate file)
     CreateSpriteTemp() {
         // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
-        this.sprite = PIXI.Sprite.from('Bibite.png');
+        //this.sprite = PIXI.Sprite.from(PIXI.Texture.EMPTY) // initialize to empty sprite
+        this.sprite = PIXI.Sprite.from("Bibite.png")
+        // set to different texture with this.SetTexture(newTexture)
+
         // Set the pivot point to the center of the bibite
         this.sprite.anchor.set(0.5);
 
@@ -692,7 +699,20 @@ class Nematode {
         return this.sprite.position
     }
 
+    GetAngle() {
+        return this.sprite.angle
+    }
+
     SetPos(x, y) {
         this.sprite.position.set(x,y)
+    }
+
+    SetTexture(texture) {
+        if (this.sprite.destroyed) throw `Cannot set the texture for a destroyed sprite`
+        this.sprite.texture = texture
+    }
+
+    GetDisplayObject() {
+        return this.sprite
     }
 }

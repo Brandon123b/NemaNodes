@@ -258,8 +258,8 @@ class Canvas {
     this.worldGraphics.beginFill(barcolor);
     this.worldGraphics.lineStyle(5, barcolor);
     this.worldGraphics.drawRect(
-      nematode.sprite.x - (this.ebar_max_length * ebar_ratio/2),
-      nematode.sprite.y - this.ebar_offset_y,
+      nematode.GetX() - (this.ebar_max_length * ebar_ratio/2),
+      nematode.GetY() - this.ebar_offset_y,
       this.ebar_max_length * ebar_ratio,
       this.ebar_height);   
     

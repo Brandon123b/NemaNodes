@@ -546,7 +546,7 @@ class NematodeDisplay{
 
     this.sprite = PIXI.Sprite.from("Bibite.png") // TODO change this to get the correct sprite
     this.sprite.anchor.set(0.5)
-    this.sprite.tint = nematode.sprite.tint
+    this.sprite.tint = nematode.baseColor
 
     this.brain = new NNDisplay(nematode.nn)
     this.container.addChild(this.sprite)
@@ -571,15 +571,13 @@ class NematodeDisplay{
 
       this.statsText.y = this.brain.container.y + this.brain.container.height + this.margin
       this.container.addChild(this.statsText)
-
     }
-
   }
 
   // refresh the display by redrawing the NN
   update() {
     this.brain.update()
-    if (!this.nematode.sprite.destroyed) this.sprite.angle = this.nematode.sprite.angle // TODO add GetAngle() method to nematode.js
+    if (this.nematode.exists) this.sprite.angle = this.nematode.GetAngle()
     if (this.statsText) this.statsText.text = this.nematode.mkStatString()
   }
 

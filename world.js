@@ -79,11 +79,13 @@ class World {
     // insert obj into zone hash
     this.getHashTableFor(obj).insert(obj)
 
+    const dob = obj.GetDisplayObject()
+
     if (obj instanceof Nematode) {
       // make the nematode clickable
-      obj.sprite.interactive = true
+      dob.interactive = true
       // when the nematode is clicked, select it
-      obj.sprite.onmousedown = () => {
+      dob.onmousedown = () => {
         this.selectedNematode = obj
         displaySelectedNematode() // in ui.js
       }
@@ -91,11 +93,11 @@ class World {
       // nothing else
     } else throw `Unsupported: Can't add to world: ${obj}`
     // add the game object so it can be drawn
-    this.canvas.add(obj.sprite)
+    this.canvas.add(dob)
   }
 
   /**
-   * remove the given world object from the world and destroy it
+   * remove the given world object from the world
    * @param {Nematode | Food} obj to destroy
    */
   destroy(obj) {
@@ -103,7 +105,7 @@ class World {
 
     if (!zoneHash.remove(obj))
       throw `Object ${obj} cannot be destroyed because it does not exist in the world`
-    obj.sprite.destroy()
+    //obj.sprite.destroy()
   }
 
   /**
