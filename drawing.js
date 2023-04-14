@@ -213,14 +213,15 @@ class Canvas {
     }
 
     //draw energy level bars above nematodes
-    if(world.energyBarOn) {
-      world.forEachNematode(n => this.DrawEnergyLevel(n));
-    }
+    world.forEachNematode(n => {
+      if (world.energyBarOn) this.DrawEnergyLevel(n)
+
+    })
 
     if (world.selectedNematode != null){
       if (world.selectedNematode.exists) {
         if (world.drawSmell)
-          world.selectedNematode.DrawSmellRange(this.worldGraphics);
+          this.DrawSmellRange(world.selectedNematode);
       }
     }
 
@@ -251,6 +252,19 @@ class Canvas {
       this.ebar_max_length * ebar_ratio,
       this.ebar_height);   
     
+  }
+
+  /* Draws the nematodes smell range to the given graphics object */
+  DrawSmellRange(nematode) {
+
+    // Set a border to green with a width of 1 pixel and an alpha
+    this.worldGraphics.lineStyle(1, 0x00FF00, .2);
+
+    // set the fill color to red and the alpha
+    this.worldGraphics.beginFill(0xff0000, .1);
+
+    // Draw a circle with the given radius
+    this.worldGraphics.drawCircle(nematode.GetX(), nematode.GetY(), Nematode.MAX_SMELL_DISTANCE);
   }
 }
 

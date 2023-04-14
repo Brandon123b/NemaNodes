@@ -623,19 +623,6 @@ class Nematode {
         return statString
     }
 
-    /* Draws the nematodes smell range to the given graphics object */
-    DrawSmellRange(graphics) {
-
-        // Set a border to green with a width of 1 pixel and an alpha
-        graphics.lineStyle(1, 0x00FF00, .2);
-
-        // set the fill color to red and the alpha
-        graphics.beginFill(0xff0000, .1);
-
-        // Draw a circle with the given radius
-        graphics.drawCircle(this.GetX(), this.GetY(), Nematode.MAX_SMELL_DISTANCE);
-    }
-
     // ------------------- OTHER ------------------- //
 
     // Will be replaced with a call to a function that creates a sprite (hopefully in a separate file)
