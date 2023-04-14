@@ -110,6 +110,11 @@ class Canvas {
     this.ebarcolor_low = 0xbd1111;
     this.ebarcolor_mid = 0xfcd303;
     this.ebarcolor_high = 0x0339fc;
+
+    // glow filter to apply to highlighted nematodes
+    this.nematodeGlow = new PIXI.filters.GlowFilter({
+      // extra options
+    })
   }
 
   // take a world point and convert it to a point on the screen
@@ -212,9 +217,15 @@ class Canvas {
       this.worldGraphics.drawRect(world.zoneSize()*x, world.zoneSize()*y, world.zoneSize(), world.zoneSize())
     }
 
-    //draw energy level bars above nematodes
     world.forEachNematode(n => {
+      //draw energy level bars above nematodes
       if (world.energyBarOn) this.DrawEnergyLevel(n)
+      if (world.selectedNematode && world.selectedNematode.exists)
+      // TODO have nematodes reference the same Species object held in World
+        if (world.selectedNematode.speciesName == n.speciesName)
+          addFilter(n.GetDisplayObject(), this.nematodeGlow)
+        else
+          removeFilter(n.GetDisplayObject(), this.nematodeGlow)
 
     })
 
