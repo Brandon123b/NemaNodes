@@ -11,7 +11,7 @@ class Canvas {
     this.camera = {
       zoomLevel : 1,
       maxZoomLevel : 10,
-      minZoomLevel : 0.1,
+      minZoomLevel : 0.05,
       // TODO add bounds for panning
     }
     
@@ -87,7 +87,7 @@ class Canvas {
       let returnPivot = this.container.toLocal(mousePos)
       this.container.scale = this.initialScale.multiplyScalar(this.camera.zoomLevel)
       this.container.pivot = this.container.pivot.subtract(this.container.toLocal(mousePos).subtract(returnPivot))
-      
+
       // scale the highlight circle based on zoom level to easily find selected nematode
       let hCircleMult = 2/this.camera.zoomLevel
       let bounds = [1, 10]
@@ -112,10 +112,7 @@ class Canvas {
     this.ebarcolor_high = 0x0339fc;
 
     // glow filter to apply to highlighted nematodes
-    this.nematodeGlow = new PIXI.filters.OutlineFilter({
-      color: 0xccccff,
-      thickness: 2
-    })
+    this.nematodeGlow = new PIXI.filters.OutlineFilter(2, 0x99ff99)
   }
 
   // take a world point and convert it to a point on the screen
