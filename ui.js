@@ -540,15 +540,30 @@ class NematodeDisplay{
  * @param {Nematode} nematode
  */
   constructor(nematode, displayStats = false) {
+    let textStyle = new PIXI.TextStyle({
+      // TODO cleanup the textstyle objects everywhere and make a top-level style for ui
+      wordWrap: true,
+      fontFamily: "Courier New",
+      fontVariant: "small-caps",
+      fontWeight: "bold",
+      letterSpacing: 2,
+      fill: 0x00cc00
+    })
+
+    let headerStyle = textStyle.clone()
+    headerStyle.fontSize = 42
+    let header = new PIXI.Text(nematode.species.name, headerStyle)
+
     this.nematode = nematode
     this.container = new PIXI.Container()
     this.margin = 15
 
     this.sprite = PIXI.Sprite.from("Bibite.png") // TODO change this to get the correct sprite
     this.sprite.anchor.set(0.5)
-    this.sprite.tint = nematode.sprite.tint
+    this.sprite.tint = nematode.baseColor
 
     this.brain = new NNDisplay(nematode.nn)
+    this.container.addChild(header)
     this.container.addChild(this.sprite)
     this.container.addChild(this.brain.container)
 
@@ -557,29 +572,25 @@ class NematodeDisplay{
     this.sprite.position.set(this.sprite.width/2, this.sprite.height/2)
     this.brain.container.x = this.sprite.x + this.sprite.width/2 + this.margin
 
-    if (displayStats) {
-      this.statsText = new PIXI.Text(nematode.mkStatString(), new PIXI.TextStyle({
-        // TODO cleanup the textstyle objects everywhere and make a top-level style for ui
-        wordWrap: true,
-        wordWrapWidth: this.sprite.width + this.brain.container.width,
-        fontFamily: "Courier New",
-        fontVariant: "small-caps",
-        fontWeight: "bold",
-        letterSpacing: 2,
-        fill: 0x00cc00
-      }))
+    // position nematode sprite and brain below the header
+    let headerSpaceY = header.y + header.height
+    this.sprite.y += headerSpaceY
+    this.brain.container.y += headerSpaceY
 
+    if (displayStats) {
+      this.statsText = new PIXI.Text(nematode.mkStatString(), textStyle)
       this.statsText.y = this.brain.container.y + this.brain.container.height + this.margin
       this.container.addChild(this.statsText)
-
     }
 
+    textStyle.wordWrapWidth = this.sprite.width + this.brain.container.width
+    headerStyle.wordWrapWidth = textStyle.wordWrapWidth
   }
 
   // refresh the display by redrawing the NN
   update() {
     this.brain.update()
-    if (!this.nematode.sprite.destroyed) this.sprite.angle = this.nematode.sprite.angle // TODO add GetAngle() method to nematode.js
+    if (this.nematode.exists) this.sprite.angle = this.nematode.GetAngle()
     if (this.statsText) this.statsText.text = this.nematode.mkStatString()
   }
 
@@ -802,6 +813,7 @@ function displaySelectedNematode() {
   Monitor.pullup()
 
   // begin loop for updating the selected nematode display
+  // TODO clean this mess
   if (!startedDisplayUpdate)
   app.ticker.add(() => {
     if (nematodeDisplayUI && world.selectedNematode.exists) {

@@ -73,6 +73,8 @@ class Nematode {
     /* Instead of multiple constructors, use a single constructor that can take a position, a parent nematode, or nothing */
     constructor(arg1) {
 
+        this.biteCooldown = Nematode.BITE_COOLDOWN; // The time until the nematode can bite again (in seconds)
+
         // No arguments provided, create a random nematode
         if (arg1 === undefined) {
 
@@ -96,9 +98,7 @@ class Nematode {
 
             // These are to avoid the nematode from gaining max energy when the game is loaded
             this.UpdateStats(0, 0);
-            this.biteCooldown = 0;          // The time until the nematode can bite again (in seconds)
             world.add(this);
-
             return;
         }
 
@@ -107,9 +107,6 @@ class Nematode {
         
         // Initialize the energy of the Nematode to its maximum value
         this.energy = this.maxEnergy;
-
-        // Create minor vars
-        this.biteCooldown = 0;          // The time until the nematode can bite again (in seconds)
 
         // Tell the world that this bibite exists
         world.add(this)
@@ -148,8 +145,7 @@ class Nematode {
         this.genusSeparation = 0;       // The distance between the nematode and the first nematode of its genus
         this.speciesSeparation = 0;     // The distance between the nematode and the first nematode of its species
 
-        this.genusName = Species.generateGenusName(); // The genus name of the Nematode
-        this.speciesName = Species.generateSpeciesName(); // The species name of the Nematode
+        this.species = Species.newGenus() // brand new genus+species for the nematode
     }
 
     /* Creates a child nematode from a parent
@@ -198,23 +194,20 @@ class Nematode {
 
         // If the nematode is far enough from its genus/species, create a new genus/species
         if (this.genusSeparation > Nematode.GENUS_SEP_THRESHOLD) {
-            this.genusName = Species.generateGenusName(); // The genus name of the Nematode
-            this.speciesName = Species.generateSpeciesName(); // The species name of the Nematode
+            this.species = Species.newGenus()
             this.genusSeparation = 0;
             this.speciesSeparation = 0;
         }
         
         // C branches away from parent's species, but keeps the genus
         else if (this.speciesSeparation > Nematode.SPECIES_SEP_THRESHOLD) {
-            this.genusName = parent.genusName;
-            this.speciesName = Species.generateSpeciesName(); // The species name of the Nematode
+            this.species = parent.species.branchSpecies()
             this.speciesSeparation = 0;
         }
 
         // Take the parent's genus/species
         else {
-            this.genusName = parent.genusName;
-            this.speciesName = parent.speciesName;
+            this.species = parent.species
         }
     }
 
@@ -249,8 +242,7 @@ class Nematode {
         this.speed = json.speed;        // The speed of the Nematode (Set in SlowUpdate)
         this.rotate = json.rotate;      // The rotation of the Nematode (Set in SlowUpdate)
         
-        this.genusName = json.genusName;        // The genus name of the Nematode
-        this.speciesName = json.speciesName;    // The species name of the Nematode
+        this.species = new Species(json.genusName, json.speciesName)
         this.genusSeparation = json.genusSeparation;
         this.speciesSeparation = json.speciesSeparation;
     }
@@ -511,21 +503,23 @@ class Nematode {
         // give red tint to nematode
         let tint = new PIXI.ColorMatrixFilter()
         tint.tint(0xff0000)
-        let filters = this.sprite.filters || []
-        filters.push(tint)
-        this.sprite.filters = filters
+        addFilter(this.sprite, tint)
         // remove the red tint after 1/3 seconds
         setTimeout(() => {
-            if (!this.sprite.destroyed) this.sprite.filters = this.sprite.filters.filter(f => f != tint)
+            if (!this.sprite.destroyed) removeFilter(this.sprite, tint)
         }, 300)
     }
 
     /* Destroy this nematode */
     Destroy() {
+        // remove nematode from world structure
         world.destroy(this);
 
         // Set the nematode to not exist
         this.exists = false;
+
+        this.sprite.destroy()
+        // TODO set flag to destroy texture as well if it is uniquely generated
 
         // Clean un the neural network
         // The NN was not the culprit of the memory leak
@@ -593,9 +587,7 @@ class Nematode {
     */
     mkStatString() {
 
-        let statString = "Genus: " + this.genusName + "\n";
-        statString += "Species: " + this.speciesName + "\n";
-        statString += "\n";
+        let statString = ""
         statString += "Age: " + this.age.toFixed(2) + "s\n";
         statString += "Energy: " + this.energy.toFixed(2) + " / " + this.maxEnergy.toFixed(2) + "\n";
         statString += "\n";
@@ -623,25 +615,14 @@ class Nematode {
         return statString
     }
 
-    /* Draws the nematodes smell range to the given graphics object */
-    DrawSmellRange(graphics) {
-
-        // Set a border to green with a width of 1 pixel and an alpha
-        graphics.lineStyle(1, 0x00FF00, .2);
-
-        // set the fill color to red and the alpha
-        graphics.beginFill(0xff0000, .1);
-
-        // Draw a circle with the given radius
-        graphics.drawCircle(this.GetX(), this.GetY(), Nematode.MAX_SMELL_DISTANCE);
-    }
-
     // ------------------- OTHER ------------------- //
 
     // Will be replaced with a call to a function that creates a sprite (hopefully in a separate file)
     CreateSpriteTemp() {
         // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
-        this.sprite = PIXI.Sprite.from('Bibite.png');
+        //this.sprite = PIXI.Sprite.from(PIXI.Texture.EMPTY) // initialize to empty sprite
+        this.sprite = PIXI.Sprite.from("Bibite.png")
+
         // Set the pivot point to the center of the bibite
         this.sprite.anchor.set(0.5);
 
@@ -674,8 +655,8 @@ class Nematode {
             speed: this.speed,
             rotate: this.rotate,
             maxEnergy: this.maxEnergy,
-            genusName: this.genusName,
-            speciesName: this.speciesName,
+            genusName: this.species.genus,
+            speciesName: this.species.species,
             genusSeparation: this.genusSeparation,
             speciesSeparation: this.speciesSeparation
         }
@@ -707,7 +688,15 @@ class Nematode {
         return this.sprite.position
     }
 
+    GetAngle() {
+        return this.sprite.angle
+    }
+
     SetPos(x, y) {
         this.sprite.position.set(x,y)
+    }
+
+    GetDisplayObject() {
+        return this.sprite
     }
 }

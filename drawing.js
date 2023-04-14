@@ -11,7 +11,7 @@ class Canvas {
     this.camera = {
       zoomLevel : 1,
       maxZoomLevel : 10,
-      minZoomLevel : 0.1,
+      minZoomLevel : 0.05,
       // TODO add bounds for panning
     }
     
@@ -87,7 +87,7 @@ class Canvas {
       let returnPivot = this.container.toLocal(mousePos)
       this.container.scale = this.initialScale.multiplyScalar(this.camera.zoomLevel)
       this.container.pivot = this.container.pivot.subtract(this.container.toLocal(mousePos).subtract(returnPivot))
-      
+
       // scale the highlight circle based on zoom level to easily find selected nematode
       let hCircleMult = 2/this.camera.zoomLevel
       let bounds = [1, 10]
@@ -110,6 +110,9 @@ class Canvas {
     this.ebarcolor_low = 0xbd1111;
     this.ebarcolor_mid = 0xfcd303;
     this.ebarcolor_high = 0x0339fc;
+
+    // glow filter to apply to highlighted nematodes
+    this.nematodeGlow = new PIXI.filters.OutlineFilter(2, 0x99ff99)
   }
 
   // take a world point and convert it to a point on the screen
@@ -212,15 +215,22 @@ class Canvas {
       this.worldGraphics.drawRect(world.zoneSize()*x, world.zoneSize()*y, world.zoneSize(), world.zoneSize())
     }
 
-    //draw energy level bars above nematodes
-    if(world.energyBarOn) {
-      world.forEachNematode(n => this.DrawEnergyLevel(n));
-    }
+    world.forEachNematode(n => {
+      //draw energy level bars above nematodes
+      if (world.energyBarOn) this.DrawEnergyLevel(n)
+      if (world.selectedNematode)
+      // TODO have nematodes reference the same Species object held in World
+        if (world.selectedNematode.species == n.species)
+          addFilter(n.GetDisplayObject(), this.nematodeGlow, true)
+        else
+          removeFilter(n.GetDisplayObject(), this.nematodeGlow)
+
+    })
 
     if (world.selectedNematode != null){
       if (world.selectedNematode.exists) {
         if (world.drawSmell)
-          world.selectedNematode.DrawSmellRange(this.worldGraphics);
+          this.DrawSmellRange(world.selectedNematode);
       }
     }
 
@@ -246,11 +256,24 @@ class Canvas {
     this.worldGraphics.beginFill(barcolor);
     this.worldGraphics.lineStyle(5, barcolor);
     this.worldGraphics.drawRect(
-      nematode.sprite.x - (this.ebar_max_length * ebar_ratio/2),
-      nematode.sprite.y - this.ebar_offset_y,
+      nematode.GetX() - (this.ebar_max_length * ebar_ratio/2),
+      nematode.GetY() - this.ebar_offset_y,
       this.ebar_max_length * ebar_ratio,
       this.ebar_height);   
     
+  }
+
+  /* Draws the nematodes smell range to the given graphics object */
+  DrawSmellRange(nematode) {
+
+    // Set a border to green with a width of 1 pixel and an alpha
+    this.worldGraphics.lineStyle(1, 0x00FF00, .2);
+
+    // set the fill color to red and the alpha
+    this.worldGraphics.beginFill(0xff0000, .1);
+
+    // Draw a circle with the given radius
+    this.worldGraphics.drawCircle(nematode.GetX(), nematode.GetY(), Nematode.MAX_SMELL_DISTANCE);
   }
 }
 

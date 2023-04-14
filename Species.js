@@ -3,6 +3,26 @@
  */
 class Species {
 
+    constructor(genusName, speciesName) {
+      this.genus = genusName
+      this.species = speciesName
+      this.name = `${genusName} ${speciesName}`
+    }
+
+    /**
+     * @returns a new species within this genus
+     */
+    branchSpecies() {
+      return new Species(this.genus, Species.generateSpeciesName())
+    }
+
+    /**
+     * @returns a new species with a new genus
+     */
+    static newGenus() {
+      return new Species(Species.generateGenusName(), Species.generateSpeciesName())
+    }
+
     /** 
      * @returns {string} genus name 
      */
