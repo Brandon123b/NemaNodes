@@ -112,8 +112,9 @@ class Canvas {
     this.ebarcolor_high = 0x0339fc;
 
     // glow filter to apply to highlighted nematodes
-    this.nematodeGlow = new PIXI.filters.GlowFilter({
-      // extra options
+    this.nematodeGlow = new PIXI.filters.OutlineFilter({
+      color: 0xccccff,
+      thickness: 2
     })
   }
 
