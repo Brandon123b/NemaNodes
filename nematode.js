@@ -511,12 +511,10 @@ class Nematode {
         // give red tint to nematode
         let tint = new PIXI.ColorMatrixFilter()
         tint.tint(0xff0000)
-        let filters = this.sprite.filters || []
-        filters.push(tint)
-        this.sprite.filters = filters
+        addFilter(this.sprite, tint)
         // remove the red tint after 1/3 seconds
         setTimeout(() => {
-            if (!this.sprite.destroyed) this.sprite.filters = this.sprite.filters.filter(f => f != tint)
+            if (!this.sprite.destroyed) removeFilter(this.sprite, tint)
         }, 300)
     }
 
