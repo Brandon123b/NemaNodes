@@ -99,11 +99,13 @@ function addBlur(obj, amount) {
 
 /**
  * Apply a filter to a display object
- * @param {PIXI.DisplayObject} obj 
+ * @param {PIXI.DisplayObject} obj
+ * @param {boolean} once set to true if adding an already applied filter should be NOP
  * @param {PIXI.Filter} filter 
  */
-function addFilter(obj, filter) {
+function addFilter(obj, filter, once=false) {
   obj.filters = obj.filters || []
+  if (once && obj.filters.includes(filter)) return
   obj.filters.push(filter)
 }
 
