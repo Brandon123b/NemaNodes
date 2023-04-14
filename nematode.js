@@ -587,8 +587,7 @@ class Nematode {
     */
     mkStatString() {
 
-        let statString = this.species.name + "\n";
-        statString += "\n";
+        let statString = ""
         statString += "Age: " + this.age.toFixed(2) + "s\n";
         statString += "Energy: " + this.energy.toFixed(2) + " / " + this.maxEnergy.toFixed(2) + "\n";
         statString += "\n";
