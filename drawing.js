@@ -220,7 +220,7 @@ class Canvas {
     world.forEachNematode(n => {
       //draw energy level bars above nematodes
       if (world.energyBarOn) this.DrawEnergyLevel(n)
-      if (world.selectedNematode && world.selectedNematode.exists)
+      if (world.selectedNematode)
       // TODO have nematodes reference the same Species object held in World
         if (world.selectedNematode.species == n.species)
           addFilter(n.GetDisplayObject(), this.nematodeGlow, true)
