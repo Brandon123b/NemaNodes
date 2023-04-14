@@ -13,7 +13,7 @@ class Species {
      * @returns a new species within this genus
      */
     branchSpecies() {
-      return new Species(this.genusName, Species.generateSpeciesName())
+      return new Species(this.genus, Species.generateSpeciesName())
     }
 
     /**
