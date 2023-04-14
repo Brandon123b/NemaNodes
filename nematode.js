@@ -73,6 +73,8 @@ class Nematode {
     /* Instead of multiple constructors, use a single constructor that can take a position, a parent nematode, or nothing */
     constructor(arg1) {
 
+        this.biteCooldown = Nematode.BITE_COOLDOWN; // The time until the nematode can bite again (in seconds)
+
         // No arguments provided, create a random nematode
         if (arg1 === undefined) {
 
@@ -96,9 +98,7 @@ class Nematode {
 
             // These are to avoid the nematode from gaining max energy when the game is loaded
             this.UpdateStats(0, 0);
-            this.biteCooldown = 0;          // The time until the nematode can bite again (in seconds)
             world.add(this);
-
             return;
         }
 
@@ -107,9 +107,6 @@ class Nematode {
         
         // Initialize the energy of the Nematode to its maximum value
         this.energy = this.maxEnergy;
-
-        // Create minor vars
-        this.biteCooldown = 0;          // The time until the nematode can bite again (in seconds)
 
         // Tell the world that this bibite exists
         world.add(this)
