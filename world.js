@@ -10,14 +10,17 @@ class World {
   static LARGE_ZONE_SIZE = 500
   static XL_ZONE_SIZE = 1000
 
-  static radius = 3000
+  static radius = 4000
   static #zoneSize = World.MED_ZONE_SIZE
 
-  // brushes
+  // brushes, user interaction when clicking and dragging in game world
   static foodBrushOn = false
   static nematodeBrushOn = false
   static eraseBrushOn = false
   static brushRadius = 10
+
+  static brushNematode = undefined // nematode parent to spawn children with brush
+
 
   // hash table that maps nematodes to a zone
   #nematodeZones = new HashTable(obj => {
@@ -314,10 +317,13 @@ class World {
       const nematodeData = NematodeTrainer.GetRandomNematode();
 
       // Create a new nematode with the loaded data
-      const parent = new Nematode(nematodeData);
+      const parent = new Nematode({
+        json: nematodeData,
+        addToWorld: false
+      });
 
       // Create a new nematode with the loaded data as a parent
-      new Nematode(parent);
+      new Nematode({parent: parent, position: new PIXI.Point().RandomPosition(World.radius)});
 
       // Destroy the parent
       parent.Destroy();
@@ -383,7 +389,10 @@ class World {
     this.createBrush(() => World.nematodeBrushOn, (x,y) => {
       let pos = new PIXI.Point(x,y)
       pos.perturb(World.brushRadius)
-      new Nematode(pos)
+      if (World.brushNematode)
+        new Nematode({position: pos, parent: World.brushNematode})
+      else
+        new Nematode({position: pos})
     }, 0.1)
 
     // erase brush
