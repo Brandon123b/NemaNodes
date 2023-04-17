@@ -865,7 +865,6 @@ function importNematodes() {
     .then(jsonStrings => {
       // create a new nematode from each imported file
       const nematodes = jsonStrings.map(JSON.parse).map(obj => new Nematode({json: obj, addToWorld: false}))
-      console.log(nematodes)
       storeNematode(...nematodes) // add them to the store display
       //nematodes.forEach(n => n.Destroy()) // remove them from the world
     })
