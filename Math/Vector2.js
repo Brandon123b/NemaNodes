@@ -26,6 +26,44 @@ PIXI.Point.prototype.rotate = function(_angle) {
 }
 PIXI.ObservablePoint.prototype.rotate = PIXI.Point.prototype.rotate
 
+PIXI.Point.prototype.rotateTowards = function(dir, percent) {
+    // Calculate the angle between the current vector and the target direction
+    const currentAngle = Math.atan2(this.y, this.x);
+    const targetAngle = Math.atan2(dir.y, dir.x);
+    let angleDiff = targetAngle - currentAngle;
+  
+    // Handle angle wrap-around
+    if (angleDiff > Math.PI) {
+      angleDiff -= 2 * Math.PI;
+    } else if (angleDiff < -Math.PI) {
+      angleDiff += 2 * Math.PI;
+    }
+  
+    // Calculate the interpolated angle
+    const interpolatedAngle = currentAngle + angleDiff * (percent / 100);
+  
+    // Update the vector's x and y values based on the interpolated angle
+    const magnitude = this.magnitude();
+    this.x = magnitude * Math.cos(interpolatedAngle);
+    this.y = magnitude * Math.sin(interpolatedAngle);
+  };
+  
+PIXI.ObservablePoint.prototype.rotateTowards = PIXI.Point.prototype.rotateTowards
+
+PIXI.Point.prototype.MoveMagTowards = function(magnitude, percent, dir) {
+    const currentMagnitude = DistFromOrigin(this);
+    if (currentMagnitude !== 0) {
+        const targetMagnitude = currentMagnitude + (magnitude - currentMagnitude) * (percent / 100);
+        const scale = targetMagnitude / currentMagnitude;
+        this.x *= scale;
+        this.y *= scale;
+    } else {
+        this.x = dir.x * magnitude;
+        this.y = dir.y * magnitude;
+    }
+}
+PIXI.ObservablePoint.prototype.MoveMagTowards = PIXI.Point.prototype.MoveMagTowards
+
 // get the angle of the vector in degrees
 PIXI.Point.prototype.getAngle = function() {
     return Math.atan2(this.y, this.x) * 180 / Math.PI

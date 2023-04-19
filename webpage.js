@@ -40,7 +40,7 @@ function main(){
     NematodeTrainer.Initialize().then(() => {
 
         // Add some "Smart" nematodes
-        world.SpawnSmartNematodes(1000);
+        world.SpawnSmartNematodes(500);
 
         // Add some food
         world.SpawnFood(1000);
@@ -86,6 +86,7 @@ function CreateUI(){
         .addToggle(enabled => world.drawZones = enabled, "draw world zones", world.drawZones)
         .addToggle(enabled => world.drawEyeRays = enabled, "draw nematode raycasts", world.drawEyeRays)
         .addToggle(enabled => world.drawSmell = enabled, "draw nematode smell", world.drawSmell)
+        .addToggle(enabled => world.drawVelocity = enabled, "draw nematode Velocity", world.drawVelocity)
         .addSlider(x => gameSpeedMult = x, minGameSpeedMult, maxGameSpeedMult, gameSpeedMult, 1, "game speed")
 
     Monitor.initialize()

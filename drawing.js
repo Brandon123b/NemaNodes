@@ -216,14 +216,19 @@ class Canvas {
     }
 
     world.forEachNematode(n => {
-      //draw energy level bars above nematodes
-      if (world.energyBarOn) this.DrawEnergyLevel(n)
-      if (world.selectedNematode)
-      // TODO have nematodes reference the same Species object held in World
-        if (world.selectedNematode.species == n.species)
-          addFilter(n.GetDisplayObject(), this.nematodeGlow, true)
-        else
-          removeFilter(n.GetDisplayObject(), this.nematodeGlow)
+
+        // Draw the nematodes velocity vector
+        if (world.drawVelocity)
+            this.DrawVelocity(n)
+
+        //draw energy level bars above nematodes
+        if (world.energyBarOn) this.DrawEnergyLevel(n)
+        if (world.selectedNematode)
+            // TODO have nematodes reference the same Species object held in World
+            if (world.selectedNematode.species == n.species)
+            addFilter(n.GetDisplayObject(), this.nematodeGlow, true)
+            else
+            removeFilter(n.GetDisplayObject(), this.nematodeGlow)
 
     })
 
@@ -274,6 +279,23 @@ class Canvas {
 
     // Draw a circle with the given radius
     this.worldGraphics.drawCircle(nematode.GetX(), nematode.GetY(), Nematode.MAX_SMELL_DISTANCE);
+  }
+
+  // Draws the nematodes velocity
+  DrawVelocity(nematode) {
+
+    // Set a border to green with a width of 1 pixel and an alpha
+    this.worldGraphics.lineStyle(1, 0x00FF00, .8);
+
+    // set the fill color to red and the alpha
+    this.worldGraphics.beginFill(0xff0000, .1);
+
+    const velMag = Math.sqrt(nematode.velocity.x * nematode.velocity.x + nematode.velocity.y * nematode.velocity.y);
+
+    // Draw a circle with the given radius
+    this.worldGraphics.moveTo(nematode.GetX(), nematode.GetY());
+    this.worldGraphics.lineTo(nematode.GetX() + nematode.velocity.x / velMag * 15, 
+                              nematode.GetY() + nematode.velocity.y / velMag * 15);
   }
 }
 

@@ -49,6 +49,7 @@ class World {
     this.drawZones = false
     this.drawEyeRays = false
     this.drawSmell = false
+    this.drawVelocity = false;
 
     this.draggableObjects = true // flag for enabled ability to drag world objects
 
