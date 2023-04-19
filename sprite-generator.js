@@ -119,7 +119,10 @@ class SpriteGenerator {
         const image = app.renderer.extract.image(spriteCont, "image/png");  
         //view the image in console (testing only)
         image.then(res => {
-            nematode.SetTexture(res);
+            if (nematode.exists){
+
+             nematode.SetTexture(PIXI.Texture.from(res));
+            }
         })
         
     }
