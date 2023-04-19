@@ -118,12 +118,10 @@ class SpriteGenerator {
 
         const image = app.renderer.extract.image(spriteCont, "image/png");  
         //view the image in console (testing only)
-        
         image.then(res => {
-            console.log(res)
-            document.body.appendChild(res)
-        }, console.log)
-                
+            nematode.SetTexture(res);
+        })
+        
     }
 
     //Generate the rope given a sprite

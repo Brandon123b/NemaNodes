@@ -104,6 +104,9 @@ class Nematode {
         // Create minor vars
         this.biteCooldown = 0;          // The time until the nematode can bite again (in seconds)
 
+        //Create a random sprite
+        //this.SetTexture(SpriteGenerator.GenerateNematodeTexture(this));
+        SpriteGenerator.GenerateNematodeTexture(this);
         // Tell the world that this bibite exists
         world.add(this)
     }
