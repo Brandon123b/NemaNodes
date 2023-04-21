@@ -107,6 +107,8 @@ class Nematode {
         //Create a random sprite
         //this.SetTexture(SpriteGenerator.GenerateNematodeTexture(this));
         SpriteGenerator.GenerateNematodeTexture(this);
+
+        
         // Tell the world that this bibite exists
         world.add(this)
     }
@@ -315,7 +317,7 @@ class Nematode {
 
         // update sprite (TODO: Will be updated when the nematodes sprites are finished)
         this.sprite.width = this.size
-        this.sprite.height = this.size
+        this.sprite.height = this.size * this.GetDisplayObject().texture.height / this.GetDisplayObject().texture.width;;
         this.sprite.angle = this.direction.getAngle()
     }
 
@@ -597,8 +599,8 @@ class Nematode {
         this.sprite = PIXI.Sprite.from("Bibite.png")
         // set to different texture with this.SetTexture(newTexture)
 
-        // Set the pivot point to the center of the bibite
-        this.sprite.anchor.set(0.5);
+        // Set the pivot point to the center of the head of the bibite
+        this.sprite.anchor.set(0, 0.5);
 
         // random color tint for sprite
         //this.baseColor = Math.round(Math.random() * 0xFFFFFF)
