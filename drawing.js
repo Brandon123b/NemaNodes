@@ -11,7 +11,7 @@ class Canvas {
     this.camera = {
       zoomLevel : 1,
       maxZoomLevel : 10,
-      minZoomLevel : 0.1,
+      minZoomLevel : 0.05,
       // TODO add bounds for panning
     }
     
@@ -87,7 +87,7 @@ class Canvas {
       let returnPivot = this.container.toLocal(mousePos)
       this.container.scale = this.initialScale.multiplyScalar(this.camera.zoomLevel)
       this.container.pivot = this.container.pivot.subtract(this.container.toLocal(mousePos).subtract(returnPivot))
-      
+
       // scale the highlight circle based on zoom level to easily find selected nematode
       let hCircleMult = 2/this.camera.zoomLevel
       let bounds = [1, 10]
@@ -110,6 +110,9 @@ class Canvas {
     this.ebarcolor_low = 0xbd1111;
     this.ebarcolor_mid = 0xfcd303;
     this.ebarcolor_high = 0x0339fc;
+
+    // glow filter to apply to highlighted nematodes
+    this.nematodeGlow = new PIXI.filters.OutlineFilter(2, 0x99ff99)
   }
 
   // take a world point and convert it to a point on the screen
@@ -181,8 +184,16 @@ class Canvas {
     // Update the moving fps (Uses the last 20 frames)
     this.movingFps = this.movingFps * 0.95 + 1 / delta * 0.05;
 
+    // Get the hours, minutes, and seconds since the start of the simulation
+    const hour = Math.floor(timeSinceStart / 3600);
+    const minute = Math.floor((timeSinceStart % 3600) / 60);
+    const second = Math.floor(timeSinceStart % 60);
+
+    // Format the time string
+    const timeString = hour.toFixed(0) + ":" + minute.toFixed(0).padStart(2, '0') + ":" + second.toFixed(0).padStart(2, '0');
+
     this.fpsCounter.text =  "FPS: " + (this.movingFps).toFixed(1) +
-                            " | Time: " + timeSinceStart.toFixed(1) +
+                            " | Time: " + timeString +
                             " | Nematodes: " + world.numNematodes() +
                             " | Food: " + world.numFood();
   }
@@ -204,15 +215,22 @@ class Canvas {
       this.worldGraphics.drawRect(world.zoneSize()*x, world.zoneSize()*y, world.zoneSize(), world.zoneSize())
     }
 
-    //draw energy level bars above nematodes
-    if(world.energyBarOn) {
-      world.forEachNematode(n => this.DrawEnergyLevel(n));
-    }
+    world.forEachNematode(n => {
+      //draw energy level bars above nematodes
+      if (world.energyBarOn) this.DrawEnergyLevel(n)
+      if (world.selectedNematode)
+      // TODO have nematodes reference the same Species object held in World
+        if (world.selectedNematode.species == n.species)
+          addFilter(n.GetDisplayObject(), this.nematodeGlow, true)
+        else
+          removeFilter(n.GetDisplayObject(), this.nematodeGlow)
+
+    })
 
     if (world.selectedNematode != null){
       if (world.selectedNematode.exists) {
         if (world.drawSmell)
-          world.selectedNematode.DrawSmellRange(this.worldGraphics);
+          this.DrawSmellRange(world.selectedNematode);
       }
     }
 
@@ -243,6 +261,19 @@ class Canvas {
       this.ebar_max_length * ebar_ratio,
       this.ebar_height);   
     
+  }
+
+  /* Draws the nematodes smell range to the given graphics object */
+  DrawSmellRange(nematode) {
+
+    // Set a border to green with a width of 1 pixel and an alpha
+    this.worldGraphics.lineStyle(1, 0x00FF00, .2);
+
+    // set the fill color to red and the alpha
+    this.worldGraphics.beginFill(0xff0000, .1);
+
+    // Draw a circle with the given radius
+    this.worldGraphics.drawCircle(nematode.GetX(), nematode.GetY(), Nematode.MAX_SMELL_DISTANCE);
   }
 }
 

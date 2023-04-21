@@ -94,8 +94,28 @@ function fillDefaults(obj, defaults) {
  */
 function addBlur(obj, amount) {
   let blur = new PIXI.BlurFilter(amount)
-  if (obj.filters) obj.filters.push(blur)
-  else obj.filters = [blur]
+  addFilter(obj, blur)
+}
+
+/**
+ * Apply a filter to a display object
+ * @param {PIXI.DisplayObject} obj
+ * @param {boolean} once set to true if adding an already applied filter should be NOP
+ * @param {PIXI.Filter} filter 
+ */
+function addFilter(obj, filter, once=false) {
+  obj.filters = obj.filters || []
+  if (once && obj.filters.includes(filter)) return
+  obj.filters.push(filter)
+}
+
+/**
+ * Remove the filter from the display object
+ * @param {PIXI.DisplayObject} obj 
+ * @param {PIXI.Filter} filter 
+ */
+function removeFilter(obj, filter) {
+  if (obj.filters) obj.filters = obj.filters.filter(f => f != filter)
 }
 
 // static class to query if a key is being pressed

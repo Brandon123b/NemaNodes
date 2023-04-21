@@ -39,6 +39,13 @@ class Nematode {
     static BASE_SIZE_THRESHOLD = 0.02;
     static GROW_RATE_THRESHOLD = 0.01;
 
+    // Genus and species constants
+    static GENUS_SEP_THRESHOLD = 10;                        // The threshold for the genus name to change
+    static SPECIES_SEP_THRESHOLD = 5;                       // The threshold for the species name to change
+    static NN_WEIGHT_EFFECT = 0.2;                          // The effect that the NN weights have on the species separation
+    static NN_CONNECTION_EFFECT = 0.5;                      // The effect that the NN connections have on the species separation
+    static NN_NODE_EFFECT = 2;                              // The effect that the NN nodes have on the species separation
+
     // all possible input neurons
     static INPUT_LABELS = [
         "left food eye",
@@ -66,6 +73,8 @@ class Nematode {
     /* Instead of multiple constructors, use a single constructor that can take a position, a parent nematode, or nothing */
     constructor(arg1) {
 
+        this.biteCooldown = Nematode.BITE_COOLDOWN; // The time until the nematode can bite again (in seconds)
+
         // No arguments provided, create a random nematode
         if (arg1 === undefined) {
 
@@ -89,9 +98,7 @@ class Nematode {
 
             // These are to avoid the nematode from gaining max energy when the game is loaded
             this.UpdateStats(0, 0);
-            this.biteCooldown = 0;          // The time until the nematode can bite again (in seconds)
             world.add(this);
-
             return;
         }
 
@@ -100,9 +107,6 @@ class Nematode {
         
         // Initialize the energy of the Nematode to its maximum value
         this.energy = this.maxEnergy;
-
-        // Create minor vars
-        this.biteCooldown = 0;          // The time until the nematode can bite again (in seconds)
 
         //Create a random sprite
         //this.SetTexture(SpriteGenerator.GenerateNematodeTexture(this));
@@ -139,9 +143,14 @@ class Nematode {
         this.growRate = Nematode.GROW_RATE_RANGE.min + Math.random() * (Nematode.GROW_RATE_RANGE.max - Nematode.GROW_RATE_RANGE.min);  // The rate at which the Nematode grows (in pixels per second)
         this.childTime = Nematode.MATURITY_RANGE.min + Math.random() * (Nematode.MATURITY_RANGE.max - Nematode.MATURITY_RANGE.min);    // The age at which the Nematode can reproduce (in seconds)
 
-        this.energy = -1;              // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
-        this.speed = 0;                // The speed of the Nematode (Set in SlowUpdate)
-        this.rotate = 0;               // The rotation of the Nematode (Set in SlowUpdate)
+        this.energy = -1;               // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
+        this.speed = 0;                 // The speed of the Nematode (Set in SlowUpdate)
+        this.rotate = 0;                // The rotation of the Nematode (Set in SlowUpdate)
+
+        this.genusSeparation = 0;       // The distance between the nematode and the first nematode of its genus
+        this.speciesSeparation = 0;     // The distance between the nematode and the first nematode of its species
+
+        this.species = Species.newGenus() // brand new genus+species for the nematode
     }
 
     /* Creates a child nematode from a parent
@@ -177,6 +186,34 @@ class Nematode {
         this.energy = -1;              // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
         this.speed = 0;                // The speed of the Nematode (Set in SlowUpdate)
         this.rotate = 0;               // The rotation of the Nematode (Set in SlowUpdate)
+
+        // The distance between the nematode and the first nematode of its genus/species
+        const nnDiff = this.nn.GetLastDiff();
+        const genusDiff =   nnDiff.weight     * Nematode.NN_WEIGHT_EFFECT +     // TODO: add diff for stats?
+                            nnDiff.connection * Nematode.NN_CONNECTION_EFFECT + 
+                            nnDiff.node       * Nematode.NN_NODE_EFFECT;
+
+        // Increase the genus/species separation by the new change
+        this.genusSeparation = parent.genusSeparation + genusDiff;
+        this.speciesSeparation = parent.speciesSeparation + genusDiff;
+
+        // If the nematode is far enough from its genus/species, create a new genus/species
+        if (this.genusSeparation > Nematode.GENUS_SEP_THRESHOLD) {
+            this.species = Species.newGenus()
+            this.genusSeparation = 0;
+            this.speciesSeparation = 0;
+        }
+        
+        // C branches away from parent's species, but keeps the genus
+        else if (this.speciesSeparation > Nematode.SPECIES_SEP_THRESHOLD) {
+            this.species = parent.species.branchSpecies()
+            this.speciesSeparation = 0;
+        }
+
+        // Take the parent's genus/species
+        else {
+            this.species = parent.species
+        }
     }
 
     /* Creates a nematode from a json object
@@ -209,6 +246,10 @@ class Nematode {
         this.energy = json.energy;      // The energy of the Nematode Will be set to max in constructor (Needs to be set before UpdateStats is called)
         this.speed = json.speed;        // The speed of the Nematode (Set in SlowUpdate)
         this.rotate = json.rotate;      // The rotation of the Nematode (Set in SlowUpdate)
+        
+        this.species = new Species(json.genusName, json.speciesName)
+        this.genusSeparation = json.genusSeparation;
+        this.speciesSeparation = json.speciesSeparation;
     }
 
     // ------------------------------------ Update Functions ------------------------------------ //
@@ -467,12 +508,10 @@ class Nematode {
         // give red tint to nematode
         let tint = new PIXI.ColorMatrixFilter()
         tint.tint(0xff0000)
-        let filters = this.sprite.filters || []
-        filters.push(tint)
-        this.sprite.filters = filters
+        addFilter(this.sprite, tint)
         // remove the red tint after 1/3 seconds
         setTimeout(() => {
-            if (!this.sprite.destroyed) this.sprite.filters = this.sprite.filters.filter(f => f != tint)
+            if (!this.sprite.destroyed) removeFilter(this.sprite, tint)
         }, 300)
     }
 
@@ -553,7 +592,8 @@ class Nematode {
     */
     mkStatString() {
 
-        let statString  = "Age: " + this.age.toFixed(2) + "s\n";
+        let statString = ""
+        statString += "Age: " + this.age.toFixed(2) + "s\n";
         statString += "Energy: " + this.energy.toFixed(2) + " / " + this.maxEnergy.toFixed(2) + "\n";
         statString += "\n";
         statString += "Max Speed: " + this.maxSpeed.toFixed(2) + " pixels/s\n";
@@ -573,21 +613,11 @@ class Nematode {
         statString += "\n";
         statString += "Tint: " + this.sprite.tint.toString(16) + "\n";
         statString += "Time for next child: " + (this.childTime).toFixed(2) + "s\n";
+        statString += "\n";
+        statString += "Genus Seperation: " + this.genusSeparation.toFixed(2) + "\n";
+        statString += "Species Seperation: " + this.speciesSeparation.toFixed(2) + "\n";
 
         return statString
-    }
-
-    /* Draws the nematodes smell range to the given graphics object */
-    DrawSmellRange(graphics) {
-
-        // Set a border to green with a width of 1 pixel and an alpha
-        graphics.lineStyle(1, 0x00FF00, .2);
-
-        // set the fill color to red and the alpha
-        graphics.beginFill(0xff0000, .1);
-
-        // Draw a circle with the given radius
-        graphics.drawCircle(this.GetX(), this.GetY(), Nematode.MAX_SMELL_DISTANCE);
     }
 
     // ------------------- OTHER ------------------- //
@@ -597,7 +627,6 @@ class Nematode {
         // Create a sprite to draw (Image stolen for convenience) TODO: Replace with own image
         //this.sprite = PIXI.Sprite.from(PIXI.Texture.EMPTY) // initialize to empty sprite
         this.sprite = PIXI.Sprite.from("Bibite.png")
-        // set to different texture with this.SetTexture(newTexture)
 
         // Set the pivot point to the center of the head of the bibite
         this.sprite.anchor.set(0, 0.5);
@@ -630,7 +659,11 @@ class Nematode {
             energy: this.energy,
             speed: this.speed,
             rotate: this.rotate,
-            maxEnergy: this.maxEnergy
+            maxEnergy: this.maxEnergy,
+            genusName: this.species.genus,
+            speciesName: this.species.species,
+            genusSeparation: this.genusSeparation,
+            speciesSeparation: this.speciesSeparation
         }
     }
 
@@ -666,11 +699,6 @@ class Nematode {
 
     SetPos(x, y) {
         this.sprite.position.set(x,y)
-    }
-
-    SetTexture(texture) {
-        if (this.sprite.destroyed) throw `Cannot set the texture for a destroyed sprite`
-        this.sprite.texture = texture
     }
 
     GetDisplayObject() {
