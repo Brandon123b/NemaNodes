@@ -32,6 +32,7 @@ class Food {
 
         this.sprite = PIXI.Sprite.from('mc_cake_sprite.png') //make real sprites later
         this.sprite.anchor.set(0.5)
+        this.sprite.tint = 0x339900
         //this.sprite.scale.set(spriteScaleX, spriteScaleY)
         //set sprite position from constructor params
         this.sprite.position = position
