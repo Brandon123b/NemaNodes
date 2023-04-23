@@ -121,7 +121,8 @@ class SpriteGenerator {
         image.then(res => {
             if (nematode.exists){
 
-             nematode.SetTexture(PIXI.Texture.from(res));
+             //nematode.SetTexture(PIXI.Texture.from(res));
+             nematode.sprite.texture = PIXI.Texture.from(res)
             }
         })
         

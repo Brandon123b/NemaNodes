@@ -629,7 +629,7 @@ class Nematode {
         this.sprite = PIXI.Sprite.from("Bibite.png")
 
         // Set the pivot point to the center of the head of the bibite
-        this.sprite.anchor.set(0, 0.5);
+        this.sprite.anchor.set(1, 0.5);
 
         // random color tint for sprite
         //this.baseColor = Math.round(Math.random() * 0xFFFFFF)
