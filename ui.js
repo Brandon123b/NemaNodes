@@ -856,16 +856,9 @@ function removeNematodeFromStore(nematode) {
  */
 function importNematodes() {
   // TODO error check that uploaded file is valid
-  upload()
-    .then(filelist => {
-      let texts = []
-      for (let i = 0; i < filelist.length; i++)
-        texts.push(filelist.item(i).text())
-      return Promise.all(texts)
-    })
-    .then(jsonStrings => {
+  uploadJson().then(jsonObjs => {
       // create a new nematode from each imported file
-      const nematodes = jsonStrings.map(JSON.parse).map(obj => new Nematode(obj))
+      const nematodes = jsonObjs.map(obj => new Nematode(obj))
       storeNematode(...nematodes) // add them to the store display
       nematodes.forEach(n => n.Destroy()) // remove them from the world
       // TODO might want to allow Nematodes to be constructed without immediately placing them in the world

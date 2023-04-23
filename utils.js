@@ -208,6 +208,19 @@ async function upload() {
   return files
 }
 
+/**
+ * Prompt the user to upload files
+ * Attempt to parse the files as json
+ * @return {Promise} a promise of the list of json objects
+ */
+async function uploadJson() {
+  let filelist = await upload()
+  let texts = []
+  for (let i = 0; i < filelist.length; i++)
+    texts.push(await filelist.item(i).text())
+  return texts.map(JSON.parse)
+}
+
 
 /**
  * start animation loop for transitions. not meant to be called again

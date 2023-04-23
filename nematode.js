@@ -99,6 +99,7 @@ class Nematode {
             // These are to avoid the nematode from gaining max energy when the game is loaded
             this.UpdateStats(0, 0);
             world.add(this);
+            SpriteGenerator.GenerateNematodeTexture(this); // temporarily, until saving sprite metadata
             return;
         }
 
