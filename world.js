@@ -438,4 +438,50 @@ class World {
     return World.#zoneSize
   }
 
+
+  // -------------------- toJson
+  toJson() {
+    let speciesList = {}
+
+    let addToSpeciesList = (nematode) => {
+      let njson = nematode.toJson()
+      let entry = speciesList[nematode.species.name]
+      if (entry) entry.nematodes.push(njson)
+      else // make new entry for species
+        speciesList[nematode.species.name] = {
+          genus: nematode.species.genus,
+          species: nematode.species.species,
+          nematodes: [njson]
+        }
+    }
+
+    this.forEachNematode(addToSpeciesList)
+
+    // serialize food positions
+    let foodList = []
+    this.forEach(food => foodList.push({x: food.GetX(), y: food.GetY()}), Food)
+
+
+    return {
+      radius: World.radius,
+      foodList: foodList,
+      population: speciesList
+    }
+  }
+
+  fromJson(json) {
+    // clear out the current world
+    this.forEach(obj => obj.Destroy())
+
+    World.radius = json.radius
+
+    for (const speciesEntry of Object.values(json.population)) {
+      const species = new Species(speciesEntry.genus, speciesEntry.species)
+      speciesEntry.nematodes.forEach(json => new Nematode(json).species = species)
+    }
+
+    json.foodList.forEach(({x,y}) => new Food(new PIXI.Point(x,y)))
+
+  }
+
 }
