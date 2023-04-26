@@ -539,7 +539,7 @@ class NematodeDisplay{
  * 
  * @param {Nematode} nematode
  */
-  constructor(nematode, displayStats = false) {
+  constructor(nematode, texture, displayStats = false) {
     let textStyle = new PIXI.TextStyle({
       // TODO cleanup the textstyle objects everywhere and make a top-level style for ui
       wordWrap: true,
@@ -559,7 +559,7 @@ class NematodeDisplay{
     this.margin = 15
 
     // TODO probably provide separate accessor to nematode texture
-    this.sprite = PIXI.Sprite.from(nematode.GetDisplayObject().texture) // TODO change this to get the correct sprite
+    this.sprite = PIXI.Sprite.from(texture) // TODO change this to get the correct sprite
     this.sprite.anchor.set(0.5)
     //this.sprite.tint = nematode.baseColor
 
@@ -803,7 +803,7 @@ function displaySelectedNematode() {
   Monitor.destroyWindow("nematode")
 
   // assign new display
-  nematodeDisplayUI = new NematodeDisplay(world.selectedNematode, true)
+  nematodeDisplayUI = new NematodeDisplay(world.selectedNematode, world.selectedNematode.GetDisplayObject().texture, true)
   Monitor.assignScreen("nematode",
     Monitor.newWindow()
       .addElement(nematodeDisplayUI.container)
@@ -835,8 +835,9 @@ let storeNematodes = []
  */
 function storeNematode(...nematodes) {
   for (const nema of nematodes)
-    if (storeNematodes.includes(nema)) continue
-    else storeNematodes.push(nema)
+    //if (storeNematodes.includes(nema)) continue
+    //else storeNematodes.push(nema)
+    storeNematodes.push({nematode: nema, texture: nema.GetDisplayObject().texture})
   updateNematodeStore()
 }
 
@@ -845,7 +846,7 @@ function storeNematode(...nematodes) {
  * @param {Nematode} nematode 
  */
 function removeNematodeFromStore(nematode) {
-  const i = storeNematodes.indexOf(nematode)
+  const i = storeNematodes.findIndex(n => n.nematode == nematode)
   if (i==-1) throw `Nematode cannot be removed from store because it isn't in the store`
   storeNematodes.splice(i,1)
   updateNematodeStore()
@@ -885,10 +886,10 @@ function updateNematodeStore() {
   for (const nema of storeNematodes)
     storeListWindow
       .addText("")
-      .addElement((new NematodeDisplay(nema)).container)
+      .addElement((new NematodeDisplay(nema.nematode, nema.texture)).container)
       .addButton(() => downloadJSON(nema.toJson(), "nematode.json"), "export")
-      .addButton(() => removeNematodeFromStore(nema), "remove")
-      .addToggle(() => World.brushNematode = nema, "set as brush nematode", false)
+      .addButton(() => removeNematodeFromStore(nema.nematode), "remove")
+      .addToggle(() => World.brushNematode = nema.nematode, "set as brush nematode", false)
   
   storeListWindow.endToggleGroup()
   
