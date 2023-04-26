@@ -43,7 +43,7 @@ function main(){
         world.SpawnSmartNematodes(500);
 
         // Add some food
-        world.SpawnFood(10);
+        world.SpawnFood(1000);
         
         setInterval(mainLoop, 1000/60)
     });
