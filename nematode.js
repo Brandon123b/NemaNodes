@@ -93,6 +93,8 @@ class Nematode {
             this.CreateRandomNematode()
         }
 
+        SpriteGenerator.GenerateNematodeTexture(this);
+
         if (opts.position) this.SetPos(opts.position.x, opts.position.y)
 
         // Update the stats of the Nematode (to set the initial values)
