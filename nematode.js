@@ -93,6 +93,8 @@ class Nematode {
             this.CreateRandomNematode()
         }
 
+        SpriteGenerator.GenerateNematodeTexture(this);
+
         if (opts.position) this.SetPos(opts.position.x, opts.position.y)
 
         // Update the stats of the Nematode (to set the initial values)
@@ -350,7 +352,7 @@ class Nematode {
 
         // update sprite (TODO: Will be updated when the nematodes sprites are finished)
         this.sprite.width = this.size
-        this.sprite.height = this.size
+        this.sprite.height = this.size * this.GetDisplayObject().texture.height / this.GetDisplayObject().texture.width;;
         this.sprite.angle = this.direction.getAngle()
     }
 
@@ -620,12 +622,12 @@ class Nematode {
         //this.sprite = PIXI.Sprite.from(PIXI.Texture.EMPTY) // initialize to empty sprite
         this.sprite = PIXI.Sprite.from("Bibite.png")
 
-        // Set the pivot point to the center of the bibite
-        this.sprite.anchor.set(0.5);
+        // Set the pivot point to the center of the head of the bibite
+        this.sprite.anchor.set(1, 0.5);
 
         // random color tint for sprite
-        this.baseColor = Math.round(Math.random() * 0xFFFFFF)
-        this.sprite.tint = this.baseColor
+        //this.baseColor = Math.round(Math.random() * 0xFFFFFF)
+        //this.sprite.tint = this.baseColor
 
         // make nematodes draggable
         createDragAction(this.sprite, this.sprite,

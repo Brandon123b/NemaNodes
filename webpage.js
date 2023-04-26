@@ -40,10 +40,10 @@ function main(){
     NematodeTrainer.Initialize().then(() => {
 
         // Add some "Smart" nematodes
-        world.SpawnSmartNematodes(1000);
+        world.SpawnSmartNematodes(5);
 
         // Add some food
-        world.SpawnFood(1000);
+        world.SpawnFood(10);
         
         setInterval(mainLoop, 1000/60)
     });
@@ -70,6 +70,8 @@ function CreateUI(){
         .addSlider(x => world.maxNumFood = x, 0, world.maxNumFood*2, world.maxNumFood, 5, "max food number")
         .addSlider(x => world.foodReplenishRate = x, 0, world.maxReplenishRate, world.foodReplenishRate, 1, "food replenish rate")
         .addSlider(x => World.radius = x, 50, World.radius*3, World.radius, 10, "petri dish radius")
+        .addButton(_ => downloadJSON(world.toJson(), "world.json"), "export petri dish")
+        .addButton(_ => uploadJson().then(([worldJson]) => world.fromJson(worldJson)), "import petri dish")
         .addText("")
         .addText("Performance")
         .addSlider(x => world.SlowUpdateInterval = x, 1, 10, world.SlowUpdateInterval, 1, "slow update interval")

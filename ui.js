@@ -558,9 +558,10 @@ class NematodeDisplay{
     this.container = new PIXI.Container()
     this.margin = 15
 
-    this.sprite = PIXI.Sprite.from("Bibite.png") // TODO change this to get the correct sprite
+    // TODO probably provide separate accessor to nematode texture
+    this.sprite = PIXI.Sprite.from(nematode.GetDisplayObject().texture) // TODO change this to get the correct sprite
     this.sprite.anchor.set(0.5)
-    this.sprite.tint = nematode.baseColor
+    //this.sprite.tint = nematode.baseColor
 
     this.brain = new NNDisplay(nematode.nn)
     this.container.addChild(header)
@@ -568,14 +569,14 @@ class NematodeDisplay{
     this.container.addChild(this.brain.container)
 
     // change sprite scale to match the NN display
-    this.sprite.scale.multiplyScalar(this.brain.container.height / this.sprite.height, this.sprite.scale)
+    //this.sprite.scale.multiplyScalar(this.brain.container.height / this.sprite.height, this.sprite.scale)
     this.sprite.position.set(this.sprite.width/2, this.sprite.height/2)
-    this.brain.container.x = this.sprite.x + this.sprite.width/2 + this.margin
+    //this.brain.container.x = this.sprite.x + this.sprite.width/2 + this.margin
 
     // position nematode sprite and brain below the header
     let headerSpaceY = header.y + header.height
     this.sprite.y += headerSpaceY
-    this.brain.container.y += headerSpaceY
+    this.brain.container.y += this.sprite.y + this.sprite.height/2
 
     if (displayStats) {
       this.statsText = new PIXI.Text(nematode.mkStatString(), textStyle)
@@ -590,7 +591,7 @@ class NematodeDisplay{
   // refresh the display by redrawing the NN
   update() {
     this.brain.update()
-    if (this.nematode.exists) this.sprite.angle = this.nematode.GetAngle()
+    //if (this.nematode.exists) this.sprite.angle = this.nematode.GetAngle()
     if (this.statsText) this.statsText.text = this.nematode.mkStatString()
   }
 
@@ -855,16 +856,9 @@ function removeNematodeFromStore(nematode) {
  */
 function importNematodes() {
   // TODO error check that uploaded file is valid
-  upload()
-    .then(filelist => {
-      let texts = []
-      for (let i = 0; i < filelist.length; i++)
-        texts.push(filelist.item(i).text())
-      return Promise.all(texts)
-    })
-    .then(jsonStrings => {
+  uploadJson().then(jsonObjs => {
       // create a new nematode from each imported file
-      const nematodes = jsonStrings.map(JSON.parse).map(obj => new Nematode({json: obj, addToWorld: false}))
+      const nematodes = jsonObjs.map(obj => new Nematode(obj))
       storeNematode(...nematodes) // add them to the store display
       //nematodes.forEach(n => n.Destroy()) // remove them from the world
     })
