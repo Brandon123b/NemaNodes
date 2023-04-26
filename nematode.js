@@ -71,51 +71,42 @@ class Nematode {
     // ------------------------- Constructors ------------------------- //
 
     /* Instead of multiple constructors, use a single constructor that can take a position, a parent nematode, or nothing */
-    constructor(arg1) {
+    /**
+     * 
+     * @param {*} opts parameter object: {
+     * json: JSON object to construct nematode from
+     * parent: a parent Nematode to create a child from
+     * position: PIXI.Point, the position to initialize this nematode to
+     * addToWorld: boolean, set to false to keep this nematode from being inserted into game world
+     * } 
+     */
+    constructor(opts) {
+        opts = fillDefaults(opts, {
+            addToWorld: true
+        })
 
-        this.biteCooldown = Nematode.BITE_COOLDOWN; // The time until the nematode can bite again (in seconds)
-
-        // No arguments provided, create a random nematode
-        if (arg1 === undefined) {
-
-            this.CreateRandomNematode();
-        } 
-        // PIXI.Point argument provided for position (Create a random nematode at the position)
-        else if (arg1 instanceof PIXI.Point) {
-
-            this.CreateRandomNematode(arg1);
-            this.SetPos(arg1.x, arg1.y);  
-        } 
-        // Nematode argument provided to create a child of the parent nematode
-        else if (arg1 instanceof Nematode) {
-
-            this.CreateChildNematode(arg1);
+        if (opts.json) {                // construct a nematode from a json object
+            this.CreateJsonNematode(opts.json)
+        } else if (opts.parent) {       // spawn a new nematode based off a parent nematode
+            this.CreateChildNematode(opts.parent)
+        } else {                        // otherwise just create a random nematode
+            this.CreateRandomNematode()
         }
-        // Object argument provided to create a nematode from a saved state
-        else if (arg1 instanceof Object) {
-                
-            this.CreateJsonNematode(arg1);
 
-            // These are to avoid the nematode from gaining max energy when the game is loaded
-            this.UpdateStats(0, 0);
-            world.add(this);
-            SpriteGenerator.GenerateNematodeTexture(this); // temporarily, until saving sprite metadata
-            return;
-        }
+        if (opts.position) this.SetPos(opts.position.x, opts.position.y)
 
         // Update the stats of the Nematode (to set the initial values)
-        this.UpdateStats(0, 0)   
-        
-        // Initialize the energy of the Nematode to its maximum value
-        this.energy = this.maxEnergy;
+        this.UpdateStats(0)
 
-        //Create a random sprite
-        //this.SetTexture(SpriteGenerator.GenerateNematodeTexture(this));
-        SpriteGenerator.GenerateNematodeTexture(this);
+        // when not loading nematode from saved state
+        // give it max energy and bite cooldown
+        if (opts.json == undefined) {
+            this.biteCooldown = Nematode.BITE_COOLDOWN
+            this.energy = this.maxEnergy
+        }
 
-        
-        // Tell the world that this bibite exists
-        world.add(this)
+        if (opts.addToWorld) world.add(this)
+        this.exists = opts.addToWorld
     }
 
     /* Creates a random nematode (with random stats and position)
@@ -127,7 +118,7 @@ class Nematode {
         this.age = 0;
         this.generation = 0;
 
-        this.exists = true;             // Nematodes exist by default
+        //this.exists = true;             // Nematodes exist by default
         this.alive = true;              // Nematodes are (hopefully) alive by default
         this.paralyzed = false;         // set flag to true to prevent nematode from moving
 
@@ -164,7 +155,7 @@ class Nematode {
         this.age = 0;  
         this.generation = parent.generation + 1
 
-        this.exists = true;             // Nematodes exist by default
+        //this.exists = true;             // Nematodes exist by default
         this.alive = true;              // Nematodes are (hopefully) alive by default
         this.paralyzed = false;         // set flag to true to prevent nematode from moving
 
@@ -227,7 +218,7 @@ class Nematode {
         this.age = json.age;
         this.generation = json.generation; // Number of ancestors this nematode has
 
-        this.exists = true;             // Nematodes exist by default
+        //this.exists = true;             // Nematodes exist by default
         this.alive = json.alive;        // Nematodes are (hopefully) alive by default
         this.paralyzed = false;         // set flag to true to prevent nematode from moving
 
@@ -470,7 +461,7 @@ class Nematode {
         if (this.childTime <= 0 && this.energy > this.maxEnergy * Nematode.PERCENTAGE_ENERGY_TO_REPRODUCE){
             this.childTime = Nematode.TIME_BETEWEEN_CHILDREN;                                // Reset the child time
             this.energy -= this.maxEnergy * Nematode.PERCENT_ENERGY_LOST_WHEN_REPRODUCING;  // Lose energy when reproducing
-            new Nematode(this);                                                             // Create a new Nematode child
+            new Nematode({parent: this});                                                  // Create a new Nematode child
         }
     }
     
@@ -519,7 +510,7 @@ class Nematode {
     /* Destroy this nematode */
     Destroy() {
         // remove nematode from world structure
-        world.destroy(this);
+        if (this.exists) world.destroy(this);
 
         // Set the nematode to not exist
         this.exists = false;

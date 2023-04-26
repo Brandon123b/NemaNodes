@@ -421,7 +421,7 @@ class UICard {
     btn.position.set(btn.width/2)
     
     // is this button part of a group of mutually exclusive toggles
-    if (this.toggleGroup) this.toggleGroup.push(btn)
+    if (this.toggleGroup && isToggle) this.toggleGroup.push(btn)
 
     if (label) {
       let text = new PIXI.Text(label, this.#textStyle({
@@ -803,7 +803,7 @@ function displaySelectedNematode() {
   Monitor.destroyWindow("nematode")
 
   // assign new display
-  nematodeDisplayUI = new NematodeDisplay(world.selectedNematode, displayStats=true)
+  nematodeDisplayUI = new NematodeDisplay(world.selectedNematode, true)
   Monitor.assignScreen("nematode",
     Monitor.newWindow()
       .addElement(nematodeDisplayUI.container)
@@ -860,8 +860,7 @@ function importNematodes() {
       // create a new nematode from each imported file
       const nematodes = jsonObjs.map(obj => new Nematode(obj))
       storeNematode(...nematodes) // add them to the store display
-      nematodes.forEach(n => n.Destroy()) // remove them from the world
-      // TODO might want to allow Nematodes to be constructed without immediately placing them in the world
+      //nematodes.forEach(n => n.Destroy()) // remove them from the world
     })
 }
 
@@ -880,12 +879,18 @@ function updateNematodeStore() {
     .addText("Nematode Database")
     .addButton(importNematodes, "import nematode")
 
+  // make toggle group for setting nematode brush
+  storeListWindow.startToggleGroup()
+
   for (const nema of storeNematodes)
     storeListWindow
       .addText("")
       .addElement((new NematodeDisplay(nema)).container)
       .addButton(() => downloadJSON(nema.toJson(), "nematode.json"), "export")
       .addButton(() => removeNematodeFromStore(nema), "remove")
+      .addToggle(() => World.brushNematode = nema, "set as brush nematode", false)
+  
+  storeListWindow.endToggleGroup()
   
   Monitor.assignScreen("store", storeListWindow)
   if (Monitor.currentScreen === "store") Monitor.switchTo("store")
